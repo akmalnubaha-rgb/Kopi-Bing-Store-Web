@@ -204,11 +204,12 @@ import Base from '../layouts/Base.astro';
           payment_method: payMethod
         };
         const order=await createOrder(payload);
-        var noteParts=[];
         try{ var u=JSON.parse(localStorage.getItem('kb_utm')||'null');
-          if(u && u.src){ noteParts.push('Iklan: '+u.src+(u.camp?(' / '+u.camp):'')+(u.term?(' / ad: '+u.term):'')+(u.content?(' / adset: '+u.content):'')); }
+          if(u && u.src && order.secret_slug){
+            var note='Iklan: '+u.src+(u.camp?(' / '+u.camp):'')+(u.term?(' / ad: '+u.term):'')+(u.content?(' / adset: '+u.content):'');
+            try{ await patchOrder(order.secret_slug, { notes: note }); }catch(e){}
+          }
         }catch(e){}
-        if(noteParts.length && order.secret_slug){ try{ await patchOrder(order.secret_slug, { notes: noteParts.join(' | ') }); }catch(e){} }
         const pval = Number(order.gross_revenue || order.total_price || order.total || (sub+ship));
         const peid = String(order.order_id || order.secret_slug || Date.now())+'-OrderCreated-FORM';
         try{ await trackMeta('OrderCreated', {content_ids:cart.map(function(i){return String(i.vid||i.slug);}), content_type:'product', value:pval, currency:'IDR', num_items:cart.reduce(function(s,i){return s+i.qty;},0)}, peid, {ph:phone, ct:(loc&&loc.city_name)||undefined, st:(loc&&loc.province_name)||undefined}); }catch(e){}
