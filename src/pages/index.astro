@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { products, categories } from '../data/products.js';
+const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
+---
+<Base title="Toko Kopi Bing — Kopi Giling Seluruh Indonesia">
+  <section class="hero">
+    <div class="wrap heroin">
+      <div class="pricebanner">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>
+      <div class="q">Mau kopi yang pahit atau asem?</div>
+      <div class="s">Pilih selera kamu, kami tunjukkan kopinya</div>
+      <div class="choices">
+        <a class="ch pahit" href="#katalog" data-filter="robusta">
+          <div class="ct">Pahit</div><div class="cs">Robusta</div>
+        </a>
+        <a class="ch asem" href="#katalog" data-filter="arabika">
+          <div class="ct">Asem</div><div class="cs">Arabika</div>
+        </a>
+      </div>
+      <div class="grind">&#9881; Bisa request gilingan: halus &middot; sedang &middot; kasar &middot; biji utuh</div>
+    </div>
+  </section>
+
+  <section class="wrap" id="katalog">
+    <div class="filters">
+      {categories.map(c => (
+        <button class={"fbtn" + (c.id==='all'?' active':'')} data-cat={c.id}>{c.label}</button>
+      ))}
+    </div>
+    <div class="grid" id="grid">
+      {products.map((p,idx) => (
+        <>
+          <div class="cell" data-cat={p.cat}><ProductCard p={p} /></div>
+          {idx===7 && (
+            <div class="testi-band">
+              <div class="testi-head"><span>Kata pelanggan Kopi Bing</span><span class="hint">geser &rarr;</span></div>
+              <div class="testi-track">
+                {testis.map(src => (<div class="testi-card"><img src={src} loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>))}
+              </div>
+            </div>
+          )}
+        </>
+      ))}
+    </div>
+  </section>
+
+  <style>
+    .hero{ background:#3A2A1C; }
+    .heroin{ padding:44px 18px; text-align:center; }
+    .pricebanner{ display:inline-block; background:var(--yellow); color:#5A3419; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:18px; max-width:440px; }
+    .hero .q{ color:#fff; font-size:27px; font-weight:600; }
+    .hero .s{ color:#CBBBA6; font-size:14px; margin:9px 0 22px; }
+    .choices{ display:flex; gap:14px; justify-content:center; }
+    .ch{ border-radius:14px; padding:16px 30px; border:2px solid transparent; cursor:pointer; }
+    .ch.pahit{ background:var(--brown); border-color:var(--yellow); }
+    .ch.asem{ background:var(--teal); border-color:#BEEAF1; }
+    .ch .ct{ font-size:19px; font-weight:600; color:#fff; }
+    .ch.pahit .ct{ color:var(--yellow); }
+    .ch .cs{ font-size:12px; color:#E4D6C2; }
+    .ch.asem .cs{ color:#D6F2F7; }
+    .grind{ display:inline-block; margin-top:22px; background:#4A3527; color:#EFE0CC; font-size:12px; padding:9px 16px; border-radius:20px; }
+    .filters{ display:flex; gap:9px; padding:24px 0 14px; flex-wrap:wrap; }
+    .fbtn{ background:#F3E7CE; color:var(--brown); border:none; font-family:inherit; font-size:14px; padding:8px 18px; border-radius:20px; cursor:pointer; }
+    .fbtn.active{ background:var(--brown); color:var(--cream-bg); }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; padding-bottom:10px; }
+    .testi-band{ grid-column:1 / -1; margin:14px 0 6px; }
+    .testi-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+    .testi-head span:first-child{ font-size:17px; font-weight:600; color:var(--brown); }
+    .testi-head .hint{ font-size:12px; color:var(--muted); }
+    .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; scrollbar-width:thin; }
+    .testi-card{ flex:0 0 auto; width:230px; scroll-snap-align:start; background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; overflow:hidden; }
+    .testi-card img{ width:100%; display:block; }
+    @media(max-width:520px){ .hero .q{ font-size:22px; } .choices{ gap:10px; } }
+  </style>
+
+  <script>
+    const btns=document.querySelectorAll('.fbtn');
+    const cells=document.querySelectorAll('.cell');
+    function apply(cat){
+      btns.forEach(b=>b.classList.toggle('active', b.dataset.cat===cat));
+      cells.forEach(c=>{ c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none'; });
+    }
+    btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.cat)));
+    document.querySelectorAll('.ch').forEach(a=>a.addEventListener('click',()=>apply(a.dataset.filter)));
+  </script>
+</Base>

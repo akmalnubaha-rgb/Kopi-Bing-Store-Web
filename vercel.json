@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/o/:slug", "destination": "/pesanan" },
+    { "source": "/o/:slug/success", "destination": "/pesanan" }
+  ]
+}

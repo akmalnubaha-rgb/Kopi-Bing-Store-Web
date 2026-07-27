@@ -1,0 +1,34 @@
+---
+const { p } = Astro.props;
+const min = p.prices[100];
+const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
+const noteClass = p.taste === 'pahit' ? 'n-brown' : (p.taste==='asem' ? 'n-teal' : 'n-mix');
+---
+<a class="card" href={`/produk/${p.slug}`}>
+  <div class="thumb">
+    <img src={`/img/${p.slug}.webp`} alt={p.name} loading="lazy" />
+  </div>
+  <div class="body">
+    <div class="nm">{p.name}</div>
+    <div class="notes">
+      <span class={"tag " + noteClass}>{p.notes[0]}</span>
+      {p.notes[1] && <span class="tag n-soft">{p.notes[1]}</span>}
+    </div>
+    <div class="price">mulai {fmt(min)}</div>
+  </div>
+</a>
+<style>
+  .card{ display:block; background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; overflow:hidden; transition:transform .12s, box-shadow .12s; }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(128,76,42,.12); }
+  .thumb{ aspect-ratio:1/1; background:#F3E7CE; }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .body{ padding:11px 13px; }
+  .nm{ font-size:14px; font-weight:500; color:var(--ink); }
+  .notes{ margin:6px 0; display:flex; gap:5px; flex-wrap:wrap; }
+  .tag{ font-size:10px; padding:3px 9px; border-radius:20px; }
+  .n-brown{ background:#F0E0C6; color:#804C2A; }
+  .n-teal{ background:#DCEFF3; color:#0A6B7E; }
+  .n-mix{ background:#EFE7D6; color:#6B4E37; }
+  .n-soft{ background:#EFE1D6; color:#7A4A2B; }
+  .price{ font-size:14px; font-weight:500; color:var(--brown); }
+</style>

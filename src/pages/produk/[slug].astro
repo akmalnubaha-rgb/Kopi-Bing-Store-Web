@@ -1,0 +1,158 @@
+---
+import Base from '../../layouts/Base.astro';
+import { products } from '../../data/products.js';
+import { VARIANT_G } from '../../data/scalev.js';
+export function getStaticPaths(){
+  return products.map(p => ({ params:{ slug:p.slug }, props:{ p } }));
+}
+const { p } = Astro.props;
+const vg = VARIANT_G[p.slug] || {};
+const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
+const grinds = ["Halus","Sedang","Kasar","Biji utuh"];
+const weights = [{g:100,label:"100gr"},{g:250,label:"250gr"},{g:500,label:"500gr"},{g:1000,label:"1kg"}];
+const defGrind = "Sedang";
+const dots = (v)=> Math.max(0, Math.min(5, Math.round(v/20)));
+const rows = [
+  { k:"Pahit", v:p.intensity.pahit, c:"#804C2A" },
+  { k:"Asam", v:p.intensity.asam, c:"#0097B2" },
+  { k:"Body", v:p.intensity.body, c:"#C9922E" },
+];
+---
+<Base title={p.name + " — Toko Kopi Bing"}>
+  <div class="wrap dp">
+    <a class="back" id="backLink" href="/#katalog">&#8592; Kembali ke katalog</a>
+    <div class="hero-img">
+      <img src={`/img/${p.slug}.webp`} alt={p.name} />
+    </div>
+
+    <div class="cat">{p.cat.toUpperCase()} &middot; {p.origin}</div>
+    <h1>{p.name}</h1>
+    <div class="notes">
+      {p.notes.map((n,i)=>(<span class={"tag " + (i===0 ? (p.taste==='asem'?'t-teal':'t-brown') : 't-soft')}>{n}</span>))}
+    </div>
+
+    <div class="panel">
+      <div class="pt">Profil rasa</div>
+      {rows.map(r=>(
+        <div class="bar">
+          <span>{r.k}</span>
+          <div class="dots">
+            {[0,1,2,3,4].map(i=>(
+              <b class="dot" style={i < dots(r.v) ? `background:${r.c};border-color:${r.c}` : ''}></b>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <p class="desc">{p.desc}</p>
+
+    <div class="lbl">Pilih berat</div>
+    <div class="opts" id="weights">
+      {weights.map((w,i)=>(
+        <button class={"opt" + (i===1?' on':'')} data-g={w.g} data-price={p.prices[w.g]}>{w.label}</button>
+      ))}
+    </div>
+
+    <div class="lbl">Pilih gilingan <span class="hint">&middot; disarankan {defGrind}</span></div>
+    <div class="opts" id="grinds">
+      {grinds.map(g=>(
+        <button class={"opt" + (g===defGrind?' on':'')} data-grind={g}>{g}</button>
+      ))}
+    </div>
+
+    <div class="panel soft">
+      <div class="pt">Paling enak diseduh</div>
+      <div class="brew">{p.brew.map(b=>(<span>&#9749; {b}</span>))}</div>
+    </div>
+
+    <div class="buybar">
+      <div class="bmeta">
+        <div class="bsel" id="selInfo">250gr &middot; {defGrind}</div>
+        <div class="bprice" id="selPrice">{fmt(p.prices[250])}</div>
+      </div>
+      <div class="bbtns">
+        <button class="btn-cart" id="addBtn">+ Keranjang</button>
+        <button class="btn-buy" id="buyBtn">Beli langsung</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .dp{ padding-top:14px; max-width:640px; }
+    .back{ display:inline-block; color:var(--brown); font-size:13px; margin-bottom:10px; }
+    .back:hover{ color:var(--teal-d); }
+    .hero-img{ border-radius:14px; margin:6px 0 16px; overflow:hidden; background:#F3E7CE; }
+    .hero-img img{ width:100%; display:block; }
+    .cat{ color:var(--muted); font-size:11px; letter-spacing:1px; }
+    h1{ font-size:24px; font-weight:600; margin:3px 0 10px; }
+    .notes{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .tag{ font-size:11px; padding:4px 11px; border-radius:20px; }
+    .t-brown{ background:#F0E0C6; color:#804C2A; } .t-teal{ background:#DCEFF3; color:#0A6B7E; } .t-soft{ background:#EFE1D6; color:#7A4A2B; }
+    .panel{ background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+    .panel.soft{ background:#FBF2DF; border:none; }
+    .pt{ color:#6B4E37; font-size:12px; font-weight:500; margin-bottom:10px; }
+    .bar{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+    .bar:last-child{ margin-bottom:0; }
+    .bar span{ width:50px; color:#7A6551; font-size:12px; }
+    .dots{ display:flex; gap:6px; }
+    .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid #D8C6A8; background:#F3E7CE; display:inline-block; }
+    .desc{ color:#5A4636; font-size:14px; line-height:1.7; margin-bottom:18px; }
+    .lbl{ color:#6B4E37; font-size:12px; font-weight:500; margin-bottom:8px; }
+    .hint{ color:#A89372; font-weight:400; }
+    .opts{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .opt{ border:0.5px solid #D8C6A8; background:#fff; color:#6B4E37; font-family:inherit; font-size:13px; padding:8px 15px; border-radius:8px; cursor:pointer; }
+    .opt.on{ border:1.5px solid var(--teal); background:#E3F3F6; color:var(--teal-d); }
+    .brew{ display:flex; gap:16px; flex-wrap:wrap; color:var(--brown); font-size:12px; }
+    .buybar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--brown); border-radius:12px; padding:12px 16px; position:sticky; bottom:12px; }
+    .bmeta{ min-width:110px; }
+    .bsel{ color:#D8B48C; font-size:11px; } .bprice{ color:var(--cream); font-size:19px; font-weight:600; }
+    .bbtns{ display:flex; gap:8px; flex:1; justify-content:flex-end; }
+    .btn-cart{ background:#fff; color:var(--brown); border:1.5px solid var(--cream); border-radius:9px; padding:11px 16px; font-weight:500; font-size:14px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .btn-cart:hover{ background:#FBF2DF; }
+    .buybar .btn-buy{ white-space:nowrap; }
+    @media(max-width:440px){ .bbtns{ flex-basis:100%; } .btn-cart,.buybar .btn-buy{ flex:1; } }
+  </style>
+
+  <script define:vars={{ product:{ slug:p.slug, name:p.name, prices:p.prices, vg: vg } }}>
+    let g=250, grind = document.querySelector('#grinds .opt.on').dataset.grind;
+    const fmt=(n)=>"Rp "+n.toLocaleString('id-ID');
+    const LP = new URLSearchParams(location.search).get('lp');
+    if(LP){
+      const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; }
+      const ab=document.getElementById('addBtn'); if(ab){ ab.style.display='none'; }
+    }
+    const info=document.getElementById('selInfo'), price=document.getElementById('selPrice');
+    function refresh(){ info.textContent=(g>=1000?'1kg':g+'gr')+' · '+grind; price.textContent=fmt(product.prices[g]); }
+    document.querySelectorAll('#weights .opt').forEach(function(b){ b.addEventListener('click',function(){
+      document.querySelectorAll('#weights .opt').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); g=+b.dataset.g; refresh();
+    });});
+    document.querySelectorAll('#grinds .opt').forEach(function(b){ b.addEventListener('click',function(){
+      document.querySelectorAll('#grinds .opt').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on'); grind=b.dataset.grind; refresh();
+    });});
+    const WORDER=[100,250,500,1000];
+    function vidFor(w,gr){ const m=(product.vg||{})[gr||grind]||(product.vg||{})['Sedang']||[]; return m[WORDER.indexOf(Number(w))]; }
+    function addToCart(){
+      const cart=JSON.parse(localStorage.getItem('kb_cart')||'[]');
+      const key=product.slug+'-'+g+'-'+grind;
+      const ex=cart.find(function(i){return i.key===key;});
+      if(ex){ ex.qty++; } else { cart.push({key:key,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)}); }
+      localStorage.setItem('kb_cart',JSON.stringify(cart));
+      const el=document.getElementById('cartCount'); if(el) el.textContent=cart.reduce(function(s,i){return s+i.qty;},0);
+      if(window.fbq) fbq('track','AddToCart',{content_ids:[String(vidFor(g)||product.slug)],content_name:product.name,content_type:'product',value:product.prices[g],currency:'IDR'});
+    }
+    document.getElementById('addBtn').addEventListener('click',function(){
+      addToCart();
+      const btn=this; const t=btn.textContent; btn.textContent='✓ Ditambahkan'; setTimeout(function(){btn.textContent=t;},1200);
+    });
+    document.getElementById('buyBtn').addEventListener('click',function(){
+      const item={key:product.slug+'-'+g+'-'+grind,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)};
+      sessionStorage.setItem('kb_buynow',JSON.stringify([item]));
+      window.location.href='/checkout?buynow=1' + (LP?('&lp='+LP):'');
+    });
+    refresh();
+    if(window.fbq) fbq('track','ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});
+  </script>
+</Base>

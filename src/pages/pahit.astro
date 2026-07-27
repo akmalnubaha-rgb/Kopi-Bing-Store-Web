@@ -1,0 +1,146 @@
+---
+import Base from '../layouts/Base.astro';
+import { products } from '../data/products.js';
+
+// Tema "kopi pahit" — 3 pilihan robusta, diurut dari paling pahit.
+// mp = harga referensi marketplace (Shopee/TikTok) buat anchor 250gr.
+const picks = [
+  { slug:"robusta-sidikalang", level:"PAHIT BANGET", meter:5, mp:94000, blurb:"Dark roast oily, pahitnya tebal & nendang. Buat yang cari pahit maksimal." },
+  { slug:"robusta-temanggung", level:"PAHIT PAS",    meter:4, mp:94000, blurb:"Pahit pas, body bold dengan rasa coklat pekat sedikit manis. Mantap buat kopi susu & tubruk." },
+  { slug:"robusta-gayo",       level:"PAHIT SEDANG", meter:3, mp:94000, blurb:"Pahit sedang, sama sekali nggak asem. Enak diminum harian tanpa gula." },
+].map(x => ({ ...x, p: products.find(p => p.slug === x.slug) }));
+
+const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
+const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
+---
+<Base title="3 Kopi Robusta Pahit Paling Laris — Kopi Bing" naked={true}>
+  <div class="wrap lp" id="top">
+
+    <div class="logo-top"><img src="/img/logo.png" alt="Kopi Bing" /></div>
+
+    <section class="hero">
+      <h1>Ini 3 Kopi Robusta Pahit Paling Laris!</h1>
+      <p class="sub">Sudah terjual ribuan di TikTok Shop dan Shopee. Bisa request gilingan. Pilih selera pahitmu di bawah 👇</p>
+    </section>
+
+    <section class="cards">
+      {picks.map(({p, level, mp, blurb, meter})=>(
+        <a class="card" href={`/produk/${p.slug}?lp=pahit`}>
+          <div class="imgs">
+            <div class="imgtrack">
+              <div class="imgslide"><img src={`/img/${p.slug}-real.webp`} alt={`Foto asli ${p.name}`} loading="lazy" /></div>
+              <div class="imgslide"><img src={`/img/${p.slug}.webp`} alt={p.name} loading="lazy" /></div>
+            </div>
+            <div class="idots"><b class="on"></b><b></b></div>
+          </div>
+          <div class="body">
+            <span class={"lvl " + (meter>=5?'l3':meter===4?'l2':'l1')}>{level}</span>
+            <h3>{p.name}</h3>
+            <div class="origin">{p.origin}</div>
+            <div class="meter">
+              <span>Pahit</span>
+              <div class="dots">{[0,1,2,3,4].map(i=>(<b class={i < meter ? 'on':''}></b>))}</div>
+            </div>
+            <p class="blurb">{blurb}</p>
+
+            <div class="price">
+              <span class="mp">{fmt(mp)}</span>
+              <span class="now">{fmt(p.prices[250])}</span>
+              <span class="per">/250gr</span>
+            </div>
+            <div class="cups">250gr bisa diseduh untuk ±25 gelas (tubruk)</div>
+
+            <span class="buy">Pesan {p.name} →</span>
+          </div>
+        </a>
+      ))}
+    </section>
+
+    <section class="proof">
+      <h2>Sudah dipercaya ribuan pembeli</h2>
+      <p class="psub">Toko resmi aktif di TikTok Shop &amp; Shopee. Geser untuk lihat ulasan pembeli 👉</p>
+      <div class="testi-track">
+        {testis.map(src => (<div class="testi-card"><img src={src} loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>))}
+      </div>
+    </section>
+
+    <section class="ragu">
+      <h2>Masih ragu? Takut kami tipu-tipu? 😌</h2>
+      <p>Tenang. Kami <b>live di TikTok setiap hari</b> (@kopibing_), total 50.000 followers di semua sosmed. Kalau ada pesanan bermasalah, kamu bisa langsung mampir komplain di live. Ini yang bikin ribuan orang berani order.</p>
+    </section>
+
+  </div>
+
+  <style>
+    .lp{ max-width:1000px; padding-top:16px; padding-bottom:30px; }
+    .logo-top{ text-align:center; margin:4px 0 18px; }
+    .logo-top img{ width:64px; height:64px; border-radius:50%; }
+
+    .hero{ text-align:center; max-width:660px; margin:0 auto 24px; }
+    .hero h1{ font-size:29px; line-height:1.22; font-weight:600; color:var(--brown-d); }
+    .hero .sub{ color:#5A4636; font-size:15px; line-height:1.7; margin-top:12px; }
+
+    .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .card{ background:#fff; border:0.5px solid #E6D6B8; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .12s, box-shadow .12s; }
+    .card:hover{ transform:translateY(-3px); box-shadow:0 8px 22px rgba(128,76,42,.14); }
+    .imgs{ position:relative; background:#F3E7CE; }
+    .imgtrack{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; }
+    .imgtrack::-webkit-scrollbar{ display:none; }
+    .imgslide{ flex:0 0 100%; scroll-snap-align:start; aspect-ratio:4/3; }
+    .imgslide img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .idots{ position:absolute; bottom:8px; left:0; right:0; display:flex; gap:6px; justify-content:center; }
+    .idots b{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:0 0 2px rgba(0,0,0,.3); }
+    .idots b.on{ background:#fff; }
+    .body{ padding:14px 15px 16px; display:flex; flex-direction:column; flex:1; }
+    .lvl{ align-self:flex-start; font-size:15px; font-weight:800; letter-spacing:.5px; padding:6px 14px; border-radius:8px; margin-bottom:9px; }
+    .lvl.l3{ background:#5A3419; color:#FFE7C0; } .lvl.l2{ background:#804C2A; color:#FFE7C0; } .lvl.l1{ background:#C9922E; color:#fff; }
+    .body h3{ font-size:18px; font-weight:600; color:var(--ink); }
+    .origin{ color:var(--muted); font-size:11px; letter-spacing:.5px; margin-top:2px; }
+    .meter{ display:flex; align-items:center; gap:9px; margin:10px 0; }
+    .meter span{ font-size:11px; color:#7A6551; }
+    .dots{ display:flex; gap:5px; }
+    .dots b{ width:12px; height:12px; border-radius:50%; border:1.5px solid #D8C6A8; background:#F3E7CE; }
+    .dots b.on{ background:#804C2A; border-color:#804C2A; }
+    .blurb{ color:#5A4636; font-size:13px; line-height:1.6; flex:1; }
+    .price{ display:flex; align-items:baseline; gap:8px; margin:13px 0 4px; flex-wrap:wrap; }
+    .price .mp{ color:#B0A088; font-size:14px; text-decoration:line-through; }
+    .price .now{ color:var(--brown); font-size:23px; font-weight:700; }
+    .price .per{ color:#7A6551; font-size:12px; }
+    .cups{ color:#7A6551; font-size:12px; margin-bottom:12px; }
+    .buy{ margin-top:auto; text-align:center; background:var(--green); color:#fff; border-radius:10px; padding:13px; font-size:14px; font-weight:600; }
+    .card:hover .buy{ filter:brightness(1.05); }
+
+    .proof{ text-align:center; margin:40px 0 0; }
+    .proof h2, .ragu h2{ font-size:23px; font-weight:600; color:var(--brown-d); }
+    .psub{ color:#5A4636; font-size:14px; margin:8px auto 18px; max-width:520px; }
+    .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:12px; scrollbar-width:thin; }
+    .testi-card{ flex:0 0 auto; width:300px; scroll-snap-align:start; background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; overflow:hidden; }
+    .testi-card img{ width:100%; display:block; }
+
+    .ragu{ text-align:center; background:#FBF2DF; border-radius:16px; padding:28px 22px; margin:40px 0 0; }
+    .ragu p{ color:#5A4636; font-size:15px; line-height:1.7; max-width:580px; margin:12px auto 0; }
+
+    @media(max-width:720px){
+      .cards{ grid-template-columns:1fr; gap:14px; }
+      .card{ flex-direction:row; align-items:stretch; }
+      .imgs{ width:140px; flex-shrink:0; }
+      .hero h1{ font-size:24px; }
+      .testi-card{ width:250px; }
+    }
+    @media(max-width:440px){
+      .card{ flex-direction:column; }
+      .imgs{ width:100%; }
+    }
+  </style>
+
+  <script>
+    document.querySelectorAll('.imgs').forEach(function(box){
+      const track=box.querySelector('.imgtrack');
+      const dots=box.querySelectorAll('.idots b');
+      track.addEventListener('scroll',function(){
+        const i=Math.round(track.scrollLeft/track.clientWidth);
+        dots.forEach(function(d,k){ d.classList.toggle('on', k===i); });
+      },{passive:true});
+    });
+  </script>
+</Base>

@@ -1,0 +1,217 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Checkout — Toko Kopi Bing">
+  <div class="wrap cop">
+    <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
+    <h1>Checkout</h1>
+
+    <div class="sec">Data penerima</div>
+    <input class="fld" id="nama" placeholder="Nama lengkap" />
+    <input class="fld" id="wa" placeholder="Nomor WhatsApp (contoh 08123456789)" />
+    <input class="fld" id="alamat" placeholder="Alamat lengkap (nama jalan, no rumah, RT/RW)" />
+
+    <div class="sec">Wilayah pengiriman</div>
+    <div class="loc">
+      <input class="fld" id="locSearch" placeholder="Ketik kecamatan / kota (min 3 huruf)" autocomplete="off" />
+      <div id="locResults" class="locres" style="display:none"></div>
+    </div>
+    <div id="locPicked" class="picked" style="display:none"></div>
+    <select class="fld" id="postal" style="display:none"></select>
+
+    <div id="courierWrap" style="display:none">
+      <div class="sec">Pilih kurir</div>
+      <div class="courier" id="courier"></div>
+    </div>
+
+    <div class="sec">Metode pembayaran</div>
+    <div class="courier" id="paymethods"><div class="note">Memuat metode pembayaran...</div></div>
+
+    <div class="summary">
+      <div class="pt">Ringkasan pesanan</div>
+      <div id="items"></div>
+      <div class="line"></div>
+      <div class="row"><span id="subLabel">Subtotal</span><span id="subtotal">Rp 0</span></div>
+      <div class="row"><span>Ongkir</span><span id="ship">-</span></div>
+      <div class="row total"><span>Total bayar</span><span id="total">Rp 0</span></div>
+    </div>
+
+    <button class="btn-buy full" id="payBtn" disabled>Buat pesanan &amp; bayar</button>
+    <p class="note" id="payNote">Lengkapi data, wilayah, kurir, dan metode bayar dulu.</p>
+  </div>
+
+  <style is:global>
+    .cop{ max-width:600px; margin:0 auto; padding:16px 16px 10px; }
+    .cop .back{ display:inline-block; color:var(--brown); font-size:13px; margin-bottom:12px; }
+    .cop .back:hover{ color:var(--teal-d); }
+    .cop h1{ font-size:24px; font-weight:600; margin-bottom:18px; }
+    .cop .sec{ color:#6B4E37; font-size:13px; font-weight:600; margin:20px 0 10px; }
+    .cop .fld{ width:100%; background:#fff; border:0.5px solid #E6D6B8; border-radius:10px; padding:13px 14px; font-family:inherit; font-size:14px; color:var(--ink); margin-bottom:10px; }
+    .cop .fld:focus{ outline:none; border-color:var(--teal); }
+    .cop .loc{ position:relative; }
+    .cop .locres{ position:absolute; top:52px; left:0; right:0; background:#fff; border:0.5px solid #D8C6A8; border-radius:10px; z-index:5; overflow:hidden; max-height:230px; overflow-y:auto; }
+    .cop .locres div{ padding:11px 14px; font-size:13px; color:var(--ink); cursor:pointer; border-bottom:0.5px solid #F0E6D2; }
+    .cop .locres div:hover{ background:#F7F0E2; }
+    .cop .picked{ background:#EAF6F8; border:0.5px solid #9FD8E2; border-radius:9px; padding:10px 13px; font-size:13px; color:var(--teal-d); margin-bottom:10px; }
+    .cop .courier{ display:flex; flex-direction:column; gap:9px; }
+    .cop .crow{ display:flex; align-items:center; justify-content:space-between; background:#fff; border:0.5px solid #D8C6A8; border-radius:11px; padding:13px 15px; cursor:pointer; font-family:inherit; text-align:left; }
+    .cop .crow.on{ border:1.5px solid var(--teal); background:#EAF6F8; }
+    .cop .cl{ display:flex; flex-direction:column; align-items:flex-start; color:var(--ink); font-size:14px; }
+    .cop .cl small{ color:var(--muted); font-size:11px; margin-top:3px; font-weight:400; }
+    .cop .cc{ color:var(--brown); font-size:14px; font-weight:500; white-space:nowrap; }
+    .cop .crow.on .cc{ color:var(--teal-d); }
+    .cop .summary{ background:#fff; border:0.5px solid #E6D6B8; border-radius:14px; padding:20px; margin-top:24px; }
+    .cop .pt{ color:#6B4E37; font-size:13px; font-weight:600; margin-bottom:14px; }
+    .cop #items .ci{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:11px 0; border-top:0.5px solid #F0E6D2; }
+    .cop #items .ci:first-child{ border-top:none; padding-top:0; }
+    .cop .cnm{ font-size:14px; color:var(--ink); line-height:1.35; }
+    .cop .cno{ color:var(--muted); font-size:12px; margin-top:3px; }
+    .cop .cip{ font-size:14px; color:var(--ink); white-space:nowrap; font-weight:500; }
+    .cop .line{ height:0.5px; background:#E6D6B8; margin:12px 0 14px; }
+    .cop .row{ display:flex; justify-content:space-between; font-size:14px; color:#6B4E37; margin-bottom:11px; }
+    .cop .row.total{ font-size:17px; color:var(--ink); font-weight:600; padding-top:14px; margin-bottom:0; border-top:0.5px solid #E6D6B8; }
+    .cop .btn-buy.full{ display:block; width:100%; text-align:center; margin-top:18px; padding:15px; }
+    .cop .btn-buy.full:disabled{ opacity:.5; cursor:not-allowed; }
+    .cop .note{ color:var(--muted); font-size:12px; text-align:center; margin-top:12px; }
+    .cop .note.err{ color:#A3502F; }
+  </style>
+
+  <script>
+    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution } from '../data/scalev.js';
+
+    const LP = new URLSearchParams(location.search).get('lp');
+    if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
+
+    const META_STD=['PageView','ViewContent','AddToCart','InitiateCheckout','AddPaymentInfo','Purchase','Lead','Contact','Search','Subscribe','CompleteRegistration'];
+    function trackMeta(name, parameters, eventId, userData){
+      const at=fbAttribution();
+      if(window.fbq) fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId});
+      return metaEvent({ event_source_url:location.href, referrer_url:document.referrer||undefined, user_data:Object.assign({country:'id', fbp:at.fbp||undefined, fbc:at.fbc||undefined}, userData||{}), events:[{event_id:eventId, event_name:name, parameters:parameters}] });
+    }
+
+    const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
+    const params=new URLSearchParams(location.search);
+    const isBuynow = params.get('buynow')==='1';
+    const cart = isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]');
+    if(isBuynow){ const bl=document.getElementById('backLink'); if(bl){ bl.textContent='← Lanjut belanja'; bl.href='/#katalog'; } }
+
+    const $=(id)=>document.getElementById(id);
+    let loc=null, chosenPostal=null, courier=null, ship=0, payMethod=null;
+
+    const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
+    if(!cart.length){ $('items').innerHTML='<div class="ci">Keranjang kosong</div>'; }
+    else {
+      $('items').innerHTML=cart.map(function(it){ const w=it.g>=1000?'1kg':it.g+'gr';
+        return '<div class="ci"><div><div class="cnm">'+it.name+'</div><div class="cno">'+w+' &middot; '+it.grind+' &times; '+it.qty+'</div></div><div class="cip">'+fmt(it.price*it.qty)+'</div></div>'; }).join('');
+    }
+    $('subLabel').textContent='Subtotal ('+cart.reduce((s,i)=>s+i.qty,0)+' item)';
+    $('subtotal').textContent=fmt(sub);
+    $('total').textContent=fmt(sub);
+    if(cart.length) trackMeta('InitiateCheckout',{content_ids:cart.map(function(i){return String(i.vid||i.slug);}),content_type:'product',num_items:cart.reduce(function(s,i){return s+i.qty;},0),value:sub,currency:'IDR'}, 'ic_'+Date.now()+'_'+Math.random().toString(36).slice(2), {});
+
+    const PAY_LABEL={ bank_transfer:'Transfer bank', qris:'QRIS', va:'Virtual Account', cod:'Bayar di tempat (COD)' };
+    const PAY_DESC={ bank_transfer:'Transfer ke rekening, dikonfirmasi otomatis', qris:'Scan pakai GoPay, OVO, Dana, m-banking', va:'BCA, BNI, Mandiri, dan bank lainnya', cod:'Bayar saat barang sampai' };
+    (async function loadPay(){
+      try{
+        const methods=(await paymentMethods()).filter(m=>m.enabled!==false);
+        if(!methods.length){ $('paymethods').innerHTML='<div class="note err">Belum ada metode pembayaran aktif.</div>'; return; }
+        $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'"><span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span></button>').join('');
+        payMethod=methods[0].code;
+        $('paymethods').querySelectorAll('.crow').forEach(b=>b.addEventListener('click',function(){
+          $('paymethods').querySelectorAll('.crow').forEach(x=>x.classList.remove('on'));
+          this.classList.add('on'); payMethod=this.dataset.code; refreshPay();
+        }));
+        refreshPay();
+      }catch(e){ $('paymethods').innerHTML='<div class="note err">Gagal memuat metode pembayaran.</div>'; }
+    })();
+
+    let t=null;
+    $('locSearch').addEventListener('input',function(){
+      const q=this.value.trim(); clearTimeout(t);
+      if(q.length<3){ $('locResults').style.display='none'; return; }
+      t=setTimeout(async function(){
+        try{
+          const res=await searchLocations(q); const box=$('locResults');
+          if(!res.length){ box.style.display='none'; return; }
+          box.innerHTML=res.slice(0,8).map((r,i)=>'<div data-i="'+i+'">'+r.display+'</div>').join('');
+          box._data=res; box.style.display='block';
+        }catch(e){}
+      },350);
+    });
+    $('locResults').addEventListener('click',async function(e){
+      const d=e.target.closest('[data-i]'); if(!d) return;
+      loc=this._data[+d.dataset.i]; this.style.display='none'; $('locSearch').value='';
+      $('locPicked').textContent='📍 '+loc.display; $('locPicked').style.display='block';
+      resetCourier(); chosenPostal=null; const sel=$('postal');
+      try{
+        const codes=await postalCodes(loc.id);
+        if(codes && codes.length){
+          const opts=codes.map(c=>{ const v=(typeof c==='string')?c:(c.postal_code||c.code||c); return '<option value="'+v+'">'+v+'</option>'; }).join('');
+          sel.innerHTML=opts; chosenPostal=sel.options[0] ? sel.options[0].value : '';
+        } else { chosenPostal=''; }
+        sel.style.display='none';
+        loadCouriers();
+      }catch(e){ sel.style.display='none'; chosenPostal=''; }
+    });
+    $('postal').addEventListener('change',function(){ chosenPostal=this.value; if(chosenPostal){ loadCouriers(); } });
+
+    function resetCourier(){ courier=null; ship=0; $('ship').textContent='-'; $('total').textContent=fmt(sub); $('courierWrap').style.display='none'; refreshPay(); }
+
+    async function loadCouriers(){
+      if(!loc) return;
+      const wrap=$('courierWrap'), box=$('courier');
+      wrap.style.display='block'; box.innerHTML='<div class="note">Menghitung ongkir...</div>';
+      courier=null; ship=0; $('ship').textContent='-'; $('total').textContent=fmt(sub); refreshPay();
+      try{
+        let opts=await shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer');
+        opts=opts.filter(o=>String(o.courier_aggregator_code||'').toLowerCase()==='lincah');
+        if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; return; }
+        box.innerHTML=opts.map((o,i)=>'<button class="crow" data-i="'+i+'"><span class="cl">'+(o.courier_code||'').toUpperCase()+' '+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
+        box._opts=opts;
+      }catch(err){ box.innerHTML='<div class="note err">'+(err.message||'Gagal menghitung ongkir.')+'</div>'; }
+    }
+
+    $('courier').addEventListener('click',function(e){
+      const b=e.target.closest('.crow'); if(!b || !this._opts) return;
+      this.querySelectorAll('.crow').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+      courier=this._opts[+b.dataset.i]; ship=Number(courier.cost);
+      $('ship').textContent=fmt(ship); $('total').textContent=fmt(sub+ship);
+      refreshPay();
+    });
+
+    function setNote(msg,err){ const n=$('payNote'); n.textContent=msg; n.classList.toggle('err',!!err); }
+    function ready(){ return cart.length && $('nama').value.trim() && $('wa').value.trim() && $('alamat').value.trim() && loc && chosenPostal && courier && payMethod; }
+    function refreshPay(){ const ok=ready(); $('payBtn').disabled=!ok; if(ok) setNote('Siap. Klik untuk buat pesanan.',false); }
+    ['nama','wa','alamat'].forEach(id=>$(id).addEventListener('input',refreshPay));
+
+    $('payBtn').addEventListener('click',async function(){
+      if(!ready()) return;
+      this.disabled=true; this.textContent='Membuat pesanan...';
+      try{
+        const phone=$('wa').value.replace(/\D/g,'');
+        const payload={
+          items: toItems(cart),
+          customer_name: $('nama').value.trim(),
+          customer_email: phone+"@mail.kopibing.id",
+          customer_phone: phone,
+          shipping_address: $('alamat').value.trim(),
+          shipping_location_id: loc.id,
+          shipping_subdistrict: loc.subdistrict_name,
+          shipping_postal_code: chosenPostal,
+          courier_service_id: courier.courier_service_id,
+          warehouse_unique_id: courier.warehouse_unique_id,
+          courier_aggregator_code: courier.courier_aggregator_code || null,
+          payment_method: payMethod
+        };
+        const order=await createOrder(payload);
+        const pval = Number(order.gross_revenue || order.total_price || order.total || (sub+ship));
+        const peid = String(order.order_id || order.secret_slug || Date.now())+'-OrderCreated-FORM';
+        try{ await trackMeta('OrderCreated', {content_ids:cart.map(function(i){return String(i.vid||i.slug);}), content_type:'product', value:pval, currency:'IDR', num_items:cart.reduce(function(s,i){return s+i.qty;},0)}, peid, {ph:phone, ct:(loc&&loc.city_name)||undefined, st:(loc&&loc.province_name)||undefined}); }catch(e){}
+        try{ localStorage.removeItem('kb_cart'); sessionStorage.removeItem('kb_buynow'); }catch(e){}
+        const dest = order.public_order_url || order.payment_url;
+        if(dest){ window.location.href=dest; }
+        else { setNote('Pesanan dibuat. Cek WhatsApp untuk instruksi pembayaran.',false); }
+      }catch(err){ this.disabled=false; this.textContent='Buat pesanan & bayar'; setNote('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.',true); }
+    });
+  </script>
+</Base>

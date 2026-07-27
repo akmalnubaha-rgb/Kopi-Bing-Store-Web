@@ -1,0 +1,30 @@
+=== KREDENSIAL STOREFRONT KOPI BING (Scalev) ===
+Simpan file ini. Kunci di bawah aman ditaruh di frontend (publishable).
+
+Store ID       : store_8uaXOGu6tb9RH0CEOdEoEscx
+Store ID (num) : 78323
+API Key        : sfpk_DnazlVlJQBAjgrNapSi66nllu4yVaJjutan47bScNkwuViWJ5wSxwaw6UnAhIVDn
+Allowed origin : http://localhost:4321 (sudah didaftarkan)
+Base API       : https://api.scalev.com
+
+=== YANG MASIH HARUS DIKERJAKAN DI DASHBOARD SCALEV (manual) ===
+API nggak bisa lakukan ini, jadi lewat dashboard app.scalev.id:
+
+1. TAUTKAN PRODUK KE TOKO
+   - Buka toko "Kopi bing's Store"
+   - Tambahkan/centang ke-18 produk supaya masuk ke toko
+
+2. UPLOAD FOTO TIAP PRODUK
+   - Buka tiap produk, upload fotonya
+   - File foto ada di folder "Foto Marketplace Kopi Bing" (nama file sudah cocok per produk)
+
+3. SET GUDANG (WAREHOUSE) + ALAMAT ASAL
+   - Buat gudang dengan alamat asal pengiriman
+   - Ini dipakai untuk hitung ongkir otomatis
+
+4. AKTIFKAN METODE PEMBAYARAN
+   - Aktifkan QRIS, Virtual Account, dan/atau Transfer bank
+   - Pilihan yang aktif nanti otomatis muncul di checkout
+
+Setelah 4 langkah ini beres, storefront bisa disambungkan ke data live
+dan checkout beneran (buat order + bayar) bisa jalan.

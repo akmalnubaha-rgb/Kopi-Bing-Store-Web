@@ -1,0 +1,116 @@
+---
+const { title = "Toko Kopi Bing", bare = false, naked = false } = Astro.props;
+const waUrl = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20mau%20tanya";
+---
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script is:inline>try{if(new URLSearchParams(location.search).get('lp')){document.documentElement.classList.add('lp-mode');}}catch(e){}</script>
+  <title>{title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Alice&display=swap" rel="stylesheet" />
+  <style is:global>
+    :root{ --brown:#804C2A; --brown-d:#5A3419; --cream:#FFE7C0; --cream-bg:#FFF9EE;
+      --teal:#0097B2; --teal-d:#0A6B7E; --yellow:#F5C542; --green:#3E8E41; --ink:#3E2C1E; --muted:#A0876B; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--cream-bg); color:var(--ink); }
+    a{ color:inherit; text-decoration:none; }
+    img{ max-width:100%; }
+    /* Mode corong LP: sembunyikan header & footer web biasa */
+    .lp-mode header.top, .lp-mode footer.bot{ display:none !important; }
+    .wrap{ max-width:1080px; margin:0 auto; padding:0 16px; }
+    header.top{ background:var(--brown); }
+    header.top .wrap{ display:flex; align-items:center; justify-content:space-between; padding:10px 16px; gap:10px; }
+    .brand{ display:flex; align-items:center; gap:11px; min-width:0; }
+    .brand .logo{ width:44px; height:44px; border-radius:50%; display:block; flex-shrink:0; }
+    .brand .tag{ color:#E8CBA6; font-size:11px; letter-spacing:1px; line-height:1.3; }
+    .nav{ display:flex; align-items:center; gap:16px; color:#F0DEC4; font-size:14px; flex-shrink:0; }
+    .nav a.txt{ display:inline; }
+    .csbtn{ display:inline-flex; align-items:center; gap:6px; background:#25995a; color:#fff; font-size:13px; font-weight:500; padding:8px 13px; border-radius:20px; }
+    .csbtn svg{ width:16px; height:16px; }
+    .csbtn .cslabel{ display:inline; }
+    .cart-ic{ position:relative; font-size:23px; color:var(--yellow); }
+    .cart-ic .badge{ position:absolute; top:-6px; right:-8px; background:var(--green); color:#fff; font-size:10px; min-width:16px; height:16px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
+    footer.bot{ background:var(--brown); margin-top:40px; }
+    footer.bot .wrap{ padding:22px 16px; text-align:center; }
+    footer.bot .ft{ color:var(--cream); font-size:20px; font-family:'Alice',serif; letter-spacing:1px; }
+    footer.bot .fs{ color:#D8B48C; font-size:12px; margin-top:6px; }
+    footer.bot .trust{ color:#8A6A4A; font-size:11px; margin-top:14px; }
+    footer.bot .social{ display:flex; gap:16px; justify-content:center; margin-top:14px; }
+    footer.bot .social a{ color:#E8CBA6; display:inline-flex; }
+    footer.bot .social a:hover{ color:var(--yellow); }
+    footer.bot .social svg{ width:23px; height:23px; }
+    .btn-buy{ background:var(--green); color:#fff; font-weight:500; border:none; border-radius:9px; padding:12px 22px; font-size:15px; cursor:pointer; font-family:inherit; }
+    @media(max-width:600px){
+      .brand .tag{ font-size:9px; letter-spacing:.5px; }
+      .nav{ gap:12px; }
+      .nav a.txt{ display:none; }
+      .csbtn .cslabel{ display:none; }
+      .csbtn{ padding:8px; }
+    }
+  </style>
+  <!-- Meta Pixel -->
+  <script is:inline>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','1134999975422565');
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1134999975422565&ev=PageView&noscript=1" /></noscript>
+  <!-- End Meta Pixel -->
+</head>
+<body>
+  {!naked && (
+  <header class="top">
+    <div class="wrap">
+      {bare ? (
+        <span class="brand">
+          <img class="logo" src="/img/logo.png" alt="Toko Kopi Bing" />
+          <span class="tag">KOPI GILING<br>SELURUH INDONESIA</span>
+        </span>
+      ) : (
+        <a class="brand" href="/">
+          <img class="logo" src="/img/logo.png" alt="Toko Kopi Bing" />
+          <span class="tag">KOPI GILING<br>SELURUH INDONESIA</span>
+        </a>
+      )}
+      <nav class="nav">
+        {!bare && <a class="txt" href="/">Beranda</a>}
+        {!bare && <a class="txt" href="/#katalog">Katalog</a>}
+        <a class="csbtn" href={waUrl} target="_blank" rel="noopener" aria-label="Hubungi CS">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+          <span class="cslabel">Hubungi CS</span>
+        </a>
+        {!bare && <a href="/keranjang" class="cart-ic" aria-label="Keranjang">&#128722;<span class="badge" id="cartCount">0</span></a>}
+      </nav>
+    </div>
+  </header>
+  )}
+  <slot />
+  {!naked && (
+  <footer class="bot">
+    <div class="wrap">
+      <div class="ft">Toko Kopi Bing</div>
+      <div class="fs">Digiling segar setiap pesanan &middot; Kopi dari seluruh Indonesia</div>
+      <div class="social">
+        <a href="https://www.instagram.com/kopibing.id/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.tiktok.com/@kopibing_" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.6c-1.3 0-2.5-.4-3.5-1v5.9c0 3.2-2.4 5.6-5.5 5.6A5.5 5.5 0 0 1 5.5 14c0-3 2.3-5.4 5.3-5.5v2.7a2.8 2.8 0 1 0 2 2.7V3h3.7Z"/></svg></a>
+      </div>
+      <div class="trust">Pembayaran aman &middot; Didukung oleh Scalev</div>
+    </div>
+  </footer>
+  )}
+  <script>
+    function updateCartCount(){
+      try{ const c=JSON.parse(localStorage.getItem('kb_cart')||'[]');
+        const n=c.reduce((s,i)=>s+i.qty,0);
+        const el=document.getElementById('cartCount'); if(el) el.textContent=n;
+      }catch(e){}
+    }
+    updateCartCount();
+    window.addEventListener('storage',updateCartCount);
+  </script>
+</body>
+</html>
