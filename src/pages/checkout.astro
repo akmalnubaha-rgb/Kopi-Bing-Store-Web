@@ -77,7 +77,7 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution } from '../data/scalev.js';
+    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, metaEvent, fbAttribution } from '../data/scalev.js';
 
     const LP = new URLSearchParams(location.search).get('lp');
     if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
@@ -203,13 +203,17 @@ import Base from '../layouts/Base.astro';
           courier_aggregator_code: courier.courier_aggregator_code || null,
           payment_method: payMethod
         };
-        const order=await createOrder(payload);
-        try{ var u=JSON.parse(localStorage.getItem('kb_utm')||'null');
-          if(u && u.src && order.secret_slug){
-            var note='Iklan: '+u.src+(u.camp?(' / '+u.camp):'')+(u.term?(' / ad: '+u.term):'')+(u.content?(' / adset: '+u.content):'');
-            try{ await patchOrder(order.secret_slug, { notes: note }); }catch(e){}
+        try{
+          const u = JSON.parse(localStorage.getItem('kb_utm')||'null');
+          if(u && u.src){
+            payload.utm_source   = u.src;
+            payload.utm_medium   = u.med   || '';
+            payload.utm_campaign = u.camp  || '';
+            payload.utm_content  = u.content|| '';
+            payload.utm_term     = u.term  || '';
           }
         }catch(e){}
+        const order=await createOrder(payload);
         const pval = Number(order.gross_revenue || order.total_price || order.total || (sub+ship));
         const peid = String(order.order_id || order.secret_slug || Date.now())+'-OrderCreated-FORM';
         try{ await trackMeta('OrderCreated', {content_ids:cart.map(function(i){return String(i.vid||i.slug);}), content_type:'product', value:pval, currency:'IDR', num_items:cart.reduce(function(s,i){return s+i.qty;},0)}, peid, {ph:phone, ct:(loc&&loc.city_name)||undefined, st:(loc&&loc.province_name)||undefined}); }catch(e){}
