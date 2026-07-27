@@ -111,6 +111,20 @@ const waUrl = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20m
     }
     updateCartCount();
     window.addEventListener('storage',updateCartCount);
+
+    // Tangkap UTM dari iklan (last-touch) untuk dipakai saat checkout
+    (function(){
+      try{
+        const p = new URLSearchParams(location.search);
+        if(p.get('utm_source')||p.get('utm_campaign')||p.get('fbclid')){
+          localStorage.setItem('kb_utm', JSON.stringify({
+            src:p.get('utm_source')||'', med:p.get('utm_medium')||'',
+            camp:p.get('utm_campaign')||'', content:p.get('utm_content')||'',
+            term:p.get('utm_term')||'', ts:Date.now()
+          }));
+        }
+      }catch(e){}
+    })();
   </script>
 </body>
 </html>
