@@ -203,16 +203,6 @@ import Base from '../layouts/Base.astro';
           courier_aggregator_code: courier.courier_aggregator_code || null,
           payment_method: payMethod
         };
-        try{
-          const u = JSON.parse(localStorage.getItem('kb_utm')||'null');
-          if(u && u.src){
-            payload.utm_source   = u.src;
-            payload.utm_medium   = u.med   || '';
-            payload.utm_campaign = u.camp  || '';
-            payload.utm_content  = u.content|| '';
-            payload.utm_term     = u.term  || '';
-          }
-        }catch(e){}
         const order=await createOrder(payload);
         const pval = Number(order.gross_revenue || order.total_price || order.total || (sub+ship));
         const peid = String(order.order_id || order.secret_slug || Date.now())+'-OrderCreated-FORM';
