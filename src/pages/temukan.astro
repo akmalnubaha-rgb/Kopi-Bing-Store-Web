@@ -40,6 +40,7 @@ const MAP = {
     var TASTE={robusta:"pahit",arabika:"asem",blend:"seimbang"};
     var BR="#804C2A",BRD="#5A3419",GRN="#3E8E41",CREAM="#F3E7CE",MUT="#8a7a68";
     var app=document.getElementById('kbapp');var q={};
+    var TESTI=[];for(var _i=1;_i<=15;_i++)TESTI.push('/img/testi/'+_i+'.webp');
     function get(sl){for(var i=0;i<P.length;i++)if(P[i].s===sl)return P[i];}
     function rp(x){return "Rp"+Number(x).toLocaleString('id-ID');}
     function pic(pr){return '<div style="aspect-ratio:4/3;background:'+CREAM+';overflow:hidden"><img src="/img/'+pr.s+'.webp" alt="'+pr.n+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" /></div>';}
@@ -61,15 +62,17 @@ const MAP = {
       +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Bisa request gilingan</div>'
       +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Aman, live setiap hari di TikTok</div>'
       +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Pembayaran diproses aman</div>'
-      +'</div></div>';
+      +'</div>'
+      +'<div style="margin:28px 0 2px"><div style="font-size:13px;font-weight:600;color:'+BRD+';text-align:left;margin:0 0 10px">Kata pelanggan Kopi Bing</div>'
+      +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:150px;scroll-snap-align:start;background:#fff;border:0.5px solid #E6D6B8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
+      +'</div>';
       document.getElementById('g1').onclick=function(){q={};go('q1');};}
     function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #E6D6B8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
     function prog(step){return '<div style="display:flex;gap:6px;margin-bottom:18px">'+[1,2].map(function(i){return '<div style="flex:1;height:5px;border-radius:3px;background:'+(i<=step?BR:'#E6D6B8')+'"></div>';}).join('')+'</div>';}
     function frame(step,qt,body){app.innerHTML='<div style="padding:20px 14px 26px">'+prog(step)
       +'<div style="font-size:12px;color:'+MUT+';margin-bottom:8px">Pertanyaan '+step+' dari 2</div>'
       +'<div style="font-size:19px;font-weight:600;color:'+BRD+';margin-bottom:16px;line-height:1.3">'+qt+'</div>'+body
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><span class="kbback" style="font-size:13px;color:'+MUT+';cursor:pointer">&larr; Kembali</span><a href="/" style="font-size:13px;color:'+BR+';text-decoration:underline">Lihat katalog</a></div></div>';
-      var bk=document.querySelector('.kbback'); if(bk) bk.onclick=function(){history.back();};
+      +'<div style="text-align:right;margin-top:6px"><a href="/" style="font-size:13px;color:'+BR+';text-decoration:underline">Lihat katalog</a></div></div>';
       Array.prototype.forEach.call(document.querySelectorAll('.kbopt'),function(el){el.onmouseover=function(){el.style.borderColor=BR;el.style.background=CREAM;};el.onmouseout=function(){el.style.borderColor="#E6D6B8";el.style.background="#fff";};});}
     function viewQ1(){
       var body=opt("Pahit &amp; nendang","enak buat tubruk, Vietnam drip, sanger - bikin melek","robusta")
@@ -87,8 +90,8 @@ const MAP = {
       var slugs=MAP[q.rasa+"|"+q.lvl]; if(!slugs){q={};render('q1');return;}
       var main=get(slugs[0]),alt=[get(slugs[1]),get(slugs[2])];
       app.innerHTML='<div style="padding:22px 14px 30px">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><span class="kbback" style="font-size:13px;color:'+MUT+';cursor:pointer">&larr; Kembali</span><span style="font-size:12px;color:'+MUT+'">REKOMENDASI BUAT KAMU</span></div>'
-      +'<div style="font-size:20px;font-weight:600;color:'+BRD+';text-align:center;margin:0 0 18px">Ini kopi yang paling pas</div>'
+      +'<div style="font-size:12px;color:'+MUT+';text-align:center">REKOMENDASI BUAT KAMU</div>'
+      +'<div style="font-size:20px;font-weight:600;color:'+BRD+';text-align:center;margin:4px 0 18px">Ini kopi yang paling pas</div>'
       +'<a href="/produk/'+main.s+'" style="background:#fff;border:2px solid '+GRN+';border-radius:14px;overflow:hidden;display:flex;text-decoration:none;color:inherit">'
       +'<div style="width:120px;flex-shrink:0;background:'+CREAM+'"><img src="/img/'+main.s+'.webp" alt="'+main.n+'" style="width:120px;height:100%;object-fit:cover;display:block" /></div>'
       +'<div style="padding:13px 15px;flex:1"><div style="font-size:11px;color:'+GRN+';font-weight:600">PILIHAN UTAMA</div>'
@@ -101,7 +104,6 @@ const MAP = {
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+alt.map(function(p){return tile(p);}).join('')+'</div>'
       +'<div style="margin-top:16px;background:#FBF2DF;border-radius:10px;padding:12px 14px;font-size:12px;color:#5A4636;text-align:center">Digiling segar setiap pesanan - Live tiap hari di TikTok - Pembayaran aman</div>'
       +'<div style="display:flex;gap:10px;margin-top:14px"><span id="kbretry" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;cursor:pointer;color:'+BR+'">Ulangi kuis</span><a href="/" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;text-decoration:none;color:'+BR+'">Lihat semua kopi</a></div></div>';
-      var bk=document.querySelector('.kbback'); if(bk) bk.onclick=function(){history.back();};
       document.getElementById('kbretry').onclick=function(){q={};go('q1');};}
     var VIEWS={gate:viewGate,q1:viewQ1,q2:viewQ2,result:viewResult};
     function render(v){(VIEWS[v]||viewGate)();}
