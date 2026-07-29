@@ -64,7 +64,7 @@ const MAP = {
       +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Pembayaran diproses aman</div>'
       +'</div>'
       +'<div style="margin:28px 0 2px"><div style="font-size:13px;font-weight:600;color:'+BRD+';text-align:left;margin:0 0 10px">Kata pelanggan Kopi Bing</div>'
-      +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:150px;scroll-snap-align:start;background:#fff;border:0.5px solid #E6D6B8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
+      +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:260px;scroll-snap-align:start;background:#fff;border:0.5px solid #E6D6B8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
       +'</div>';
       document.getElementById('g1').onclick=function(){q={};go('q1');};}
     function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #E6D6B8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
