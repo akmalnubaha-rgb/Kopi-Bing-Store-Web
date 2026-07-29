@@ -8,16 +8,9 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
   <section class="hero">
     <div class="wrap heroin">
       <div class="pricebanner">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>
-      <div class="q">Mau kopi yang pahit atau asem?</div>
-      <div class="s">Pilih selera kamu, kami tunjukkan kopinya</div>
-      <div class="choices">
-        <a class="ch pahit" href="#katalog" data-filter="robusta">
-          <div class="ct">Pahit</div><div class="cs">Robusta</div>
-        </a>
-        <a class="ch asem" href="#katalog" data-filter="arabika">
-          <div class="ct">Asem</div><div class="cs">Arabika</div>
-        </a>
-      </div>
+      <div class="q">Mau kami bantu pilihkan kopi sesuai seleramu?</div>
+      <div class="s">2 pertanyaan singkat, langsung ketemu yang pas</div>
+      <a class="herobtn" href="/temukan?mulai=1">Bantu saya pilihkan &rarr;</a>
       <div class="grind">&#9881; Bisa request gilingan: halus &middot; sedang &middot; kasar &middot; biji utuh</div>
     </div>
   </section>
@@ -50,7 +43,9 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .heroin{ padding:44px 18px; text-align:center; }
     .pricebanner{ display:inline-block; background:var(--yellow); color:#5A3419; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:18px; max-width:440px; }
     .hero .q{ color:#fff; font-size:27px; font-weight:600; }
-    .hero .s{ color:#CBBBA6; font-size:14px; margin:9px 0 22px; }
+    .hero .s{ color:#CBBBA6; font-size:14px; margin:9px 0 20px; }
+    .herobtn{ display:inline-block; background:var(--green); color:#fff; font-weight:500; font-size:16px; padding:14px 28px; border-radius:11px; }
+    .herobtn:hover{ filter:brightness(1.06); }
     .choices{ display:flex; gap:14px; justify-content:center; }
     .ch{ border-radius:14px; padding:16px 30px; border:2px solid transparent; cursor:pointer; }
     .ch.pahit{ background:var(--brown); border-color:var(--yellow); }

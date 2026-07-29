@@ -120,7 +120,7 @@ export const products = [
 
 export const categories = [
   { id:"all", label:"Semua" },
-  { id:"robusta", label:"Robusta" },
-  { id:"arabika", label:"Arabika" },
-  { id:"blend", label:"Blend" },
+  { id:"robusta", label:"Robusta (pahit)" },
+  { id:"arabika", label:"Arabika (asem)" },
+  { id:"blend", label:"Blend (seimbang)" },
 ];
