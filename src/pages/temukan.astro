@@ -42,21 +42,26 @@ const MAP = {
     var app=document.getElementById('kbapp');var q={};
     function get(sl){for(var i=0;i<P.length;i++)if(P[i].s===sl)return P[i];}
     function rp(x){return "Rp"+Number(x).toLocaleString('id-ID');}
-    function ini(n){return n.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
+    function pic(pr,h){return '<div style="aspect-ratio:4/3;background:'+CREAM+';overflow:hidden"><img src="/img/'+pr.s+'.webp" alt="'+pr.n+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" /></div>';}
     function tile(pr){var laris=pr.b?'<span style="font-size:10px;color:'+GRN+';margin-left:5px">laris</span>':'';
       return '<a href="/produk/'+pr.s+'" style="background:#fff;border:0.5px solid #E6D6B8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
-      +'<div style="aspect-ratio:4/3;background:'+CREAM+';display:flex;align-items:center;justify-content:center;color:'+BR+';font-weight:600;font-size:20px">'+ini(pr.n)+'</div>'
+      +pic(pr)
       +'<div style="padding:9px 10px 11px;display:flex;flex-direction:column;flex:1">'
       +'<div style="font-size:12px;font-weight:500;line-height:1.25">'+pr.n+'</div>'
       +'<div style="font-size:10px;color:'+MUT+';margin:3px 0 6px">Seduh: '+pr.sd+'</div>'
       +'<div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:'+BR+';font-weight:600">mulai '+rp(pr.p)+'</span><span style="font-size:11px;background:'+GRN+';color:#fff;padding:6px 10px;border-radius:7px">Pesan</span></div>'
       +'</div></a>';}
     function screenGate(){
-      app.innerHTML='<div style="padding:34px 14px 40px;text-align:center">'
-      +'<div style="font-size:11px;letter-spacing:1px;color:'+MUT+';margin-bottom:14px">KOPI GILING SEGAR SELURUH INDONESIA</div>'
-      +'<div style="font-size:24px;font-weight:600;color:'+BRD+';line-height:1.3;max-width:420px;margin:0 auto 26px">Cari kopi yang pas buat kamu?</div>'
+      app.innerHTML='<div style="padding:26px 14px 34px;text-align:center">'
+      +'<div style="font-size:11px;letter-spacing:1px;color:'+MUT+';margin-bottom:14px">KOPI GILING SELURUH INDONESIA</div>'
+      +'<div style="font-size:24px;font-weight:600;color:'+BRD+';line-height:1.3;max-width:420px;margin:0 auto 24px">Kami bantu pilih kopi seleramu!</div>'
       +'<div id="g1" style="background:'+GRN+';color:#fff;font-weight:500;font-size:16px;padding:15px;border-radius:11px;cursor:pointer;max-width:340px;margin:0 auto">Bantu pilihkan (30 detik)</div>'
-      +'<a id="g2" href="/" style="display:block;border:1px solid #D8C6A8;color:'+BR+';font-weight:500;font-size:15px;padding:14px;border-radius:11px;text-decoration:none;max-width:340px;margin:12px auto 0">Sudah tahu - lihat semua kopi</a></div>';
+      +'<a id="g2" href="/" style="display:block;border:1px solid #D8C6A8;color:'+BR+';font-weight:500;font-size:15px;padding:14px;border-radius:11px;text-decoration:none;max-width:340px;margin:12px auto 0">Lihat semua katalog</a>'
+      +'<div style="max-width:340px;margin:22px auto 0;text-align:left;display:flex;flex-direction:column;gap:9px">'
+      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Bisa request gilingan</div>'
+      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Aman, live setiap hari di TikTok</div>'
+      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Pembayaran diproses aman</div>'
+      +'</div></div>';
       document.getElementById('g1').onclick=function(){q={};screenQ1();};}
     function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #E6D6B8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
     function prog(step){return '<div style="display:flex;gap:6px;margin-bottom:18px">'+[1,2].map(function(i){return '<div style="flex:1;height:5px;border-radius:3px;background:'+(i<=step?BR:'#E6D6B8')+'"></div>';}).join('')+'</div>';}
@@ -85,7 +90,7 @@ const MAP = {
       +'<div style="font-size:12px;color:'+MUT+';text-align:center">REKOMENDASI BUAT KAMU</div>'
       +'<div style="font-size:20px;font-weight:600;color:'+BRD+';text-align:center;margin:4px 0 18px">Ini kopi yang paling pas</div>'
       +'<a href="/produk/'+main.s+'" style="background:#fff;border:2px solid '+GRN+';border-radius:14px;overflow:hidden;display:flex;text-decoration:none;color:inherit">'
-      +'<div style="width:110px;background:'+CREAM+';display:flex;align-items:center;justify-content:center;color:'+BR+';font-weight:600;font-size:22px">'+ini(main.n)+'</div>'
+      +'<div style="width:120px;flex-shrink:0;background:'+CREAM+'"><img src="/img/'+main.s+'.webp" alt="'+main.n+'" style="width:120px;height:100%;object-fit:cover;display:block" /></div>'
       +'<div style="padding:13px 15px;flex:1"><div style="font-size:11px;color:'+GRN+';font-weight:600">PILIHAN UTAMA</div>'
       +'<div style="font-size:17px;font-weight:600;color:'+BRD+';margin:2px 0">'+main.n+'</div>'
       +'<div style="font-size:10px;background:#F0E0C6;color:#804C2A;padding:2px 8px;border-radius:20px;display:inline-block">'+main.c+' ('+TASTE[main.c]+')</div>'
