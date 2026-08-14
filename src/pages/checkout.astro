@@ -109,11 +109,22 @@ import Base from '../layouts/Base.astro';
     $('total').textContent=fmt(sub);
     if(cart.length) trackMeta('InitiateCheckout',{content_ids:cart.map(function(i){return String(i.vid||i.slug);}),content_type:'product',num_items:cart.reduce(function(s,i){return s+i.qty;},0),value:sub,currency:'IDR'}, 'ic_'+Date.now()+'_'+Math.random().toString(36).slice(2), {});
 
-    const PAY_LABEL={ bank_transfer:'Transfer bank', qris:'QRIS', va:'Virtual Account', cod:'Bayar di tempat (COD)' };
-    const PAY_DESC={ bank_transfer:'Transfer ke rekening, dikonfirmasi otomatis', qris:'Scan pakai GoPay, OVO, Dana, m-banking', va:'BCA, BNI, Mandiri, dan bank lainnya', cod:'Bayar saat barang sampai' };
+    const PAY_LABEL={ bank_transfer:'Transfer bank', qris:'QRIS', va:'Virtual Account', cod:'Bayar di tempat (COD)',
+      invoice:'Virtual Account / E-Wallet', va_bca:'Virtual Account BCA', va_bni:'Virtual Account BNI', va_bri:'Virtual Account BRI',
+      va_bsi:'Virtual Account BSI', va_mandiri:'Virtual Account Mandiri', dana:'DANA', ovo:'OVO', shopeepay:'ShopeePay' };
+    const PAY_DESC={ bank_transfer:'Transfer ke rekening, dikonfirmasi otomatis', qris:'Scan pakai GoPay, OVO, Dana, m-banking', va:'BCA, BNI, Mandiri, dan bank lainnya', cod:'Bayar saat barang sampai',
+      invoice:'Pilih VA bank atau e-wallet di halaman berikutnya', va_bca:'Bayar lewat m-BCA, ATM, atau internet banking', va_bni:'Bayar lewat m-banking atau ATM BNI',
+      va_bri:'Bayar lewat BRImo atau ATM BRI', va_bsi:'Bayar lewat BSI Mobile atau ATM BSI', va_mandiri:'Bayar lewat Livin atau ATM Mandiri',
+      dana:'Bayar lewat aplikasi DANA', ovo:'Bayar lewat aplikasi OVO', shopeepay:'Bayar lewat aplikasi Shopee' };
+    // Urutan tampil. Metode di luar daftar ini ikut tampil, ditaruh paling bawah.
+    const PAY_ORDER=['bank_transfer','invoice','qris','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay'];
+    // COD sengaja tidak ditampilkan di web: halaman pesanan tidak boleh menyuruh pelanggan COD transfer duluan.
+    const PAY_HIDE=['cod'];
     (async function loadPay(){
       try{
-        const methods=(await paymentMethods()).filter(m=>m.enabled!==false);
+        const methods=(await paymentMethods()).filter(m=>m.enabled!==false && PAY_HIDE.indexOf(m.code)<0)
+          .sort((a,b)=>{ const ia=PAY_ORDER.indexOf(a.code), ib=PAY_ORDER.indexOf(b.code);
+            return (ia<0?99:ia)-(ib<0?99:ib); });
         if(!methods.length){ $('paymethods').innerHTML='<div class="note err">Belum ada metode pembayaran aktif.</div>'; return; }
         $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'"><span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span></button>').join('');
         payMethod=methods[0].code;

@@ -21,7 +21,7 @@ import Base from '../layouts/Base.astro';
         <div class="row"><span>Subtotal produk</span><span id="subp"></span></div>
         <div class="row"><span>Ongkir</span><span id="ship"></span></div>
         <div class="row" id="ukrow"><span>Kode unik</span><span id="uk"></span></div>
-        <div class="row total"><span>Total transfer</span><span id="total"></span></div>
+        <div class="row total"><span id="totalLabel">Total transfer</span><span id="total"></span></div>
       </div>
 
       <div class="card pay" id="paycard">
@@ -35,6 +35,19 @@ import Base from '../layouts/Base.astro';
         <p class="warn">Transfer <b>PERSIS</b> sampai angka terakhir (ada kode uniknya) biar pembayaran otomatis terverifikasi.</p>
         <button class="btn-buy full" id="btnPaid">Saya sudah bayar</button>
         <p class="note">Sudah transfer? Klik tombol di atas biar pesananmu langsung kami proses.</p>
+      </div>
+
+      <div class="card pay" id="codcard" style="display:none">
+        <div class="ct">Cara bayar &mdash; Bayar di Tempat (COD)</div>
+        <div class="bankbox">
+          <div class="brow big"><span>Siapkan uang</span><b id="codAmt"></b></div>
+        </div>
+        <p class="hint">Kamu <b>tidak perlu transfer</b>. Bayar langsung ke kurir waktu paketnya sampai. Siapkan uang pas ya biar gampang.</p>
+      </div>
+
+      <div class="card pay" id="epaycard" style="display:none">
+        <div class="ct" id="epayTitle">Cara bayar</div>
+        <div id="epayBody"><p class="note">Menyiapkan pembayaran...</p></div>
       </div>
 
       <div class="card done" id="donecard" style="display:none">
@@ -74,6 +87,9 @@ import Base from '../layouts/Base.astro';
     .op .brow.big b{ font-size:20px; font-weight:600; color:var(--brown); }
     .op .copy{ background:#fff; border:0.5px solid #D8C6A8; color:var(--teal-d); font-size:11px; padding:3px 9px; border-radius:6px; cursor:pointer; font-family:inherit; margin-left:6px; }
     .op .warn{ background:#FDECEA; color:#A3502F; font-size:12.5px; line-height:1.5; padding:10px 13px; border-radius:9px; margin-bottom:14px; }
+    .op .hint{ background:#EAF6F8; color:#0B5C6B; font-size:12.5px; line-height:1.6; padding:11px 13px; border-radius:9px; }
+    .op .brow b.vanum{ font-size:19px; font-weight:600; color:var(--brown); letter-spacing:0.5px; }
+    .op .qrstr{ background:#FBF2DF; border-radius:9px; padding:11px 13px; font-size:11px; color:#6B4E37; word-break:break-all; line-height:1.5; margin-bottom:12px; }
     .op .btn-buy.full{ display:block; width:100%; text-align:center; }
     .op .btn-buy.full:disabled{ opacity:.6; cursor:not-allowed; }
     .op .btn-outline{ display:block; width:100%; text-align:center; background:#fff; color:var(--brown); border:1.5px solid #D8C6A8; border-radius:9px; padding:12px; font-weight:500; font-size:14px; font-family:inherit; cursor:pointer; }
@@ -84,7 +100,7 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { getOrder, patchOrder } from '../data/scalev.js';
+    import { getOrder, patchOrder, createPayment } from '../data/scalev.js';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
     const SCALEV_ORDER_HOST='https://kopi-bing.myscalev.com/o/';
@@ -94,7 +110,91 @@ import Base from '../layouts/Base.astro';
       return new URLSearchParams(location.search).get('id') || '';
     }
     const PAID=['paid','processing','packing','shipping','shipped','delivered','completed','done','selesai'];
-    let slug='';
+    let slug='', payMethod='bank_transfer', pollTimer=null;
+
+    const PAY_NAME={ bank_transfer:'Transfer Bank', cod:'Bayar di Tempat (COD)', qris:'QRIS', invoice:'Virtual Account / E-Wallet',
+      va_bca:'Virtual Account BCA', va_bni:'Virtual Account BNI', va_bri:'Virtual Account BRI', va_bsi:'Virtual Account BSI',
+      va_mandiri:'Virtual Account Mandiri', dana:'DANA', ovo:'OVO', shopeepay:'ShopeePay' };
+
+    // Ambil data bayar dari pg_payment_info (bentuknya beda-beda per provider).
+    function payInfo(o){
+      const pg=o.pg_payment_info||{};
+      const pm=pg.payment_method||{};
+      const va=(pm.virtual_account&&pm.virtual_account.channel_properties)||{};
+      const otc=(pm.over_the_counter&&pm.over_the_counter.channel_properties)||{};
+      const qr=(pm.qr_code&&pm.qr_code.channel_properties)||{};
+      let link=pg.payment_url||pg.invoice_url||pg.redirect_url||'';
+      if(!link && Array.isArray(pg.actions)){
+        const pick=function(t){ const a=pg.actions.find(function(x){ return String(x.url_type||'').toUpperCase()===t; }); return a&&(a.url||a.value||''); };
+        link=pick('WEB')||pick('DEEPLINK')||pick('MOBILE')||'';
+      }
+      // pg.va_number / va_name / bank_code = bentuk Singapay. Sisanya bentuk Xendit di dokumentasi Scalev.
+      return { vaNumber:pg.va_number||va.virtual_account_number||otc.payment_code||'',
+        vaHolder:pg.va_name||va.customer_name||otc.customer_name||'',
+        bankName:pg.bank_code||'',
+        qrString:pg.qr_string||qr.qr_string||'', link:link, expiredAt:pg.expired_at||o.payment_expiration_at||'' };
+    }
+    function fmtExp(s){
+      if(!s) return '';
+      // Singapay kirim epoch milidetik, Scalev kirim string ISO.
+      const d=(typeof s==='number'||/^\d+$/.test(String(s))) ? new Date(Number(s)) : new Date(s);
+      if(isNaN(d.getTime())) return '';
+      try{ return d.toLocaleString('id-ID',{ day:'numeric', month:'long', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' })+' WIB'; }catch(e){ return ''; }
+    }
+
+    // Tampilan bayar untuk metode otomatis (VA, e-wallet, QRIS, invoice).
+    async function showEpay(o){
+      $('paycard').style.display='none';
+      $('epaycard').style.display='block';
+      $('epayTitle').textContent='Cara bayar — '+(PAY_NAME[payMethod]||'Pembayaran otomatis');
+      let info=payInfo(o);
+      if(!info.vaNumber && !info.link && !info.qrString){
+        // Instruksi bayar belum dibuat. Endpoint ini idempoten, aman dipanggil ulang.
+        try{ const p=await createPayment(slug); info=payInfo(Object.assign({}, o, p||{})); }catch(e){}
+      }
+      const amt=fmt(o.gross_revenue||0);
+      const exp=fmtExp(info.expiredAt);
+      let html='';
+      if(info.vaNumber){
+        html+='<div class="bankbox">'
+          +(info.bankName?'<div class="brow"><span>Bank</span><b>'+info.bankName+'</b></div>':'')
+          +'<div class="brow"><span>Nomor VA</span><b><span class="vanum" id="vaNo">'+info.vaNumber+'</span> <button class="copy" data-c="'+info.vaNumber+'">salin</button></b></div>'
+          +(info.vaHolder?'<div class="brow"><span>Atas nama</span><b>'+info.vaHolder+'</b></div>':'')
+          +'<div class="brow big"><span>Jumlah</span><b>'+amt+'</b> <button class="copy" data-c="'+Math.round(Number(o.gross_revenue||0))+'">salin</button></div>'
+          +'</div>'
+          +'<p class="hint">Buka m-banking kamu, pilih menu Virtual Account, lalu masukkan nomor di atas. Pembayaran terverifikasi otomatis.</p>';
+      } else if(info.link){
+        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
+          +'<a class="btn-buy full" href="'+info.link+'" target="_blank" rel="noopener">Bayar sekarang</a>'
+          +'<p class="hint" style="margin-top:12px">Tombol di atas membuka halaman pembayaran. Di sana kamu pilih bank/e-wallet-nya. Setelah bayar, balik ke halaman ini &mdash; statusnya update sendiri.</p>';
+      } else if(info.qrString){
+        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
+          +'<p class="hint" style="margin-bottom:12px">Salin kode QRIS di bawah, lalu tempel di aplikasi e-wallet kamu.</p>'
+          +'<div class="qrstr">'+info.qrString+'</div>'
+          +'<button class="btn-outline full copy" data-c="'+info.qrString+'">Salin kode QRIS</button>';
+      } else {
+        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
+          +'<a class="btn-buy full" href="'+SCALEV_ORDER_HOST+slug+'" target="_blank" rel="noopener">Buka halaman pembayaran</a>'
+          +'<p class="hint" style="margin-top:12px">Instruksi bayarnya kami buka di halaman terpisah ya.</p>';
+      }
+      if(exp) html+='<p class="note">Bayar sebelum '+exp+'.</p>';
+      $('epayBody').innerHTML=html;
+      startPolling();
+    }
+
+    // Metode otomatis: status berubah di sisi Scalev, jadi halaman ini yang mengecek berkala.
+    function startPolling(){
+      if(pollTimer) return;
+      let n=0;
+      pollTimer=setInterval(async function(){
+        n++; if(n>60){ clearInterval(pollTimer); pollTimer=null; return; }
+        try{
+          const res=await getOrder(slug); const o=res.data||res;
+          const paid=PAID.indexOf(String(o.status||'').toLowerCase())>=0 || String(o.payment_status||'').toLowerCase()==='paid';
+          if(paid){ clearInterval(pollTimer); pollTimer=null; showPaid(); window.scrollTo({top:0,behavior:'smooth'}); }
+        }catch(e){}
+      }, 15000);
+    }
 
     function showProcessing(){
       $('paycard').style.display='none';
@@ -107,11 +207,14 @@ import Base from '../layouts/Base.astro';
       $('donecard').style.display='block';
     }
     function showPaid(){
-      $('paycard').style.display='none';
+      $('paycard').style.display='none'; $('epaycard').style.display='none'; $('codcard').style.display='none';
       $('okttl').textContent='Terima kasih!';
-      const st=$('ostat'); st.textContent='Pembayaran diterima'; st.classList.add('ok');
+      const cod=payMethod==='cod';
+      const st=$('ostat'); st.textContent=cod?'Pesanan dikonfirmasi':'Pembayaran diterima'; st.classList.add('ok');
       $('doneic').innerHTML='&#10003;'; $('doneic').classList.remove('sm'); $('doneic').classList.add('sm');
-      $('donebody').innerHTML='<b>Pembayaran kamu sudah kami terima!</b><br>Pesananmu segera kami siapkan dan kirim. Terima kasih sudah belanja di Kopi Bing.';
+      $('donebody').innerHTML=cod
+        ? '<b>Pesananmu sudah kami konfirmasi!</b><br>Segera kami siapkan dan kirim. Siapkan uang pas untuk dibayarkan ke kurir waktu paketnya sampai.'
+        : '<b>Pembayaran kamu sudah kami terima!</b><br>Pesananmu segera kami siapkan dan kirim. Terima kasih sudah belanja di Kopi Bing.';
       $('btnBukti').style.display='none';
       $('donecard').style.display='block';
     }
@@ -139,8 +242,22 @@ import Base from '../layouts/Base.astro';
         $('copyAcc').dataset.c=String($('accNo').textContent).replace(/\D/g,'');
         $('copyAmt').dataset.c=String(Math.round(Number(o.gross_revenue||0)));
 
+        payMethod=String(o.payment_method||'bank_transfer').toLowerCase();
+        const isCod = payMethod==='cod';
+        const isTransfer = payMethod==='bank_transfer';
+        $('totalLabel').textContent = isCod ? 'Total bayar ke kurir' : (isTransfer ? 'Total transfer' : 'Total bayar');
+        $('codAmt').textContent=fmt(o.gross_revenue||0);
+
         const isPaid = PAID.indexOf(String(o.status||'').toLowerCase())>=0 || String(o.payment_status||'').toLowerCase()==='paid';
         if(isPaid){ showPaid(); }
+        else if(isCod){
+          $('paycard').style.display='none'; $('codcard').style.display='block';
+          $('ostat').textContent='Bayar saat barang sampai';
+        }
+        else if(!isTransfer){
+          $('ostat').textContent='Menunggu pembayaran';
+          showEpay(o);
+        }
         else if(o.transfer_time){ showProcessing(); }
         else { $('ostat').textContent='Menunggu pembayaran'; }
 
