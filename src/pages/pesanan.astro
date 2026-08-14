@@ -90,6 +90,8 @@ import Base from '../layouts/Base.astro';
     .op .hint{ background:#EAF6F8; color:#0B5C6B; font-size:12.5px; line-height:1.6; padding:11px 13px; border-radius:9px; }
     .op .brow b.vanum{ font-size:19px; font-weight:600; color:var(--brown); letter-spacing:0.5px; }
     .op .qrstr{ background:#FBF2DF; border-radius:9px; padding:11px 13px; font-size:11px; color:#6B4E37; word-break:break-all; line-height:1.5; margin-bottom:12px; }
+    .op .qrbox{ background:#fff; border:0.5px solid #E6D6B8; border-radius:11px; padding:14px; margin:0 auto 12px; max-width:280px; }
+    .op .qrbox svg{ display:block; width:100%; height:auto; }
     .op .btn-buy.full{ display:block; width:100%; text-align:center; }
     .op .btn-buy.full:disabled{ opacity:.6; cursor:not-allowed; }
     .op .btn-outline{ display:block; width:100%; text-align:center; background:#fff; color:var(--brown); border:1.5px solid #D8C6A8; border-radius:9px; padding:12px; font-weight:500; font-size:14px; font-family:inherit; cursor:pointer; }
@@ -101,6 +103,7 @@ import Base from '../layouts/Base.astro';
 
   <script>
     import { getOrder, patchOrder, createPayment } from '../data/scalev.js';
+    import qrcode from 'qrcode-generator';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
     const SCALEV_ORDER_HOST='https://kopi-bing.myscalev.com/o/';
@@ -168,10 +171,9 @@ import Base from '../layouts/Base.astro';
           +'<a class="btn-buy full" href="'+info.link+'" target="_blank" rel="noopener">Bayar sekarang</a>'
           +'<p class="hint" style="margin-top:12px">Tombol di atas membuka halaman pembayaran. Di sana kamu pilih bank/e-wallet-nya. Setelah bayar, balik ke halaman ini &mdash; statusnya update sendiri.</p>';
       } else if(info.qrString){
-        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
-          +'<p class="hint" style="margin-bottom:12px">Salin kode QRIS di bawah, lalu tempel di aplikasi e-wallet kamu.</p>'
-          +'<div class="qrstr">'+info.qrString+'</div>'
-          +'<button class="btn-outline full copy" data-c="'+info.qrString+'">Salin kode QRIS</button>';
+        html+='<div class="qrbox" id="qrbox"></div>'
+          +'<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
+          +'<p class="hint">Scan QR di atas pakai GoPay, OVO, DANA, ShopeePay, atau m-banking apa pun yang ada QRIS-nya. Kalau kamu bayar dari HP yang sama, screenshot dulu QR-nya lalu pilih menu unggah dari galeri di aplikasinya.</p>';
       } else {
         html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
           +'<a class="btn-buy full" href="'+SCALEV_ORDER_HOST+slug+'" target="_blank" rel="noopener">Buka halaman pembayaran</a>'
@@ -179,6 +181,17 @@ import Base from '../layouts/Base.astro';
       }
       if(exp) html+='<p class="note">Bayar sebelum '+exp+'.</p>';
       $('epayBody').innerHTML=html;
+      // QR digambar di browser: Scalev cuma mengirim string QRIS, bukan gambarnya.
+      if(info.qrString && $('qrbox')){
+        try{
+          const qr=qrcode(0,'M'); qr.addData(info.qrString); qr.make();
+          $('qrbox').innerHTML=qr.createSvgTag({ cellSize:6, margin:2, scalable:true });
+        }catch(e){
+          $('qrbox').outerHTML='<p class="hint" style="margin-bottom:12px">Salin kode QRIS di bawah, lalu buka aplikasi e-wallet kamu.</p>'
+            +'<div class="qrstr">'+info.qrString+'</div>'
+            +'<button class="btn-outline full copy" data-c="'+info.qrString+'">Salin kode QRIS</button>';
+        }
+      }
       startPolling();
     }
 
