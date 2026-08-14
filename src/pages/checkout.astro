@@ -117,7 +117,7 @@ import Base from '../layouts/Base.astro';
       va_bri:'Bayar lewat BRImo atau ATM BRI', va_bsi:'Bayar lewat BSI Mobile atau ATM BSI', va_mandiri:'Bayar lewat Livin atau ATM Mandiri',
       dana:'Bayar lewat aplikasi DANA', ovo:'Bayar lewat aplikasi OVO', shopeepay:'Bayar lewat aplikasi Shopee' };
     // Urutan tampil. Metode di luar daftar ini ikut tampil, ditaruh paling bawah.
-    const PAY_ORDER=['bank_transfer','qris','invoice','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay','cod'];
+    const PAY_ORDER=['bank_transfer','cod','qris','invoice','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay'];
     // Metode yang disembunyikan dari web (tetap aktif di Scalev untuk jalur WhatsApp/dashboard).
     const PAY_HIDE=[];
     (async function loadPay(){
