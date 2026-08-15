@@ -4,11 +4,14 @@ import ProductCard from '../components/ProductCard.astro';
 import { products, categories } from '../data/products.js';
 const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
 ---
-<Base title="Toko Kopi Bing — Kopi Giling Seluruh Indonesia">
+<Base
+  title="Toko Kopi Bing — Kopi Giling Seluruh Indonesia"
+  description="Kopi robusta, arabika, dan blend dari seluruh Indonesia. Digiling segar saat kamu pesan, pilih sendiri kehalusannya. Harga lebih murah dari marketplace, kirim ke seluruh Indonesia."
+>
   <section class="hero">
     <div class="wrap heroin">
       <div class="pricebanner">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>
-      <div class="q">Mau kami bantu pilihkan kopi sesuai seleramu?</div>
+      <h1 class="q">Mau kami bantu pilihkan kopi sesuai seleramu?</h1>
       <div class="s">2 pertanyaan singkat, langsung ketemu yang pas</div>
       <a class="herobtn" href="/temukan?mulai=1">Bantu saya pilihkan &rarr;</a>
       <div class="grind">&#9881; Bisa request gilingan: halus &middot; sedang &middot; kasar &middot; biji utuh</div>

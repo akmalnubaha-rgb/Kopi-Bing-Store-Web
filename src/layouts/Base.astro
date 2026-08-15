@@ -1,6 +1,17 @@
 ---
-const { title = "Toko Kopi Bing", bare = false, naked = false } = Astro.props;
+const {
+  title = "Toko Kopi Bing",
+  description = "Kopi giling segar dari seluruh Indonesia. Digiling saat kamu pesan, bisa pilih halus, sedang, kasar, atau biji utuh. Kirim ke seluruh Indonesia.",
+  image = "/img/logo.png",
+  ogType = "website",
+  noindex = false,
+  bare = false,
+  naked = false,
+} = Astro.props;
 const waUrl = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20mau%20tanya";
+const site = Astro.site ?? new URL("https://kopibing.id");
+const canonical = new URL(Astro.url.pathname, site).href;
+const imageUrl = new URL(image, site).href;
 ---
 <!DOCTYPE html>
 <html lang="id">
@@ -9,6 +20,21 @@ const waUrl = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20m
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script is:inline>try{if(new URLSearchParams(location.search).get('lp')){document.documentElement.classList.add('lp-mode');}}catch(e){}</script>
   <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex, follow" />}
+  <!-- Preview waktu link di-share ke WhatsApp / Instagram / Facebook -->
+  <meta property="og:type" content={ogType} />
+  <meta property="og:site_name" content="Toko Kopi Bing" />
+  <meta property="og:locale" content="id_ID" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={imageUrl} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={imageUrl} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Alice&display=swap" rel="stylesheet" />

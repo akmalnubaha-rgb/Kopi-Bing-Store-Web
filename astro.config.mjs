@@ -1,2 +1,3 @@
 import { defineConfig } from 'astro/config';
-export default defineConfig({});
+// site dipakai untuk canonical, og:url, dan sitemap.xml.
+export default defineConfig({ site: 'https://kopibing.id' });

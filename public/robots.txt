@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Halaman pesanan berisi data pelanggan, jangan diindeks.
+Disallow: /o/
+Disallow: /pesanan
+Disallow: /checkout
+Disallow: /keranjang
+
+Sitemap: https://kopibing.id/sitemap.xml

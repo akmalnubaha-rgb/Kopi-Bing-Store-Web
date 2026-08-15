@@ -17,8 +17,35 @@ const rows = [
   { k:"Asam", v:p.intensity.asam, c:"#0097B2" },
   { k:"Body", v:p.intensity.body, c:"#C9922E" },
 ];
+const minPrice = Math.min(...Object.values(p.prices));
+const metaDesc = `${p.desc} Digiling sesuai pesanan (halus, sedang, kasar, atau biji utuh). Mulai ${fmt(minPrice)} per 100gr.`.slice(0, 300);
+// JSON-LD biar harga & nama produk bisa muncul di hasil pencarian Google.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: p.name,
+  description: p.desc,
+  image: new URL(`/img/${p.slug}.webp`, Astro.site ?? "https://kopibing.id").href,
+  brand: { "@type": "Brand", name: "Toko Kopi Bing" },
+  category: p.cat,
+  offers: {
+    "@type": "AggregateOffer",
+    priceCurrency: "IDR",
+    lowPrice: minPrice,
+    highPrice: Math.max(...Object.values(p.prices)),
+    offerCount: Object.keys(p.prices).length,
+    availability: "https://schema.org/InStock",
+    url: new URL(`/produk/${p.slug}`, Astro.site ?? "https://kopibing.id").href,
+  },
+};
 ---
-<Base title={p.name + " — Toko Kopi Bing"}>
+<Base
+  title={p.name + " — Toko Kopi Bing"}
+  description={metaDesc}
+  image={`/img/${p.slug}.webp`}
+  ogType="product"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <div class="wrap dp">
     <a class="back" id="backLink" href="/#katalog">&#8592; Kembali ke katalog</a>
     <div class="hero-img">
