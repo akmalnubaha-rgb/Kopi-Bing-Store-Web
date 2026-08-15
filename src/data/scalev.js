@@ -108,9 +108,44 @@ export const META_STD=['PageView','ViewContent','AddToCart','InitiateCheckout','
 // eventId WAJIB sama di dua jalur itu, kalau tidak Meta menghitungnya dua kali.
 // Nama di luar META_STD dikirim sebagai custom event.
 // `items` (variants / bundle_price_options) hanya dikirim ke relay server, bukan ke pixel browser.
+// Meta hanya menerima data advanced matching lewat fbq('init'), tidak lewat 'track'.
+// Memanggil init lagi tidak menggandakan apa pun; Meta memperbaruinya untuk event
+// berikutnya. Tanpa ini pixel browser cuma punya fbp/fbc, padahal jalur CAPI di
+// bawah sudah lama mengirim ph/ct/st/external_id - itulah sebabnya match quality
+// Purchase tertahan di 4,0 sampai 15 Agustus 2026.
+//
+// Email SENGAJA tidak dikirim. Web ini memakai email sintetis {digit_hp}@mail.kopibing.id,
+// jadi mengirimnya hanya menaikkan angka "parameter terisi" tanpa menambah satu pun
+// kecocokan - dan itu membuat diagnosa match quality ke depan menyesatkan.
+function normPhone(v){
+  const d=String(v||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.slice(0,2)==='62') return d;      // sudah berkode negara
+  if(d[0]==='0') return '62'+d.slice(1); // 08xx -> 628xx
+  return d;
+}
+function normText(v){ return String(v||'').toLowerCase().replace(/\s+/g,''); }
+function applyAdvancedMatching(userData){
+  const pid = typeof window!=='undefined' ? window.KB_PIXEL_ID : '';
+  if(!pid || !userData) return;
+  const am={};
+  // Normalisasi hanya untuk pixel browser. Payload CAPI di bawah sengaja dibiarkan
+  // apa adanya supaya pencocokan sisi server yang sudah berjalan tidak ikut berubah.
+  const ph=normPhone(userData.ph); if(ph) am.ph=ph;
+  if(userData.ct) am.ct=normText(userData.ct);
+  if(userData.st) am.st=normText(userData.st);
+  if(userData.external_id) am.external_id=String(userData.external_id);
+  if(!Object.keys(am).length) return; // tidak ada yang berguna, jangan init ulang
+  am.country='id';
+  try{ window.fbq('init', pid, am); }catch(e){}
+}
+
 export function trackMeta(name, parameters, eventId, userData, items){
   const at=fbAttribution();
-  if(typeof window!=='undefined' && window.fbq) window.fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId});
+  if(typeof window!=='undefined' && window.fbq){
+    applyAdvancedMatching(userData);
+    window.fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId});
+  }
   return metaEvent(Object.assign({
     event_source_url:location.href, referrer_url:document.referrer||undefined,
     user_data:Object.assign({country:'id', fbp:at.fbp||undefined, fbc:at.fbc||undefined}, userData||{}),

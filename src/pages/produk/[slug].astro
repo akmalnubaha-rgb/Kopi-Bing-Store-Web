@@ -163,6 +163,15 @@ const jsonLd = {
     });});
     const WORDER=[100,250,500,1000];
     function vidFor(w,gr){ const m=(product.vg||{})[gr||grind]||(product.vg||{})['Sedang']||[]; return m[WORDER.indexOf(Number(w))]; }
+    // Script ini inline (define:vars memaksa is:inline), jadi tidak bisa import trackMeta.
+    // Event dititipkan ke antrean, lalu dikuras modul di bawah yang punya aksesnya.
+    // Sebelumnya kedua event di halaman ini ditembakkan lewat fbq mentah tanpa eventID
+    // dan tanpa relay CAPI, jadi tidak pernah bisa ter-dedup dengan sisi server.
+    function kbTrack(name, params){
+      const id=name.toLowerCase()+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      (window.__kbq=window.__kbq||[]).push([name, params, id]);
+      if(window.kbDrainTrack) window.kbDrainTrack();
+    }
     function addToCart(){
       const cart=JSON.parse(localStorage.getItem('kb_cart')||'[]');
       const key=product.slug+'-'+g+'-'+grind;
@@ -170,7 +179,7 @@ const jsonLd = {
       if(ex){ ex.qty++; } else { cart.push({key:key,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)}); }
       localStorage.setItem('kb_cart',JSON.stringify(cart));
       const el=document.getElementById('cartCount'); if(el) el.textContent=cart.reduce(function(s,i){return s+i.qty;},0);
-      if(window.fbq) fbq('track','AddToCart',{content_ids:[String(vidFor(g)||product.slug)],content_name:product.name,content_type:'product',value:product.prices[g],currency:'IDR'});
+      kbTrack('AddToCart',{content_ids:[String(vidFor(g)||product.slug)],content_name:product.name,content_type:'product',value:product.prices[g],currency:'IDR'});
     }
     document.getElementById('addBtn').addEventListener('click',function(){
       addToCart();
@@ -182,6 +191,20 @@ const jsonLd = {
       window.location.href='/checkout?buynow=1' + (LP?('&lp='+encodeURIComponent(LP)):'');
     });
     refresh();
-    if(window.fbq) fbq('track','ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});
+    kbTrack('ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});
+  </script>
+
+  <!-- Penguras antrean. Script ini modul (tanpa define:vars) supaya bisa mengimpor
+       trackMeta, yang menembakkan pixel browser dan relay CAPI dengan event_id sama. -->
+  <script>
+    import { trackMeta } from '../../data/scalev.js';
+    window.kbDrainTrack=function(){
+      const q=window.__kbq||[];
+      while(q.length){
+        const e=q.shift();
+        try{ trackMeta(e[0], e[1], e[2], {}); }catch(err){}
+      }
+    };
+    window.kbDrainTrack();
   </script>
 </Base>
