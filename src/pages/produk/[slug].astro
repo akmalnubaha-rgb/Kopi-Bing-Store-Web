@@ -144,7 +144,9 @@ const jsonLd = {
   <script define:vars={{ product:{ slug:p.slug, name:p.name, prices:p.prices, vg: vg } }}>
     let g=250, grind = document.querySelector('#grinds .opt.on').dataset.grind;
     const fmt=(n)=>"Rp "+n.toLocaleString('id-ID');
-    const LP = new URLSearchParams(location.search).get('lp');
+    // Skrip ini inline (define:vars) jadi tidak bisa impor safeLp dari scalev.js.
+    // Aturannya harus sama: tanpa saringan, lp="/situs-lain.com" jadi "//situs-lain.com" (open redirect).
+    const LP = (function(v){ v=String(v||''); return /^[a-z0-9-]{1,64}$/i.test(v) ? v : ''; })(new URLSearchParams(location.search).get('lp'));
     if(LP){
       const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; }
       const ab=document.getElementById('addBtn'); if(ab){ ab.style.display='none'; }
@@ -177,7 +179,7 @@ const jsonLd = {
     document.getElementById('buyBtn').addEventListener('click',function(){
       const item={key:product.slug+'-'+g+'-'+grind,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)};
       sessionStorage.setItem('kb_buynow',JSON.stringify([item]));
-      window.location.href='/checkout?buynow=1' + (LP?('&lp='+LP):'');
+      window.location.href='/checkout?buynow=1' + (LP?('&lp='+encodeURIComponent(LP)):'');
     });
     refresh();
     if(window.fbq) fbq('track','ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});

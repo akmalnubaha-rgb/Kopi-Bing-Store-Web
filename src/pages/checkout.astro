@@ -77,10 +77,11 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, markPurchaseFired } from '../data/scalev.js';
+    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
 
-    const LP = new URLSearchParams(location.search).get('lp');
+    const LP = safeLp(new URLSearchParams(location.search).get('lp'));
     if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
+    sweepOrderMeta();
 
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const params=new URLSearchParams(location.search);
@@ -221,7 +222,9 @@ import Base from '../layouts/Base.astro';
 
         // Purchase. Payload order publik menyensor HP dan tidak memuat variant_id, jadi data
         // yang bagus dititipkan di sini supaya halaman pesanan bisa memakainya nanti.
-        if(oid) stashOrderMeta(oid, {ids:contentIds, num:numItems, value:pval, ph:phone, ct:userData.ct, st:userData.st, ex:userData.external_id});
+        // Hanya dititipkan untuk metode yang Purchase-nya menyusul di halaman pesanan.
+        // COD menembakkan Purchase di sini juga, jadi tidak perlu menyimpan HP pelanggan sama sekali.
+        if(oid && payMethod!=='cod') stashOrderMeta(oid, {ids:contentIds, num:numItems, value:pval, ph:phone, ct:userData.ct, st:userData.st, ex:userData.external_id});
         // COD dibayar ke kurir, jadi konversinya dihitung saat order dibuat.
         // Metode lain: Purchase ditembakkan di halaman pesanan begitu pembayarannya benar-benar masuk.
         if(oid && payMethod==='cod'){

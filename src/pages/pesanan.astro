@@ -112,7 +112,8 @@ import Base from '../layouts/Base.astro';
 
   <script>
     import { getOrder, patchOrder, createPayment, transferProofUpload, putFile,
-             trackMeta, analyticsItems, readOrderMeta, purchaseFired, markPurchaseFired } from '../data/scalev.js';
+             trackMeta, analyticsItems, readOrderMeta, clearOrderMeta, sweepOrderMeta,
+             purchaseFired, markPurchaseFired } from '../data/scalev.js';
     import qrcode from 'qrcode-generator';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
@@ -275,7 +276,11 @@ import Base from '../layouts/Base.astro';
       const dest=order.destination_address||{};
       const userData={ ph:(m&&m.ph)||undefined, ct:(m&&m.ct)||dest.city||undefined, st:(m&&m.st)||dest.province||undefined,
                        external_id: order.customer_id ? String(order.customer_id) : ((m&&m.ex)||undefined) };
-      try{ trackMeta('Purchase', params, oid+'-Purchase', userData, ai.items); markPurchaseFired(oid); }catch(e){}
+      try{
+        trackMeta('Purchase', params, oid+'-Purchase', userData, ai.items);
+        markPurchaseFired(oid);
+        clearOrderMeta(oid); // titipan berisi nomor HP, tidak dibutuhkan lagi setelah ini
+      }catch(e){}
     }
 
     function showPaid(){
@@ -293,6 +298,7 @@ import Base from '../layouts/Base.astro';
     }
 
     (async function(){
+      sweepOrderMeta();
       slug=slugFromPath();
       if(!slug){ $('loading').style.display='none'; $('err').style.display='block'; $('err').textContent='Nomor pesanan tidak ditemukan.'; return; }
       $('btnBukti').href=SCALEV_ORDER_HOST+slug;

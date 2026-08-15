@@ -144,11 +144,45 @@ export function analyticsItems(order){
 
 // Payload order publik menyensor HP & alamat, dan orderline-nya tidak memuat variant_id.
 // Jadi data untuk Purchase dititipkan dari checkout, dipakai lagi di halaman pesanan.
+// Titipan ini memuat nomor HP pelanggan, jadi umurnya dibatasi dan dihapus
+// begitu Purchase berhasil ditembakkan. Jangan biarkan mengendap di HP bersama.
+const OMETA_PREFIX='kb_ometa_';
+const OMETA_TTL=7*24*60*60*1000; // 7 hari
+
 export function stashOrderMeta(orderId, data){
-  try{ localStorage.setItem('kb_ometa_'+orderId, JSON.stringify(data)); }catch(e){}
+  try{ localStorage.setItem(OMETA_PREFIX+orderId, JSON.stringify(Object.assign({t:Date.now()}, data))); }catch(e){}
 }
 export function readOrderMeta(orderId){
-  try{ return JSON.parse(localStorage.getItem('kb_ometa_'+orderId)||'null'); }catch(e){ return null; }
+  try{
+    const raw=localStorage.getItem(OMETA_PREFIX+orderId);
+    if(!raw) return null;
+    const d=JSON.parse(raw);
+    if(!d || !d.t || (Date.now()-d.t)>OMETA_TTL){ clearOrderMeta(orderId); return null; }
+    return d;
+  }catch(e){ return null; }
+}
+export function clearOrderMeta(orderId){
+  try{ localStorage.removeItem(OMETA_PREFIX+orderId); }catch(e){}
+}
+// Sapu titipan kedaluwarsa, termasuk sisa versi lama yang belum punya stempel waktu.
+export function sweepOrderMeta(){
+  try{
+    for(let i=localStorage.length-1;i>=0;i--){
+      const k=localStorage.key(i);
+      if(!k || k.indexOf(OMETA_PREFIX)!==0) continue;
+      let d=null;
+      try{ d=JSON.parse(localStorage.getItem(k)||'null'); }catch(e){}
+      if(!d || !d.t || (Date.now()-d.t)>OMETA_TTL) localStorage.removeItem(k);
+    }
+  }catch(e){}
+}
+
+// `lp` (mode corong iklan) disusun jadi tautan "/{lp}". Tanpa penyaringan, nilai
+// seperti "/situs-lain.com" menghasilkan "//situs-lain.com" yang dibaca browser
+// sebagai alamat eksternal - open redirect memakai nama domain kita.
+export function safeLp(value){
+  const v=String(value||'');
+  return /^[a-z0-9-]{1,64}$/i.test(v) ? v : '';
 }
 // Penjaga supaya satu order cuma menembakkan Purchase sekali per browser.
 export function purchaseFired(orderId){
