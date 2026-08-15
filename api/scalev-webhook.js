@@ -168,28 +168,10 @@ export default async function handler(request) {
 
   const cek = await verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET);
   if (!cek.ok) {
+    // Diagnostik cukup di log (Vercel Logs perlu mode Live untuk menampilkannya).
+    // Jangan pernah kembalikan detail konfigurasi ke pemanggil.
     console.error(`Tanda tangan ditolak: ${cek.alasan}${cek.diag ? ' | ' + cek.diag : ''}`);
-    // Diagnostik ikut di body karena runtime log Vercel di paket ini tidak
-    // menampilkan request Edge Function. Isinya hanya PANJANG karakter dan
-    // status konfigurasi - tidak ada nilai secret, token, maupun data pesanan.
-    // HAPUS blok diag ini setelah webhook berhasil terdaftar.
-    return Response.json(
-      {
-        error: 'Invalid signature',
-        alasan: cek.alasan,
-        diag: cek.diag || null,
-        // Sidik jari: 8 hex pertama dari SHA-256 secret. Tidak bisa dibalik,
-        // tapi cukup untuk membandingkan "apakah nilainya sama" dari luar.
-        secret_fp: (await sha256(String(process.env.SCALEV_WEBHOOK_SECRET || '').trim())).slice(0, 8),
-        konfigurasi: {
-          secret_terisi: !!process.env.SCALEV_WEBHOOK_SECRET,
-          pixel_terisi: !!process.env.META_PIXEL_ID,
-          token_terisi: !!process.env.META_CAPI_TOKEN,
-          test_event_code_terisi: !!process.env.META_TEST_EVENT_CODE,
-        },
-      },
-      { status: 401 }
-    );
+    return new Response('Invalid signature', { status: 401 });
   }
 
   let payload;
