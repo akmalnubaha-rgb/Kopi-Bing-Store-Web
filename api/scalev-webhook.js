@@ -178,6 +178,9 @@ export default async function handler(request) {
         error: 'Invalid signature',
         alasan: cek.alasan,
         diag: cek.diag || null,
+        // Sidik jari: 8 hex pertama dari SHA-256 secret. Tidak bisa dibalik,
+        // tapi cukup untuk membandingkan "apakah nilainya sama" dari luar.
+        secret_fp: (await sha256(String(process.env.SCALEV_WEBHOOK_SECRET || '').trim())).slice(0, 8),
         konfigurasi: {
           secret_terisi: !!process.env.SCALEV_WEBHOOK_SECRET,
           pixel_terisi: !!process.env.META_PIXEL_ID,
