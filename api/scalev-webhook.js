@@ -168,9 +168,25 @@ export default async function handler(request) {
 
   const cek = await verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET);
   if (!cek.ok) {
-    // Diagnostik sengaja hanya panjang karakter, bukan nilainya.
     console.error(`Tanda tangan ditolak: ${cek.alasan}${cek.diag ? ' | ' + cek.diag : ''}`);
-    return new Response('Invalid signature', { status: 401 });
+    // Diagnostik ikut di body karena runtime log Vercel di paket ini tidak
+    // menampilkan request Edge Function. Isinya hanya PANJANG karakter dan
+    // status konfigurasi - tidak ada nilai secret, token, maupun data pesanan.
+    // HAPUS blok diag ini setelah webhook berhasil terdaftar.
+    return Response.json(
+      {
+        error: 'Invalid signature',
+        alasan: cek.alasan,
+        diag: cek.diag || null,
+        konfigurasi: {
+          secret_terisi: !!process.env.SCALEV_WEBHOOK_SECRET,
+          pixel_terisi: !!process.env.META_PIXEL_ID,
+          token_terisi: !!process.env.META_CAPI_TOKEN,
+          test_event_code_terisi: !!process.env.META_TEST_EVENT_CODE,
+        },
+      },
+      { status: 401 }
+    );
   }
 
   let payload;
