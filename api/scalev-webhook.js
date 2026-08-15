@@ -70,11 +70,25 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
-async function verifySignature(rawBody, header, secret) {
-  if (!header || !secret) return false;
+async function verifySignature(rawBody, headerRaw, secretRaw) {
+  // Secret sering ke-copy bersama spasi/newline. Header kadang berawalan "sha256=".
+  const secret = String(secretRaw || '').trim();
+  const header = String(headerRaw || '').trim().replace(/^sha256=/i, '');
+  if (!header || !secret) return { ok: false, alasan: !secret ? 'secret kosong' : 'header kosong' };
+
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const expected = toB64(await crypto.subtle.sign('HMAC', key, enc.encode(rawBody)));
-  return safeEqual(expected, String(header));
+  const mac = await crypto.subtle.sign('HMAC', key, enc.encode(rawBody));
+
+  // Dokumentasi Scalev memakai base64; hex diterima juga supaya toleran.
+  if (safeEqual(toB64(mac), header)) return { ok: true };
+  if (safeEqual(toHex(mac), header.toLowerCase())) return { ok: true };
+
+  return {
+    ok: false,
+    alasan: 'tidak cocok',
+    // Panjang saja, tanpa nilai apa pun - cukup untuk mendeteksi salah salin.
+    diag: `secretLen=${secret.length} bodyLen=${rawBody.length} sigLen=${header.length}`,
+  };
 }
 
 async function buildPurchase(order) {
@@ -152,7 +166,10 @@ export default async function handler(request) {
   // Body mentah dibaca dulu: HMAC dihitung atas teks apa adanya, bukan hasil parse.
   const raw = await request.text();
 
-  if (!(await verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET))) {
+  const cek = await verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET);
+  if (!cek.ok) {
+    // Diagnostik sengaja hanya panjang karakter, bukan nilainya.
+    console.error(`Tanda tangan ditolak: ${cek.alasan}${cek.diag ? ' | ' + cek.diag : ''}`);
     return new Response('Invalid signature', { status: 401 });
   }
 

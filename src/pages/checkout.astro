@@ -111,7 +111,22 @@ import Base from '../layouts/Base.astro';
       va_bri:'Bayar lewat BRImo atau ATM BRI', va_bsi:'Bayar lewat BSI Mobile atau ATM BSI', va_mandiri:'Bayar lewat Livin atau ATM Mandiri',
       dana:'Bayar lewat aplikasi DANA', ovo:'Bayar lewat aplikasi OVO', shopeepay:'Bayar lewat aplikasi Shopee' };
     // Urutan tampil. Metode di luar daftar ini ikut tampil, ditaruh paling bawah.
-    const PAY_ORDER=['bank_transfer','cod','qris','invoice','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay'];
+    //
+    // PENTING: yang pertama juga menjadi pilihan DEFAULT - lihat `i===0` dan
+    // `methods[0].code` di bawah. Jadi mengubah urutan di sini mengubah metode
+    // yang dipakai mayoritas pelanggan, bukan sekadar tata letak.
+    //
+    // QRIS ditaruh paling depan sejak 15 Agustus 2026. Sebelumnya bank_transfer yang
+    // default, dan hasilnya 132 dari 135 order (98%) memakai transfer bank manual
+    // sepanjang 16 Jul - 14 Agu 2026, dengan 14% di antaranya tidak pernah terkonfirmasi.
+    // Transfer bank butuh unggah bukti, dan itu yang gagal di browser dalam aplikasi
+    // Facebook/Instagram - sumber semua order nyangkut yang sempat diperiksa satu per satu.
+    // QRIS terverifikasi otomatis dan tidak butuh unggah apa pun.
+    //
+    // bank_transfer sengaja ditaruh kedua, bukan dibuang: masih mudah ditemukan bagi
+    // yang memang memilihnya. Belum ada bukti QRIS lebih baik - sampelnya cuma 3 order
+    // sebelum perubahan ini. Perubahan ini yang membuat pembandingnya ada.
+    const PAY_ORDER=['qris','bank_transfer','cod','invoice','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay'];
     // Metode yang disembunyikan dari web (tetap aktif di Scalev untuk jalur WhatsApp/dashboard).
     const PAY_HIDE=[];
     (async function loadPay(){
