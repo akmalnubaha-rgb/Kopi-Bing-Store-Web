@@ -79,6 +79,18 @@ async function patch(path, body){
 }
 export function patchOrder(secret_slug, body){ return patch(`/public/orders/${secret_slug}`, body); }
 
+// --- Bukti transfer manual ---
+// Alurnya 3 langkah: minta URL upload -> kirim filenya ke URL itu -> tempelkan file_url ke order.
+export function transferProofUpload(secret_slug, meta){
+  return post(`/public/orders/${secret_slug}/transfer-proof-upload`, meta).then(j=>j.data||j);
+}
+// upload_url sudah bertanda tangan, jadi JANGAN dikirimi API key. Content-Type wajib sama persis.
+export async function putFile(upload_url, file){
+  const r = await fetch(upload_url, { method:"PUT", credentials:"omit", headers:{ "Content-Type": file.type }, body:file });
+  if(!r.ok) throw new Error("Upload bukti gagal ("+r.status+")");
+  return true;
+}
+
 // --- Meta Conversions API (server relay via Scalev) + atribusi ---
 function _cookie(n){ try{ return document.cookie.split('; ').find(function(r){return r.indexOf(n+'=')===0;}); }catch(e){ return null; } }
 export function fbAttribution(){
