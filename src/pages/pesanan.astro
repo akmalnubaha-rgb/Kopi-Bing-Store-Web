@@ -111,7 +111,8 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { getOrder, patchOrder, createPayment, transferProofUpload, putFile } from '../data/scalev.js';
+    import { getOrder, patchOrder, createPayment, transferProofUpload, putFile,
+             trackMeta, readOrderMeta, purchaseFired, markPurchaseFired } from '../data/scalev.js';
     import qrcode from 'qrcode-generator';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
@@ -252,7 +253,29 @@ import Base from '../layouts/Base.astro';
       const st=$('ostat'); st.textContent='Dibatalkan'; st.classList.remove('ok');
       $('cancelcard').style.display='block';
     }
+    // Purchase ditembakkan di sini, saat pembayaran benar-benar masuk - bukan saat order dibuat.
+    // Sekali per order per browser; Meta juga men-dedup lewat event_id yang sama di jalur browser & CAPI.
+    function firePurchase(){
+      if(!order) return;
+      const oid=String(order.order_id||'');
+      if(!oid || purchaseFired(oid)) return;
+      const m=readOrderMeta(oid); // dititipkan dari checkout
+      const lines=order.orderlines||[];
+      const params={
+        content_ids: (m&&m.ids) || lines.map(function(l){ return String(l.product_name||''); }),
+        content_type:'product',
+        value: Number((m&&m.value) || order.gross_revenue || 0),
+        currency:'IDR',
+        num_items: (m&&m.num) || lines.reduce(function(s,l){ return s+(Number(l.quantity)||0); },0),
+      };
+      // Kota/provinsi tetap ada di payload publik; HP hanya kalau titipan checkout masih ada.
+      const dest=order.destination_address||{};
+      const userData={ ph:(m&&m.ph)||undefined, ct:(m&&m.ct)||dest.city||undefined, st:(m&&m.st)||dest.province||undefined };
+      try{ trackMeta('Purchase', params, oid+'-Purchase', userData); markPurchaseFired(oid); }catch(e){}
+    }
+
     function showPaid(){
+      firePurchase();
       $('paycard').style.display='none'; $('epaycard').style.display='none'; $('codcard').style.display='none';
       $('okttl').textContent='Terima kasih!';
       const cod=payMethod==='cod';

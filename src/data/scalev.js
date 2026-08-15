@@ -102,3 +102,31 @@ export async function metaEvent(payload){
     await fetch(url('/public/analytics/meta/events'), { method:'POST', credentials:'omit', headers:headers(true), body:JSON.stringify(payload) });
   }catch(e){}
 }
+
+export const META_STD=['PageView','ViewContent','AddToCart','InitiateCheckout','AddPaymentInfo','Purchase','Lead','Contact','Search','Subscribe','CompleteRegistration'];
+// Satu event dikirim lewat dua jalur: pixel browser + CAPI server (relay Scalev).
+// eventId WAJIB sama di dua jalur itu, kalau tidak Meta menghitungnya dua kali.
+// Nama di luar META_STD dikirim sebagai custom event.
+export function trackMeta(name, parameters, eventId, userData){
+  const at=fbAttribution();
+  if(typeof window!=='undefined' && window.fbq) window.fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId});
+  return metaEvent({ event_source_url:location.href, referrer_url:document.referrer||undefined,
+    user_data:Object.assign({country:'id', fbp:at.fbp||undefined, fbc:at.fbc||undefined}, userData||{}),
+    events:[{ event_id:eventId, event_name:name, parameters:parameters }] });
+}
+
+// Payload order publik menyensor HP & alamat, dan orderline-nya tidak memuat variant_id.
+// Jadi data untuk Purchase dititipkan dari checkout, dipakai lagi di halaman pesanan.
+export function stashOrderMeta(orderId, data){
+  try{ localStorage.setItem('kb_ometa_'+orderId, JSON.stringify(data)); }catch(e){}
+}
+export function readOrderMeta(orderId){
+  try{ return JSON.parse(localStorage.getItem('kb_ometa_'+orderId)||'null'); }catch(e){ return null; }
+}
+// Penjaga supaya satu order cuma menembakkan Purchase sekali per browser.
+export function purchaseFired(orderId){
+  try{ return !!localStorage.getItem('kb_purchase_'+orderId); }catch(e){ return false; }
+}
+export function markPurchaseFired(orderId){
+  try{ localStorage.setItem('kb_purchase_'+orderId,'1'); }catch(e){}
+}
