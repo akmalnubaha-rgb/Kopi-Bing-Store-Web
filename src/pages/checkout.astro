@@ -77,7 +77,7 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, stashOrderMeta, markPurchaseFired } from '../data/scalev.js';
+    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, markPurchaseFired } from '../data/scalev.js';
 
     const LP = new URLSearchParams(location.search).get('lp');
     if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
@@ -210,20 +210,23 @@ import Base from '../layouts/Base.astro';
         const order=await createOrder(payload);
         const pval = Number(order.gross_revenue || order.total_price || order.total || (sub+ship));
         const peid = String(order.order_id || order.secret_slug || Date.now())+'-OrderCreated-FORM';
-        const contentIds=cart.map(function(i){return String(i.vid||i.slug);});
-        const numItems=cart.reduce(function(s,i){return s+i.qty;},0);
-        const userData={ph:phone, ct:(loc&&loc.city_name)||undefined, st:(loc&&loc.province_name)||undefined};
+        // Unique id diambil dari respons order; kalau tidak ada, jatuh ke id numerik dari cart.
+        const ai=analyticsItems(order);
+        const contentIds=ai.content_ids.length ? ai.content_ids : cart.map(function(i){return String(i.vid||i.slug);});
+        const numItems=ai.num_items || cart.reduce(function(s,i){return s+i.qty;},0);
+        const userData={ph:phone, ct:(loc&&loc.city_name)||undefined, st:(loc&&loc.province_name)||undefined,
+                        external_id:order.customer_id?String(order.customer_id):undefined};
         const oid=String(order.order_id||order.secret_slug||'');
-        try{ await trackMeta('OrderCreated', {content_ids:contentIds, content_type:'product', value:pval, currency:'IDR', num_items:numItems}, peid, userData); }catch(e){}
+        try{ await trackMeta('OrderCreated', {content_ids:contentIds, content_type:'product', value:pval, currency:'IDR', num_items:numItems}, peid, userData, ai.items); }catch(e){}
 
         // Purchase. Payload order publik menyensor HP dan tidak memuat variant_id, jadi data
         // yang bagus dititipkan di sini supaya halaman pesanan bisa memakainya nanti.
-        if(oid) stashOrderMeta(oid, {ids:contentIds, num:numItems, value:pval, ph:phone, ct:userData.ct, st:userData.st});
+        if(oid) stashOrderMeta(oid, {ids:contentIds, num:numItems, value:pval, ph:phone, ct:userData.ct, st:userData.st, ex:userData.external_id});
         // COD dibayar ke kurir, jadi konversinya dihitung saat order dibuat.
         // Metode lain: Purchase ditembakkan di halaman pesanan begitu pembayarannya benar-benar masuk.
         if(oid && payMethod==='cod'){
           try{
-            await trackMeta('Purchase', {content_ids:contentIds, content_type:'product', value:pval, currency:'IDR', num_items:numItems}, oid+'-Purchase', userData);
+            await trackMeta('Purchase', {content_ids:contentIds, content_type:'product', value:pval, currency:'IDR', num_items:numItems}, oid+'-Purchase', userData, ai.items);
             markPurchaseFired(oid);
           }catch(e){}
         }

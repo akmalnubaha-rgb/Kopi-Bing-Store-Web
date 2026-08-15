@@ -112,7 +112,7 @@ import Base from '../layouts/Base.astro';
 
   <script>
     import { getOrder, patchOrder, createPayment, transferProofUpload, putFile,
-             trackMeta, readOrderMeta, purchaseFired, markPurchaseFired } from '../data/scalev.js';
+             trackMeta, analyticsItems, readOrderMeta, purchaseFired, markPurchaseFired } from '../data/scalev.js';
     import qrcode from 'qrcode-generator';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
@@ -261,17 +261,21 @@ import Base from '../layouts/Base.astro';
       if(!oid || purchaseFired(oid)) return;
       const m=readOrderMeta(oid); // dititipkan dari checkout
       const lines=order.orderlines||[];
+      // Unique id varian ada di peta `order.variants`, jadi tidak bergantung pada titipan checkout.
+      const ai=analyticsItems(order);
       const params={
-        content_ids: (m&&m.ids) || lines.map(function(l){ return String(l.product_name||''); }),
+        content_ids: ai.content_ids.length ? ai.content_ids
+                    : ((m&&m.ids) || lines.map(function(l){ return String(l.product_name||''); })),
         content_type:'product',
-        value: Number((m&&m.value) || order.gross_revenue || 0),
+        value: Number(order.gross_revenue || (m&&m.value) || 0),
         currency:'IDR',
-        num_items: (m&&m.num) || lines.reduce(function(s,l){ return s+(Number(l.quantity)||0); },0),
+        num_items: ai.num_items || (m&&m.num) || lines.reduce(function(s,l){ return s+(Number(l.quantity)||0); },0),
       };
-      // Kota/provinsi tetap ada di payload publik; HP hanya kalau titipan checkout masih ada.
+      // Kota/provinsi tetap ada di payload publik; HP disensor, jadi hanya dari titipan checkout.
       const dest=order.destination_address||{};
-      const userData={ ph:(m&&m.ph)||undefined, ct:(m&&m.ct)||dest.city||undefined, st:(m&&m.st)||dest.province||undefined };
-      try{ trackMeta('Purchase', params, oid+'-Purchase', userData); markPurchaseFired(oid); }catch(e){}
+      const userData={ ph:(m&&m.ph)||undefined, ct:(m&&m.ct)||dest.city||undefined, st:(m&&m.st)||dest.province||undefined,
+                       external_id: order.customer_id ? String(order.customer_id) : ((m&&m.ex)||undefined) };
+      try{ trackMeta('Purchase', params, oid+'-Purchase', userData, ai.items); markPurchaseFired(oid); }catch(e){}
     }
 
     function showPaid(){

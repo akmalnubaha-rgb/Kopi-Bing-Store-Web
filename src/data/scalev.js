@@ -107,12 +107,39 @@ export const META_STD=['PageView','ViewContent','AddToCart','InitiateCheckout','
 // Satu event dikirim lewat dua jalur: pixel browser + CAPI server (relay Scalev).
 // eventId WAJIB sama di dua jalur itu, kalau tidak Meta menghitungnya dua kali.
 // Nama di luar META_STD dikirim sebagai custom event.
-export function trackMeta(name, parameters, eventId, userData){
+// `items` (variants / bundle_price_options) hanya dikirim ke relay server, bukan ke pixel browser.
+export function trackMeta(name, parameters, eventId, userData, items){
   const at=fbAttribution();
   if(typeof window!=='undefined' && window.fbq) window.fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId});
-  return metaEvent({ event_source_url:location.href, referrer_url:document.referrer||undefined,
+  return metaEvent(Object.assign({
+    event_source_url:location.href, referrer_url:document.referrer||undefined,
     user_data:Object.assign({country:'id', fbp:at.fbp||undefined, fbc:at.fbc||undefined}, userData||{}),
-    events:[{ event_id:eventId, event_name:name, parameters:parameters }] });
+    events:[{ event_id:eventId, event_name:name, parameters:parameters }],
+  }, items||{}));
+}
+
+// Payload analytics Scalev memakai unique id (`variant_xxx`), BUKAN id numerik yang dipakai checkout.
+// Untungnya respons order (checkout maupun getOrder) sudah memuat peta `variants` berisi unique id itu,
+// jadi tidak perlu menyimpan peta terjemahan sendiri di frontend.
+export function analyticsItems(order){
+  const pick=(map, key)=> Object.keys(map||{}).map(function(k){
+    const v=map[k]||{};
+    return { id:v[key], quantity:Number(v.quantity)||1 };
+  }).filter(function(x){ return !!x.id; });
+
+  const variants=pick(order&&order.variants, 'variant_unique_id');
+  const bundles=pick(order&&order.bundle_price_options, 'bundle_price_option_unique_id');
+
+  const items={};
+  if(variants.length) items.variants=variants.map(function(v){ return { variant_unique_id:v.id, quantity:v.quantity }; });
+  if(bundles.length) items.bundle_price_options=bundles.map(function(b){ return { bundle_price_option_unique_id:b.id, quantity:b.quantity }; });
+
+  const all=variants.concat(bundles);
+  return {
+    items:items,
+    content_ids: all.map(function(x){ return x.id; }),
+    num_items: all.reduce(function(s,x){ return s+x.quantity; }, 0),
+  };
 }
 
 // Payload order publik menyensor HP & alamat, dan orderline-nya tidak memuat variant_id.
