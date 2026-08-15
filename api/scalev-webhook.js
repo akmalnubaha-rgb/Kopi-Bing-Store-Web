@@ -20,44 +20,64 @@
 // Opsional:
 //   META_TEST_EVENT_CODE   - isi saat menguji; event masuk ke Test Events saja
 
-import crypto from 'node:crypto';
+// Edge runtime: dipakai karena di sini handler menerima Request/Response gaya Web,
+// jadi body MENTAH bisa dibaca utuh (wajib untuk HMAC). Runtime Node bawaan Vercel
+// memakai tanda tangan (req, res) dan sudah mem-parse body, sehingga tanda tangan
+// tidak bisa dihitung ulang dengan tepat.
+export const config = { runtime: 'edge' };
 
 const GRAPH_VERSION = 'v21.0';
 const STORE_URL = 'https://kopibing.id';
+const enc = new TextEncoder();
+
+const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
 
 // Meta minta PII di-hash SHA-256 setelah dinormalkan.
-const sha256 = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
+async function sha256(s) {
+  return toHex(await crypto.subtle.digest('SHA-256', enc.encode(s)));
+}
 const norm = (s) => String(s == null ? '' : s).trim().toLowerCase();
 
-function hashPlain(value) {
+async function hashPlain(value) {
   const v = norm(value);
-  return v ? sha256(v) : undefined;
+  return v ? await sha256(v) : undefined;
 }
-function hashPhone(value) {
+async function hashPhone(value) {
   const v = String(value == null ? '' : value).replace(/\D/g, '');
-  return v ? sha256(v) : undefined;
+  return v ? await sha256(v) : undefined;
 }
 // Kota & provinsi: huruf kecil, tanpa spasi dan tanda baca.
-function hashPlace(value) {
+async function hashPlace(value) {
   const v = norm(value).replace(/[^a-z0-9]/g, '');
-  return v ? sha256(v) : undefined;
+  return v ? await sha256(v) : undefined;
 }
 
-function splitName(full) {
+async function splitName(full) {
   const parts = norm(full).split(/\s+/).filter(Boolean);
   if (!parts.length) return {};
-  return { fn: sha256(parts[0]), ln: parts.length > 1 ? sha256(parts[parts.length - 1]) : undefined };
+  return {
+    fn: await sha256(parts[0]),
+    ln: parts.length > 1 ? await sha256(parts[parts.length - 1]) : undefined,
+  };
 }
 
-function verifySignature(rawBody, header, secret) {
+// Perbandingan waktu-tetap; Edge runtime tidak punya crypto.timingSafeEqual.
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function verifySignature(rawBody, header, secret) {
   if (!header || !secret) return false;
-  const expected = crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest('base64');
-  const a = Buffer.from(expected);
-  const b = Buffer.from(String(header));
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const expected = toB64(await crypto.subtle.sign('HMAC', key, enc.encode(rawBody)));
+  return safeEqual(expected, String(header));
 }
 
-function buildPurchase(order) {
+async function buildPurchase(order) {
   const lines = Array.isArray(order.orderlines) ? order.orderlines : [];
   const contents = lines
     .filter((l) => l.variant_unique_id)
@@ -68,17 +88,17 @@ function buildPurchase(order) {
     }));
 
   const dest = order.destination_address || {};
-  const name = splitName(dest.name);
+  const name = await splitName(dest.name);
 
   const userData = {
-    em: hashPlain(dest.email),
-    ph: hashPhone(dest.phone),
+    em: await hashPlain(dest.email),
+    ph: await hashPhone(dest.phone),
     fn: name.fn,
     ln: name.ln,
-    ct: hashPlace(dest.city),
-    st: hashPlace(dest.province),
-    country: sha256('id'),
-    external_id: order.customer_id ? sha256(String(order.customer_id)) : undefined,
+    ct: await hashPlace(dest.city),
+    st: await hashPlace(dest.province),
+    country: await sha256('id'),
+    external_id: order.customer_id ? await sha256(String(order.customer_id)) : undefined,
   };
   // Buang field kosong; Meta menolak nilai null.
   Object.keys(userData).forEach((k) => userData[k] === undefined && delete userData[k]);
@@ -132,7 +152,7 @@ export default async function handler(request) {
   // Body mentah dibaca dulu: HMAC dihitung atas teks apa adanya, bukan hasil parse.
   const raw = await request.text();
 
-  if (!verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET)) {
+  if (!(await verifySignature(raw, request.headers.get('x-scalev-hmac-sha256'), process.env.SCALEV_WEBHOOK_SECRET))) {
     return new Response('Invalid signature', { status: 401 });
   }
 
@@ -163,7 +183,7 @@ export default async function handler(request) {
   }
 
   try {
-    await sendToMeta(buildPurchase(order));
+    await sendToMeta(await buildPurchase(order));
     // Sengaja tidak mencatat isi order: payload webhook memuat nama, alamat, dan HP.
     console.log(`Purchase terkirim ke Meta untuk order ${order.order_id}`);
     return Response.json({ ok: true, sent: order.order_id });
