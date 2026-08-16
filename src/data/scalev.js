@@ -99,7 +99,9 @@ export function fbAttribution(){
 }
 export async function metaEvent(payload){
   try{
-    await fetch(url('/public/analytics/meta/events'), { method:'POST', credentials:'omit', headers:headers(true), body:JSON.stringify(payload) });
+    // keepalive: sebagian event ditembakkan tepat sebelum pindah halaman (mis. klik
+    // rekomendasi di /temukan). Tanpa ini browser membatalkan kirimannya saat navigasi.
+    await fetch(url('/public/analytics/meta/events'), { method:'POST', credentials:'omit', keepalive:true, headers:headers(true), body:JSON.stringify(payload) });
   }catch(e){}
 }
 

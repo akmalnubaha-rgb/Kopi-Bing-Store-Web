@@ -40,6 +40,13 @@ const MAP = {
     var TASTE={robusta:"pahit",arabika:"asem",blend:"seimbang"};
     var BR="#804C2A",BRD="#5A3419",GRN="#3E8E41",CREAM="#F3E7CE",MUT="#8a7a68";
     var app=document.getElementById('kbapp');var q={};
+    // Script ini inline (define:vars memaksa is:inline), jadi tidak bisa import trackMeta.
+    // Polanya sama seperti halaman produk: event dititipkan ke antrean, dikuras modul di bawah.
+    function kbTrack(name,params){
+      var id=name.toLowerCase()+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      (window.__kbq=window.__kbq||[]).push([name,params,id]);
+      if(window.kbDrainTrack) window.kbDrainTrack();
+    }
     var TESTI=[];for(var _i=1;_i<=15;_i++)TESTI.push('/img/testi/'+_i+'.webp');
     function get(sl){for(var i=0;i<P.length;i++)if(P[i].s===sl)return P[i];}
     function rp(x){return "Rp"+Number(x).toLocaleString('id-ID');}
@@ -55,7 +62,8 @@ const MAP = {
     function viewGate(){
       app.innerHTML='<div style="padding:26px 14px 34px;text-align:center">'
       +'<div style="font-size:11px;letter-spacing:1px;color:'+MUT+';margin-bottom:14px">KOPI GILING SELURUH INDONESIA</div>'
-      +'<div style="font-size:24px;font-weight:600;color:'+BRD+';line-height:1.3;max-width:420px;margin:0 auto 24px">Kami bantu pilih kopi seleramu!</div>'
+      +'<div style="font-size:24px;font-weight:600;color:'+BRD+';line-height:1.3;max-width:420px;margin:0 auto 16px">Kami bantu pilih kopi seleramu!</div>'
+      +'<div style="background:#F5C542;color:#6B3B15;font-size:13px;font-weight:500;line-height:1.45;padding:10px 14px;border-radius:10px;max-width:380px;margin:0 auto 22px">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>'
       +'<div id="g1" style="background:'+GRN+';color:#fff;font-weight:500;font-size:16px;padding:15px;border-radius:11px;cursor:pointer;max-width:340px;margin:0 auto">Bantu pilihkan (30 detik)</div>'
       +'<a id="g2" href="/" style="display:block;border:1px solid #D8C6A8;color:'+BR+';font-weight:500;font-size:15px;padding:14px;border-radius:11px;text-decoration:none;max-width:340px;margin:12px auto 0">Lihat semua katalog</a>'
       +'<div style="max-width:340px;margin:22px auto 0;text-align:left;display:flex;flex-direction:column;gap:9px">'
@@ -66,7 +74,7 @@ const MAP = {
       +'<div style="margin:28px 0 2px"><div style="font-size:13px;font-weight:600;color:'+BRD+';text-align:left;margin:0 0 10px">Kata pelanggan Kopi Bing</div>'
       +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:260px;scroll-snap-align:start;background:#fff;border:0.5px solid #E6D6B8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
       +'</div>';
-      document.getElementById('g1').onclick=function(){q={};go('q1');};}
+      document.getElementById('g1').onclick=function(){q={};kbTrack('KuisMulai',{asal:'gate'});go('q1');};}
     function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #E6D6B8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
     function prog(step){return '<div style="display:flex;gap:6px;margin-bottom:18px">'+[1,2].map(function(i){return '<div style="flex:1;height:5px;border-radius:3px;background:'+(i<=step?BR:'#E6D6B8')+'"></div>';}).join('')+'</div>';}
     function frame(step,qt,body){app.innerHTML='<div style="padding:20px 14px 26px">'+prog(step)
@@ -79,7 +87,7 @@ const MAP = {
       +opt("Asam &amp; fruity","diseduh manual: V60 / Japanese iced","arabika")
       +opt("Seimbang, pahit ketemu asam","espresso based - kopi susu / americano, aman harian","blend");
       frame(1,"Kamu suka kopi dengan rasa yang gimana?",body);
-      Array.prototype.forEach.call(document.querySelectorAll('.kbopt'),function(el){el.onclick=function(){q.rasa=el.dataset.v;go('q2');};});}
+      Array.prototype.forEach.call(document.querySelectorAll('.kbopt'),function(el){el.onclick=function(){q.rasa=el.dataset.v;kbTrack('KuisJawab1',{rasa:q.rasa});go('q2');};});}
     function viewQ2(){var qt,body;
       if(q.rasa==="robusta"){qt="Seberapa pahit yang kamu mau?";body=opt("Strong, bener-bener nendang","sanger, Vietnam drip, kopi susu strong - bikin melek","strong")+opt("Pahit sedang, buat harian","enak buat tubruk &amp; kopi susu harian","sedang");}
       else if(q.rasa==="arabika"){qt="Asamnya kamu mau kayak gimana?";body=opt("Cerah &amp; fruity (asam tinggi)","paling enak Japanese iced / cold brew","cerah")+opt("Fermentasi / wine, unik","rasa beda, wine-like","fermentasi")+opt("Lembut &amp; ringan","ramah di lambung, pas V60 &amp; tubruk","lembut");}
@@ -104,7 +112,15 @@ const MAP = {
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+alt.map(function(p){return tile(p);}).join('')+'</div>'
       +'<div style="margin-top:16px;background:#FBF2DF;border-radius:10px;padding:12px 14px;font-size:12px;color:#5A4636;text-align:center">Digiling segar setiap pesanan - Live tiap hari di TikTok - Pembayaran aman</div>'
       +'<div style="display:flex;gap:10px;margin-top:14px"><span id="kbretry" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;cursor:pointer;color:'+BR+'">Ulangi kuis</span><a href="/" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;text-decoration:none;color:'+BR+'">Lihat semua kopi</a></div></div>';
-      document.getElementById('kbretry').onclick=function(){q={};go('q1');};}
+      document.getElementById('kbretry').onclick=function(){q={};kbTrack('KuisMulai',{asal:'ulangi'});go('q1');};
+      kbTrack('KuisSelesai',{rasa:q.rasa,level:q.lvl,content_ids:slugs,content_type:'product',rekomendasi:main.s});
+      // Klik rekomendasi: yang mana yang dipilih, sebelum pindah ke halaman produk.
+      Array.prototype.forEach.call(app.querySelectorAll('a[href^="/produk/"]'),function(a){
+        a.addEventListener('click',function(){
+          var slug=a.getAttribute('href').split('/').pop();
+          kbTrack('KuisPilihProduk',{content_ids:[slug],content_type:'product',posisi:slug===main.s?'utama':'alternatif'});
+        });
+      });}
     var VIEWS={gate:viewGate,q1:viewQ1,q2:viewQ2,result:viewResult};
     function render(v){(VIEWS[v]||viewGate)();}
     function go(v){history.pushState({view:v,q:JSON.parse(JSON.stringify(q))},'',location.pathname+location.search);render(v);}
@@ -113,5 +129,22 @@ const MAP = {
     var startView=params.get('mulai')?'q1':'gate';
     history.replaceState({view:startView,q:{}},'',location.pathname+location.search);
     render(startView);
+    // ?mulai=1 melompati halaman pembuka, jadi kuisnya langsung mulai di sini.
+    if(startView==='q1') kbTrack('KuisMulai',{asal:'langsung'});
+  </script>
+
+  <!-- Penguras antrean, pola sama dengan halaman produk. Script ini modul (tanpa
+       define:vars) supaya bisa mengimpor trackMeta: pixel browser + relay CAPI
+       dengan event_id yang sama. -->
+  <script>
+    import { trackMeta } from '../data/scalev.js';
+    window.kbDrainTrack=function(){
+      const q=window.__kbq||[];
+      while(q.length){
+        const e=q.shift();
+        try{ trackMeta(e[0], e[1], e[2], {}); }catch(err){}
+      }
+    };
+    window.kbDrainTrack();
   </script>
 </Base>
