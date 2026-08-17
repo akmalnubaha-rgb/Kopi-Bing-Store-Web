@@ -14,8 +14,15 @@ import Base from '../layouts/Base.astro';
       <div class="row"><span id="subLabel">Subtotal</span><span id="subtotal">Rp 0</span></div>
       <div class="row muted"><span>Ongkir</span><span>Dihitung saat checkout</span></div>
       <div class="row total"><span>Total</span><span id="total">Rp 0</span></div>
-      <a class="btn-buy full" href="/checkout">Lanjut ke checkout</a>
+      <a class="btn-buy full" id="coBtn" href="/checkout">Lanjut ke checkout</a>
+      <!-- Hanya tampil di mode corong: jalan balik ke halaman pilihan supaya pembeli
+           bisa menambah kopi lain tanpa keluar dari corong. -->
+      <a class="addmore" id="addMore" href="/" style="display:none">+ Tambah kopi lain</a>
     </div>
+
+    <!-- Di luar kotak: satu-satunya pintu ke katalog lengkap saat mode corong,
+         karena tautan navigasi di header disembunyikan. -->
+    <a class="allcat" id="allCat" href="/#katalog" style="display:none">Lihat semua katalog Kopi Bing</a>
   </div>
 
   <style is:global>
@@ -44,9 +51,27 @@ import Base from '../layouts/Base.astro';
     .cartp .row.muted span:last-child{ color:var(--muted); }
     .cartp .row.total{ font-size:17px; color:var(--ink); font-weight:600; padding-top:14px; margin-bottom:0; border-top:0.5px solid #E6D6B8; }
     .cartp .btn-buy.full{ display:block; width:100%; text-align:center; margin-top:18px; padding:14px; }
+    .cartp .addmore{ display:block; text-align:center; color:var(--brown); font-size:13px; margin-top:14px; }
+    .cartp .addmore:hover{ color:var(--teal-d); }
+    .cartp .allcat{ display:block; text-align:center; color:var(--muted); font-size:13px; text-decoration:underline; margin-top:18px; }
+    .cartp .allcat:hover{ color:var(--brown); }
   </style>
 
   <script>
+    // Mode corong: pengunjung datang dari halaman iklan (mis. /pahit) lewat ikon
+    // keranjang yang membawa ?lp=. Saringan sama seperti halaman lain.
+    const LP=(function(v){ v=String(v||''); return /^[a-z0-9-]{1,64}$/i.test(v) ? v : ''; })(new URLSearchParams(location.search).get('lp'));
+    if(LP){
+      const back=document.querySelector('.cartp .back');
+      if(back){ back.setAttribute('href','/'+LP); back.textContent='← Kembali ke pilihan'; }
+      const co=document.getElementById('coBtn');
+      if(co) co.setAttribute('href','/checkout?lp='+encodeURIComponent(LP));
+      const add=document.getElementById('addMore');
+      if(add){ add.setAttribute('href','/'+LP); add.style.display='block'; }
+      const all=document.getElementById('allCat');
+      if(all) all.style.display='block';
+    }
+
     const fmt=(n)=>"Rp "+n.toLocaleString('id-ID');
     const trash='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>';
     function load(){ return JSON.parse(localStorage.getItem('kb_cart')||'[]'); }
