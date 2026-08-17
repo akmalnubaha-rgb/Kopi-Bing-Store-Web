@@ -16,6 +16,13 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
 <Base title="3 Kopi Robusta Pahit Paling Laris — Kopi Bing" description="Tiga robusta paling pahit dan paling laris di Toko Kopi Bing." noindex={true} naked={true}>
   <div class="wrap lp" id="top">
 
+    <!-- Halaman ini tanpa header (naked) supaya tidak ada pintu keluar ke beranda.
+         Tapi pembeli yang sudah menaruh kopi di keranjang tetap butuh jalan ke sana,
+         jadi tombolnya muncul di kanan atas begitu keranjang ada isinya. -->
+    <a class="cartfab" id="cartFab" href="/keranjang?lp=pahit" style="display:none" aria-label="Keranjang">
+      &#128722;<span class="fabn" id="cartFabN">0</span>
+    </a>
+
     <div class="logo-top"><img src="/img/logo.png" alt="Kopi Bing" /></div>
 
     <section class="hero">
@@ -75,6 +82,12 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
     .lp{ max-width:1000px; padding-top:16px; padding-bottom:30px; }
     .logo-top{ text-align:center; margin:4px 0 18px; }
     .logo-top img{ width:64px; height:64px; border-radius:50%; }
+    .cartfab{ position:fixed; top:14px; right:14px; z-index:20; display:flex; align-items:center; gap:7px;
+      background:var(--brown); color:var(--cream); font-size:17px; line-height:1; padding:10px 13px;
+      border-radius:999px; box-shadow:0 3px 10px rgba(62,44,30,.22); text-decoration:none; }
+    .cartfab:hover{ background:var(--brown-d); }
+    .cartfab .fabn{ background:var(--green); color:#fff; font-size:12px; font-weight:600; min-width:19px;
+      height:19px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
 
     .hero{ text-align:center; max-width:660px; margin:0 auto 24px; }
     .hero h1{ font-size:29px; line-height:1.22; font-weight:600; color:var(--brown-d); }
@@ -134,6 +147,21 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
   </style>
 
   <script>
+    // Tombol keranjang cuma muncul kalau memang sudah ada isinya, biar halaman
+    // iklan tetap bersih buat pengunjung baru.
+    function syncFab(){
+      try{
+        const n=JSON.parse(localStorage.getItem('kb_cart')||'[]').reduce(function(s,i){ return s+i.qty; },0);
+        const fab=document.getElementById('cartFab');
+        if(!fab) return;
+        document.getElementById('cartFabN').textContent=n;
+        fab.style.display = n>0 ? 'flex' : 'none';
+      }catch(e){}
+    }
+    syncFab();
+    window.addEventListener('storage',syncFab);
+    window.addEventListener('pageshow',syncFab);
+
     document.querySelectorAll('.imgs').forEach(function(box){
       const track=box.querySelector('.imgtrack');
       const dots=box.querySelectorAll('.idots b');
