@@ -61,8 +61,8 @@ export function searchLocations(q){ return get(`/public/locations?search=${encod
 export function postalCodes(locId){ return get(`/public/locations/${locId}/postal-codes`).then(j=>j.data||[]); }
 export function getOrder(secret_slug){ return get(`/public/orders/${secret_slug}`); }
 export function paymentMethods(){ return get(`/public/payment-methods`).then(j=>j.data||[]); }
-// Bikin instruksi bayar (nomor VA / link e-wallet / QR). Idempoten: kalau sudah ada, yang lama dikembalikan.
-export function createPayment(secret_slug){ return post(`/public/orders/${secret_slug}/payment`, {}).then(j=>j.data||j); }
+// Instruksi bayar untuk metode e-payment TIDAK lagi dibuat di sini - itu tugas
+// halaman pembayaran Scalev (lihat showScalevPay di pesanan.astro).
 
 export function shippingOptions(items, location_id, postal_code, payment_method="bank_transfer"){
   return post(`/public/checkout/shipping-options`, { items, destination:{ location_id, postal_code }, payment_method }).then(j=>j.data||[]);

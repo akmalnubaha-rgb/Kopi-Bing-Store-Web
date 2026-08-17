@@ -111,10 +111,9 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { getOrder, patchOrder, createPayment, transferProofUpload, putFile,
+    import { getOrder, patchOrder, transferProofUpload, putFile,
              trackMeta, analyticsItems, readOrderMeta, clearOrderMeta, sweepOrderMeta,
              purchaseFired, markPurchaseFired } from '../data/scalev.js';
-    import qrcode from 'qrcode-generator';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
     const SCALEV_ORDER_HOST='https://kopi-bing.myscalev.com/o/';
@@ -135,83 +134,24 @@ import Base from '../layouts/Base.astro';
       va_bca:'Virtual Account BCA', va_bni:'Virtual Account BNI', va_bri:'Virtual Account BRI', va_bsi:'Virtual Account BSI',
       va_mandiri:'Virtual Account Mandiri', dana:'DANA', ovo:'OVO', shopeepay:'ShopeePay' };
 
-    // Ambil data bayar dari pg_payment_info (bentuknya beda-beda per provider).
-    function payInfo(o){
-      const pg=o.pg_payment_info||{};
-      const pm=pg.payment_method||{};
-      const va=(pm.virtual_account&&pm.virtual_account.channel_properties)||{};
-      const otc=(pm.over_the_counter&&pm.over_the_counter.channel_properties)||{};
-      const qr=(pm.qr_code&&pm.qr_code.channel_properties)||{};
-      let link=pg.payment_url||pg.invoice_url||pg.redirect_url||'';
-      if(!link && Array.isArray(pg.actions)){
-        const pick=function(t){ const a=pg.actions.find(function(x){ return String(x.url_type||'').toUpperCase()===t; }); return a&&(a.url||a.value||''); };
-        link=pick('WEB')||pick('DEEPLINK')||pick('MOBILE')||'';
-      }
-      // pg.va_number / va_name / bank_code = bentuk Singapay. Sisanya bentuk Xendit di dokumentasi Scalev.
-      return { vaNumber:pg.va_number||va.virtual_account_number||otc.payment_code||'',
-        vaHolder:pg.va_name||va.customer_name||otc.customer_name||'',
-        bankName:pg.bank_code||'',
-        qrString:pg.qr_string||qr.qr_string||'', link:link, expiredAt:pg.expired_at||o.payment_expiration_at||'' };
-    }
-    function fmtExp(s){
-      if(!s) return '';
-      // Singapay kirim epoch milidetik, Scalev kirim string ISO.
-      const d=(typeof s==='number'||/^\d+$/.test(String(s))) ? new Date(Number(s)) : new Date(s);
-      if(isNaN(d.getTime())) return '';
-      try{ return d.toLocaleString('id-ID',{ day:'numeric', month:'long', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' })+' WIB'; }catch(e){ return ''; }
-    }
-
-    // Tampilan bayar untuk metode otomatis (VA, e-wallet, QRIS, invoice).
-    async function showEpay(o){
+    // Metode selain transfer bank & COD diserahkan ke halaman pembayaran Scalev.
+    // Alasannya: delapan metode dengan langkah berbeda per bank terlalu rawan dirawat
+    // sendiri - satu kalimat salah bikin pelanggan gagal bayar (kasus VA Mandiri
+    // 16 Agu 2026: instruksi kita menyuruh buka menu Virtual Account, padahal Livin
+    // Mandiri memakai Bayar > Multipayment). Scalev yang merawat tutorial tiap metode,
+    // dan halaman mereka mengembalikan pelanggan ke sini setelah bayar.
+    function showScalevPay(o){
       $('paycard').style.display='none';
       $('epaycard').style.display='block';
-      $('epayTitle').textContent='Cara bayar — '+(PAY_NAME[payMethod]||'Pembayaran otomatis');
-      let info=payInfo(o);
-      if(!info.vaNumber && !info.link && !info.qrString){
-        // Instruksi bayar belum dibuat. Endpoint ini idempoten, aman dipanggil ulang.
-        try{ const p=await createPayment(slug); info=payInfo(Object.assign({}, o, p||{})); }catch(e){}
-      }
-      const amt=fmt(o.gross_revenue||0);
-      const exp=fmtExp(info.expiredAt);
-      let html='';
-      if(info.vaNumber){
-        html+='<div class="bankbox">'
-          +(info.bankName?'<div class="brow"><span>Bank</span><b>'+info.bankName+'</b></div>':'')
-          +'<div class="brow"><span>Nomor VA</span><b><span class="vanum" id="vaNo">'+info.vaNumber+'</span> <button class="copy" data-c="'+info.vaNumber+'">salin</button></b></div>'
-          +(info.vaHolder?'<div class="brow"><span>Atas nama</span><b>'+info.vaHolder+'</b></div>':'')
-          +'<div class="brow big"><span>Jumlah</span><b>'+amt+'</b> <button class="copy" data-c="'+Math.round(Number(o.gross_revenue||0))+'">salin</button></div>'
-          +'</div>'
-          +'<p class="hint">Buka m-banking kamu, pilih menu Virtual Account, lalu masukkan nomor di atas. Pembayaran terverifikasi otomatis.</p>';
-      } else if(info.link){
-        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
-          +'<a class="btn-buy full" href="'+info.link+'" target="_blank" rel="noopener">Bayar sekarang</a>'
-          +'<p class="hint" style="margin-top:12px">Tombol di atas membuka halaman pembayaran. Di sana kamu pilih bank/e-wallet-nya. Setelah bayar, balik ke halaman ini &mdash; statusnya update sendiri.</p>';
-      } else if(info.qrString){
-        html+='<div class="qrbox" id="qrbox"></div>'
-          +'<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
-          +'<p class="hint">Scan QR di atas pakai GoPay, OVO, DANA, ShopeePay, atau m-banking apa pun yang ada QRIS-nya. Kalau kamu bayar dari HP yang sama, screenshot dulu QR-nya lalu pilih menu unggah dari galeri di aplikasinya.</p>';
-      } else {
-        html+='<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+amt+'</b></div></div>'
-          +'<a class="btn-buy full" href="'+SCALEV_ORDER_HOST+slug+'" target="_blank" rel="noopener">Buka halaman pembayaran</a>'
-          +'<p class="hint" style="margin-top:12px">Instruksi bayarnya kami buka di halaman terpisah ya.</p>';
-      }
-      if(exp) html+='<p class="note">Bayar sebelum '+exp+'.</p>';
-      $('epayBody').innerHTML=html;
-      // QR digambar di browser: Scalev cuma mengirim string QRIS, bukan gambarnya.
-      if(info.qrString && $('qrbox')){
-        try{
-          const qr=qrcode(0,'M'); qr.addData(info.qrString); qr.make();
-          $('qrbox').innerHTML=qr.createSvgTag({ cellSize:6, margin:2, scalable:true });
-        }catch(e){
-          $('qrbox').outerHTML='<p class="hint" style="margin-bottom:12px">Salin kode QRIS di bawah, lalu buka aplikasi e-wallet kamu.</p>'
-            +'<div class="qrstr">'+info.qrString+'</div>'
-            +'<button class="btn-outline full copy" data-c="'+info.qrString+'">Salin kode QRIS</button>';
-        }
-      }
+      $('epayTitle').textContent='Cara bayar - '+(PAY_NAME[payMethod]||'Pembayaran otomatis');
+      $('epayBody').innerHTML=
+        '<div class="bankbox"><div class="brow big"><span>Jumlah</span><b>'+fmt(o.gross_revenue||0)+'</b></div></div>'
+        +'<a class="btn-buy full" href="'+SCALEV_ORDER_HOST+slug+'">Lanjut ke pembayaran</a>'
+        +'<p class="hint" style="margin-top:12px">Tombol di atas membuka halaman pembayaran resmi. Ikuti langkahnya di sana, lalu kamu kembali ke halaman ini sendiri.</p>';
+      // Tetap dipantau supaya statusnya berubah begitu pelanggan balik ke sini.
       startPolling();
     }
 
-    // Metode otomatis: status berubah di sisi Scalev, jadi halaman ini yang mengecek berkala.
     function startPolling(){
       if(pollTimer) return;
       let n=0;
@@ -337,7 +277,7 @@ import Base from '../layouts/Base.astro';
         }
         else if(!isTransfer){
           $('ostat').textContent='Menunggu pembayaran';
-          showEpay(o);
+          showScalevPay(o);
         }
         else if(o.transfer_time){ showProcessing(); }
         else { $('ostat').textContent='Menunggu pembayaran'; }
