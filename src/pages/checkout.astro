@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 ---
 <Base title="Checkout — Toko Kopi Bing" description="Selesaikan pesanan kopimu di Toko Kopi Bing." noindex={true}>
-  <div class="wrap cop">
+  <div class="wrap cop" id="formView">
     <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
     <h1>Checkout</h1>
 
@@ -40,6 +40,47 @@ import Base from '../layouts/Base.astro';
     <p class="note" id="payNote">Lengkapi data, wilayah, kurir, dan metode bayar dulu.</p>
   </div>
 
+  <!-- Langkah konfirmasi khusus COD. Pesanan BELUM dibuat waktu halaman ini tampil;
+       order baru dikirim ke Scalev setelah tombol "Ya, saya siap bayar" ditekan.
+       Alasannya: follow-up masih memakai nomor Scalev, jadi membatalkan pesanan COD
+       yang sudah telanjur jalan itu mahal - lebih baik disaring sebelum dibuat. -->
+  <div class="wrap cop codv" id="codView" style="display:none">
+    <a class="back" id="codBack" href="#">&#8592; Ubah pesanan</a>
+    <h1>Cek dulu sebelum lanjut</h1>
+    <p class="lead">Kamu memilih <b>bayar di tempat (COD)</b>. Uangnya dibayarkan tunai ke kurir waktu paket sampai, bukan sekarang.</p>
+
+    <div class="bigamt">
+      <span>Yang harus disiapkan</span>
+      <b id="codTotal">Rp 0</b>
+      <small>sudah termasuk ongkir</small>
+    </div>
+
+    <div class="summary">
+      <div class="pt">Dikirim ke</div>
+      <div class="dest" id="codDest"></div>
+      <div class="line"></div>
+      <div class="pt">Pesanan</div>
+      <div id="codItems"></div>
+      <div class="line"></div>
+      <div class="row"><span>Subtotal</span><span id="codSub">Rp 0</span></div>
+      <div class="row"><span>Ongkir</span><span id="codShip">Rp 0</span></div>
+      <div class="row total"><span>Bayar ke kurir</span><span id="codTotal2">Rp 0</span></div>
+    </div>
+
+    <div class="pact">
+      <b>Mohon dipastikan sekarang, ya.</b>
+      Paket akan kami kemas dan kirim hari itu juga. Kalau nanti ditolak waktu kurir datang,
+      ongkos kirim pergi dan baliknya tetap kami tanggung. Pastikan alamatnya benar dan ada
+      orang di rumah yang siap membayar sejumlah di atas.
+    </div>
+
+    <button class="btn-buy full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
+    <button class="btn-outline full" id="codEdit">Ubah dulu pesanan saya</button>
+    <p class="note" id="codNote">Pesanan baru dibuat setelah kamu menekan tombol di atas.</p>
+
+    <a class="waline" id="codWa" target="_blank" rel="noopener">Ada kendala atau mau tanya dulu? Chat admin 0851-6194-1214</a>
+  </div>
+
   <style is:global>
     .cop{ max-width:600px; margin:0 auto; padding:16px 16px 10px; }
     .cop .back{ display:inline-block; color:var(--brown); font-size:13px; margin-bottom:12px; }
@@ -62,8 +103,8 @@ import Base from '../layouts/Base.astro';
     .cop .crow.on .cc{ color:var(--teal-d); }
     .cop .summary{ background:#fff; border:0.5px solid #E6D6B8; border-radius:14px; padding:20px; margin-top:24px; }
     .cop .pt{ color:#6B4E37; font-size:13px; font-weight:600; margin-bottom:14px; }
-    .cop #items .ci{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:11px 0; border-top:0.5px solid #F0E6D2; }
-    .cop #items .ci:first-child{ border-top:none; padding-top:0; }
+    .cop #items .ci, .cop #codItems .ci{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:11px 0; border-top:0.5px solid #F0E6D2; }
+    .cop #items .ci:first-child, .cop #codItems .ci:first-child{ border-top:none; padding-top:0; }
     .cop .cnm{ font-size:14px; color:var(--ink); line-height:1.35; }
     .cop .cno{ color:var(--muted); font-size:12px; margin-top:3px; }
     .cop .cip{ font-size:14px; color:var(--ink); white-space:nowrap; font-weight:500; }
@@ -74,6 +115,25 @@ import Base from '../layouts/Base.astro';
     .cop .btn-buy.full:disabled{ opacity:.5; cursor:not-allowed; }
     .cop .note{ color:var(--muted); font-size:12px; text-align:center; margin-top:12px; }
     .cop .note.err{ color:#A3502F; }
+
+    .codv .lead{ color:#5A4636; font-size:14px; line-height:1.65; margin-bottom:18px; }
+    .codv .bigamt{ background:#FBF2DF; border:1px solid #E6D6B8; border-radius:14px; padding:18px; text-align:center; }
+    .codv .bigamt span{ display:block; color:#7A6551; font-size:12px; }
+    .codv .bigamt b{ display:block; color:var(--brown-d); font-size:30px; font-weight:700; margin:5px 0 3px; }
+    .codv .bigamt small{ color:var(--muted); font-size:11px; }
+    .codv .summary{ margin-top:14px; }
+    .codv .dest{ color:var(--ink); font-size:13px; line-height:1.6; }
+    .codv .dest b{ font-weight:600; }
+    .codv .pact{ background:#FFF4E2; border:1px solid #EBD3A6; border-radius:12px; padding:15px 16px; margin-top:18px;
+      color:#6B4E37; font-size:13px; line-height:1.65; }
+    .codv .pact b{ display:block; color:var(--brown-d); margin-bottom:5px; }
+    .codv .btn-buy.full{ margin-top:18px; }
+    .codv .btn-outline{ display:block; width:100%; text-align:center; background:#fff; color:var(--brown);
+      border:1.5px solid #D8C6A8; border-radius:9px; padding:13px; font-weight:500; font-size:14px;
+      font-family:inherit; cursor:pointer; margin-top:10px; }
+    .codv .btn-outline:hover{ background:#FBF6EC; }
+    .codv .waline{ display:block; text-align:center; color:var(--brown); font-size:13px; text-decoration:underline; margin-top:20px; }
+    .codv .waline:hover{ color:var(--teal-d); }
   </style>
 
   <script>
@@ -204,9 +264,61 @@ import Base from '../layouts/Base.astro';
     function refreshPay(){ const ok=ready(); $('payBtn').disabled=!ok; if(ok) setNote('Siap. Klik untuk buat pesanan.',false); }
     ['nama','wa','alamat'].forEach(id=>$(id).addEventListener('input',refreshPay));
 
-    $('payBtn').addEventListener('click',async function(){
+    // --- Langkah konfirmasi COD -------------------------------------------
+    // Ditampilkan sebelum order dikirim ke Scalev, bukan sesudah. Kalau pembeli
+    // mundur di sini, tidak ada pesanan yang perlu dibatalkan siapa pun.
+    const WA_ADMIN='https://wa.me/6285161941214?text=';
+    function showCodConfirm(){
+      const total=sub+ship;
+      // Label dibangun ulang: kalau percobaan sebelumnya gagal, isi tombolnya sempat diganti teks biasa.
+      $('codYes').innerHTML='Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir';
+      $('codYes').disabled=false;
+      $('codNote').textContent='Pesanan baru dibuat setelah kamu menekan tombol di atas.';
+      $('codNote').classList.remove('err');
+      $('codTotal').textContent=fmt(total);
+      $('codTotal2').textContent=fmt(total);
+      $('codBtnAmt').textContent=fmt(total);
+      $('codSub').textContent=fmt(sub);
+      $('codShip').textContent=fmt(ship);
+      $('codItems').innerHTML=$('items').innerHTML; // ringkasan produk, bukan input pelanggan
+
+      // Data penerima diisi lewat DOM, bukan innerHTML - isinya ketikan pelanggan.
+      const d=$('codDest'); d.textContent='';
+      const nm=document.createElement('b'); nm.textContent=$('nama').value.trim(); d.appendChild(nm);
+      [$('wa').value.trim(), $('alamat').value.trim(), (loc.display||'')+' '+chosenPostal].forEach(function(t){
+        d.appendChild(document.createElement('br'));
+        d.appendChild(document.createTextNode(t));
+      });
+
+      $('codWa').href=WA_ADMIN+encodeURIComponent('Halo Kopi Bing, saya mau tanya soal pesanan COD atas nama '+$('nama').value.trim());
+      $('formView').style.display='none';
+      $('codView').style.display='block';
+      window.scrollTo(0,0);
+      try{ history.pushState({cod:1},'',location.pathname+location.search+'#konfirmasi-cod'); }catch(e){}
+    }
+    function hideCodConfirm(){
+      $('codView').style.display='none';
+      $('formView').style.display='block';
+      window.scrollTo(0,0);
+    }
+    $('codEdit').addEventListener('click',function(){ try{ history.back(); }catch(e){ hideCodConfirm(); } });
+    $('codBack').addEventListener('click',function(e){ e.preventDefault(); try{ history.back(); }catch(e2){ hideCodConfirm(); } });
+    window.addEventListener('popstate',function(){ if($('codView').style.display!=='none') hideCodConfirm(); });
+    $('codYes').addEventListener('click',function(){
+      submitOrder(this,'Ya, saya siap bayar '+fmt(sub+ship)+' ke kurir',$('codNote'));
+    });
+
+    $('payBtn').addEventListener('click',function(){
       if(!ready()) return;
-      this.disabled=true; this.textContent='Membuat pesanan...';
+      if(payMethod==='cod'){ showCodConfirm(); return; }
+      submitOrder(this,'Buat pesanan & bayar',$('payNote'));
+    });
+
+    async function submitOrder(btn, idleLabel, noteEl){
+      if(!ready()) return;
+      btn.disabled=true; btn.textContent='Membuat pesanan...';
+      const fail=function(msg){ btn.disabled=false; btn.textContent=idleLabel;
+        noteEl.textContent=msg; noteEl.classList.add('err'); };
       try{
         const phone=$('wa').value.replace(/\D/g,'');
         const payload={
@@ -255,8 +367,8 @@ import Base from '../layouts/Base.astro';
         // ditandai, jadi pelanggan tetap bisa melihat detail pesanannya.
         const dest = order.public_order_url || order.payment_url;
         if(dest){ window.location.href = dest + (dest.indexOf('?')>=0 ? '&' : '?') + 'bayar=1'; }
-        else { setNote('Pesanan dibuat. Cek WhatsApp untuk instruksi pembayaran.',false); }
-      }catch(err){ this.disabled=false; this.textContent='Buat pesanan & bayar'; setNote('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.',true); }
-    });
+        else { noteEl.textContent='Pesanan dibuat. Cek WhatsApp untuk instruksi pembayaran.'; noteEl.classList.remove('err'); }
+      }catch(err){ fail('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.'); }
+    }
   </script>
 </Base>
