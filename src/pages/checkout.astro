@@ -249,8 +249,12 @@ import Base from '../layouts/Base.astro';
           }catch(e){}
         }
         try{ localStorage.removeItem('kb_cart'); sessionStorage.removeItem('kb_buynow'); }catch(e){}
+        // ?bayar=1 menandai "baru selesai checkout". Halaman pesanan memakainya untuk
+        // melempar langsung ke halaman pembayaran Scalev pada metode e-payment, tanpa
+        // ketukan tambahan. Kunjungan berikutnya (mis. dari link follow-up) tidak
+        // ditandai, jadi pelanggan tetap bisa melihat detail pesanannya.
         const dest = order.public_order_url || order.payment_url;
-        if(dest){ window.location.href=dest; }
+        if(dest){ window.location.href = dest + (dest.indexOf('?')>=0 ? '&' : '?') + 'bayar=1'; }
         else { setNote('Pesanan dibuat. Cek WhatsApp untuk instruksi pembayaran.',false); }
       }catch(err){ this.disabled=false; this.textContent='Buat pesanan & bayar'; setNote('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.',true); }
     });

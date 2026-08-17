@@ -141,6 +141,11 @@ import Base from '../layouts/Base.astro';
     // Mandiri memakai Bayar > Multipayment). Scalev yang merawat tutorial tiap metode,
     // dan halaman mereka mengembalikan pelanggan ke sini setelah bayar.
     function showScalevPay(o){
+      const tujuan=SCALEV_ORDER_HOST+slug;
+      // Baru selesai checkout: langsung ke halaman pembayaran, jangan buang satu ketukan.
+      // replace() dipakai supaya halaman ini tidak masuk riwayat - tombol back di halaman
+      // pembayaran tidak memantul balik ke sini lalu terlempar lagi.
+      if(new URLSearchParams(location.search).get('bayar')){ location.replace(tujuan); return; }
       $('paycard').style.display='none';
       $('epaycard').style.display='block';
       $('epayTitle').textContent='Cara bayar - '+(PAY_NAME[payMethod]||'Pembayaran otomatis');
