@@ -31,11 +31,12 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
     </section>
 
     <section class="cards">
-      {picks.map(({p, level, mp, blurb, meter})=>(
+      {picks.map(({p, level, mp, blurb, meter}, idx)=>(
         <a class="card" href={`/produk/${p.slug}?lp=pahit`}>
           <div class="imgs">
             <div class="imgtrack">
-              <div class="imgslide"><img src={`/img/${p.slug}-real.webp`} alt={`Foto asli ${p.name}`} loading="lazy" /></div>
+              {/* Kartu pertama adalah gambar terbesar di layar awal, jadi jangan ditunda. */}
+              <div class="imgslide"><img src={`/img/${p.slug}-real.webp`} alt={`Foto asli ${p.name}`} loading={idx===0?"eager":"lazy"} fetchpriority={idx===0?"high":undefined} /></div>
               <div class="imgslide"><img src={`/img/${p.slug}.webp`} alt={p.name} loading="lazy" /></div>
             </div>
             <div class="idots"><b class="on"></b><b></b></div>
