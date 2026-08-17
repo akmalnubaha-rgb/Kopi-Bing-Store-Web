@@ -60,13 +60,6 @@ import Base from '../layouts/Base.astro';
     <button class="btn-buy full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
     <p class="note" id="codNote">Pesanan baru dibuat setelah kamu menekan tombol di atas.</p>
 
-    <div class="pact">
-      <b>Mohon dipastikan sekarang, ya.</b>
-      Paket akan kami kemas dan kirim hari itu juga. Kalau nanti ditolak waktu kurir datang,
-      ongkos kirim pergi dan baliknya tetap kami tanggung. Pastikan alamatnya benar dan ada
-      orang di rumah yang siap membayar sejumlah di atas.
-    </div>
-
     <div class="summary">
       <div class="pt">Dikirim ke</div>
       <div class="dest" id="codDest"></div>
@@ -130,9 +123,6 @@ import Base from '../layouts/Base.astro';
     .codv .summary{ margin-top:14px; }
     .codv .dest{ color:var(--ink); font-size:13px; line-height:1.6; }
     .codv .dest b{ font-weight:600; }
-    .codv .pact{ background:#FFF4E2; border:1px solid #EBD3A6; border-radius:12px; padding:15px 16px; margin-top:18px;
-      color:#6B4E37; font-size:13px; line-height:1.65; }
-    .codv .pact b{ display:block; color:var(--brown-d); margin-bottom:5px; }
     .codv .btn-buy.full{ margin-top:18px; }
     .codv .btn-outline{ display:block; width:100%; text-align:center; background:#fff; color:var(--brown);
       border:1.5px solid #D8C6A8; border-radius:9px; padding:13px; font-weight:500; font-size:14px;
