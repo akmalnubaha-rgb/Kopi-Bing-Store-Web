@@ -55,6 +55,18 @@ import Base from '../layouts/Base.astro';
       <small>sudah termasuk ongkir</small>
     </div>
 
+    <!-- Tombol utama sengaja ditaruh tepat di bawah nominal, sebelum peringatan dan
+         rincian: pembeli harus langsung tahu apa yang mesti ditekan tanpa menggulir. -->
+    <button class="btn-buy full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
+    <p class="note" id="codNote">Pesanan baru dibuat setelah kamu menekan tombol di atas.</p>
+
+    <div class="pact">
+      <b>Mohon dipastikan sekarang, ya.</b>
+      Paket akan kami kemas dan kirim hari itu juga. Kalau nanti ditolak waktu kurir datang,
+      ongkos kirim pergi dan baliknya tetap kami tanggung. Pastikan alamatnya benar dan ada
+      orang di rumah yang siap membayar sejumlah di atas.
+    </div>
+
     <div class="summary">
       <div class="pt">Dikirim ke</div>
       <div class="dest" id="codDest"></div>
@@ -67,18 +79,12 @@ import Base from '../layouts/Base.astro';
       <div class="row total"><span>Bayar ke kurir</span><span id="codTotal2">Rp 0</span></div>
     </div>
 
-    <div class="pact">
-      <b>Mohon dipastikan sekarang, ya.</b>
-      Paket akan kami kemas dan kirim hari itu juga. Kalau nanti ditolak waktu kurir datang,
-      ongkos kirim pergi dan baliknya tetap kami tanggung. Pastikan alamatnya benar dan ada
-      orang di rumah yang siap membayar sejumlah di atas.
-    </div>
-
-    <button class="btn-buy full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
     <button class="btn-outline full" id="codEdit">Ubah dulu pesanan saya</button>
-    <p class="note" id="codNote">Pesanan baru dibuat setelah kamu menekan tombol di atas.</p>
 
-    <a class="waline" id="codWa" target="_blank" rel="noopener">Ada kendala atau mau tanya dulu? Chat admin 0851-6194-1214</a>
+    <a class="wabtn" id="codWa" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+      <span>Chat admin jika ada kendala</span>
+    </a>
   </div>
 
   <style is:global>
@@ -132,8 +138,10 @@ import Base from '../layouts/Base.astro';
       border:1.5px solid #D8C6A8; border-radius:9px; padding:13px; font-weight:500; font-size:14px;
       font-family:inherit; cursor:pointer; margin-top:10px; }
     .codv .btn-outline:hover{ background:#FBF6EC; }
-    .codv .waline{ display:block; text-align:center; color:var(--brown); font-size:13px; text-decoration:underline; margin-top:20px; }
-    .codv .waline:hover{ color:var(--teal-d); }
+    .codv .wabtn{ display:flex; align-items:center; justify-content:center; gap:9px; background:#25995a; color:#fff;
+      border-radius:9px; padding:13px; font-size:14px; font-weight:500; margin-top:10px; }
+    .codv .wabtn:hover{ background:#1F8850; }
+    .codv .wabtn svg{ width:18px; height:18px; flex-shrink:0; }
   </style>
 
   <script>
