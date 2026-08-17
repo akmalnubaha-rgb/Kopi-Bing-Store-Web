@@ -101,6 +101,9 @@ const jsonLd = {
       <div class="bbtns">
         <button class="btn-cart" id="addBtn">+ Keranjang</button>
         <button class="btn-buy" id="buyBtn">Beli langsung</button>
+        <!-- Mode corong (?lp=) menyembunyikan header, jadi ikon keranjang ikut hilang.
+             Tautan ini muncul setelah ada isi keranjang supaya pembeli tetap punya jalan ke sana. -->
+        <a class="btn-cart" id="lpCart" href="/keranjang" style="display:none">Lihat keranjang (<span id="lpCartN">0</span>)</a>
       </div>
     </div>
   </div>
@@ -149,7 +152,8 @@ const jsonLd = {
     const LP = (function(v){ v=String(v||''); return /^[a-z0-9-]{1,64}$/i.test(v) ? v : ''; })(new URLSearchParams(location.search).get('lp'));
     if(LP){
       const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; }
-      const ab=document.getElementById('addBtn'); if(ab){ ab.style.display='none'; }
+      // Tombol "+ Keranjang" sengaja TIDAK disembunyikan lagi (17 Agu 2026): halaman /pahit
+      // menawarkan tiga kopi berdampingan, tapi mode corong memaksa beli satu-satu.
     }
     const info=document.getElementById('selInfo'), price=document.getElementById('selPrice');
     function refresh(){ info.textContent=(g>=1000?'1kg':g+'gr')+' · '+grind; price.textContent=fmt(product.prices[g]); }
@@ -172,6 +176,17 @@ const jsonLd = {
       (window.__kbq=window.__kbq||[]).push([name, params, id]);
       if(window.kbDrainTrack) window.kbDrainTrack();
     }
+    // Di mode corong header tersembunyi, jadi tautan keranjang ditampilkan di bar tombol
+    // begitu keranjang ada isinya. Di luar mode corong, ikon keranjang di header sudah cukup.
+    function refreshLpCart(){
+      if(!LP) return;
+      const link=document.getElementById('lpCart'), n=document.getElementById('lpCartN');
+      if(!link||!n) return;
+      let jml=0;
+      try{ jml=JSON.parse(localStorage.getItem('kb_cart')||'[]').reduce(function(s,i){return s+i.qty;},0); }catch(e){}
+      n.textContent=jml;
+      link.style.display = jml>0 ? '' : 'none';
+    }
     function addToCart(){
       const cart=JSON.parse(localStorage.getItem('kb_cart')||'[]');
       const key=product.slug+'-'+g+'-'+grind;
@@ -179,6 +194,7 @@ const jsonLd = {
       if(ex){ ex.qty++; } else { cart.push({key:key,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)}); }
       localStorage.setItem('kb_cart',JSON.stringify(cart));
       const el=document.getElementById('cartCount'); if(el) el.textContent=cart.reduce(function(s,i){return s+i.qty;},0);
+      refreshLpCart();
       kbTrack('AddToCart',{content_ids:[String(vidFor(g)||product.slug)],content_name:product.name,content_type:'product',value:product.prices[g],currency:'IDR'});
     }
     document.getElementById('addBtn').addEventListener('click',function(){
@@ -191,6 +207,7 @@ const jsonLd = {
       window.location.href='/checkout?buynow=1' + (LP?('&lp='+encodeURIComponent(LP)):'');
     });
     refresh();
+    refreshLpCart(); // kalau keranjang sudah ada isinya dari halaman sebelumnya
     kbTrack('ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});
   </script>
 
