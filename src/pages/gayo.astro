@@ -1,0 +1,210 @@
+---
+import Base from '../layouts/Base.astro';
+import { products } from '../data/products.js';
+
+// Tema "kopi Gayo" — tiga kopi dari dataran tinggi yang sama, Gayo Aceh.
+// Yang dijual di halaman ini cuma satu keputusan: mau pahit, asam, atau yang unik.
+// Halaman tujuan iklan "Video Gayo Web", biar yang diklik dan yang dibuka sama.
+// mp = harga referensi marketplace buat anchor 250gr; null kalau angkanya belum ada.
+const picks = [
+  { slug:"robusta-gayo",      label:"BUAT YANG SUKA PAHIT", tone:"pahit", mp:94000,
+    blurb:"Pahit sedang dan sama sekali nggak asem, tapi kafeinnya tetap tinggi. Enak diminum harian tanpa gula." },
+  { slug:"arabika-aceh-gayo", label:"BUAT YANG SUKA ASAM",  tone:"asam",  mp:135000,
+    blurb:"Asamnya bright dengan karakter fruity, bersih dan gampang disuka. Paling pas diseduh V60 atau manual brew." },
+  { slug:"arabika-gayo-wine", label:"BUAT YANG MAU BEDA",   tone:"wine",  mp:158000,
+    blurb:"Asamnya tinggi dengan rasa fermentasi yang khas. Namanya wine dari cara prosesnya, bukan karena ada alkoholnya. Aman diminum, halal." },
+].map(x => ({ ...x, p: products.find(pr => pr.slug === x.slug) }));
+
+const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
+// intensity di products.js skalanya 0-100; di sini dipetakan jadi 5 titik.
+const dots = (v)=> Math.max(0, Math.min(5, Math.round(v/20)));
+const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
+---
+<Base title="3 Kopi Gayo Paling Laris — Kopi Bing" description="Robusta Gayo, Arabika Aceh Gayo, dan Arabika Gayo Wine dari dataran tinggi Gayo, Aceh." noindex={true} naked={true}>
+  <div class="wrap lp" id="top">
+
+    <!-- Sama seperti /pahit: tanpa header supaya tidak ada pintu keluar ke beranda.
+         Tombol keranjang baru muncul kalau keranjangnya memang sudah ada isinya. -->
+    <a class="cartfab" id="cartFab" href="/keranjang?lp=gayo" style="display:none" aria-label="Keranjang">
+      &#128722;<span class="fabn" id="cartFabN">0</span>
+    </a>
+
+    <div class="logo-top"><img src="/img/logo.png" alt="Kopi Bing" /></div>
+
+    <section class="hero">
+      <h1>3 Kopi Gayo Paling Laris di Kopi Bing</h1>
+      <p class="sub">Ketiganya dari dataran tinggi yang sama, Gayo Aceh. Tinggal pilih mau yang <b>pahit</b>, yang <b>asam</b>, atau yang <b>rasanya unik</b>. Bisa request gilingan 👇</p>
+    </section>
+
+    <section class="cards">
+      {picks.map(({p, label, tone, mp, blurb}, idx)=>(
+        <a class="card" href={`/produk/${p.slug}?lp=gayo`} data-slug={p.slug} data-pos={idx+1}>
+          {/* Foto kemasan, bukan foto biji. Kotaknya 1:1 mengikuti sumbernya (800x800)
+              dan pakai object-fit:contain supaya tulisan di kemasan tidak pernah terpotong. */}
+          <div class="imgs">
+            <img src={`/img/${p.slug}.webp`} alt={p.name} loading={idx===0?"eager":"lazy"} fetchpriority={idx===0?"high":undefined} />
+          </div>
+          <div class="body">
+            <span class={"lvl l-" + tone}>{label}</span>
+            <h3>{p.name}</h3>
+            <div class="origin">{p.origin} &middot; {p.roast}</div>
+
+            <div class="meters">
+              <div class="meter">
+                <span>Pahit</span>
+                <div class="dots">{[0,1,2,3,4].map(i=>(<b class={i < dots(p.intensity.pahit) ? 'on':''}></b>))}</div>
+              </div>
+              <div class="meter">
+                <span>Asam</span>
+                <div class="dots">{[0,1,2,3,4].map(i=>(<b class={i < dots(p.intensity.asam) ? 't on':'t'}></b>))}</div>
+              </div>
+            </div>
+
+            <p class="blurb">{blurb}</p>
+
+            <div class="price">
+              {mp && (<span class="mp">{fmt(mp)}</span>)}
+              <span class="now">{fmt(p.prices[250])}</span>
+              <span class="per">/250gr</span>
+            </div>
+            <div class="cups">250gr bisa diseduh untuk &plusmn;25 gelas</div>
+
+            <span class="buy">Pesan {p.name} &rarr;</span>
+          </div>
+        </a>
+      ))}
+    </section>
+
+    <!-- Buat yang ketiganya kurang cocok: langsung ke katalog beranda, bukan ke
+         kuis. Yang sudah menolak tiga pilihan konkret tidak perlu ditanyai lagi. -->
+    <section class="lain">
+      <a class="lainbtn" id="lainBtn" href="/">Temukan kopi lainnya &rarr;</a>
+    </section>
+
+    <section class="proof">
+      <h2>Sudah dipercaya ribuan pembeli</h2>
+      <p class="psub">Toko resmi aktif di TikTok Shop &amp; Shopee. Geser untuk lihat ulasan pembeli 👉</p>
+      <div class="testi-track">
+        {testis.map(src => (<div class="testi-card"><img src={src} loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>))}
+      </div>
+    </section>
+
+    <section class="ragu">
+      <h2>Masih ragu? Takut kami tipu-tipu? 😌</h2>
+      <p>Tenang. Kami <b>live di TikTok setiap hari</b> (@kopibing_), total 50.000 followers di semua sosmed. Kalau ada pesanan bermasalah, kamu bisa langsung mampir komplain di live. Ini yang bikin ribuan orang berani order.</p>
+    </section>
+
+  </div>
+
+  <style>
+    .lp{ max-width:1000px; padding-top:16px; padding-bottom:30px; }
+    .logo-top{ text-align:center; margin:4px 0 18px; }
+    .logo-top img{ width:64px; height:64px; border-radius:50%; }
+    .cartfab{ position:fixed; top:14px; right:14px; z-index:20; display:flex; align-items:center; gap:7px;
+      background:var(--brown); color:var(--cream); font-size:17px; line-height:1; padding:10px 13px;
+      border-radius:999px; box-shadow:0 3px 10px rgba(62,44,30,.22); text-decoration:none; }
+    .cartfab:hover{ background:var(--brown-d); }
+    .cartfab .fabn{ background:var(--green); color:#fff; font-size:12px; font-weight:600; min-width:19px;
+      height:19px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+
+    .hero{ text-align:center; max-width:620px; margin:0 auto 24px; }
+    .hero h1{ font-size:29px; line-height:1.22; font-weight:600; color:var(--brown-d); }
+    .hero .sub{ color:#5A4636; font-size:15px; line-height:1.7; margin-top:12px; }
+
+    .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .card{ background:#fff; border:0.5px solid #E6D6B8; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .12s, box-shadow .12s; }
+    .card:hover{ transform:translateY(-3px); box-shadow:0 8px 22px rgba(128,76,42,.14); }
+    .imgs{ background:#F3E7CE; aspect-ratio:1/1; }
+    .imgs img{ width:100%; height:100%; object-fit:contain; display:block; }
+    .body{ padding:14px 15px 16px; display:flex; flex-direction:column; flex:1; }
+    .lvl{ align-self:flex-start; font-size:14px; font-weight:800; letter-spacing:.5px; padding:6px 14px; border-radius:8px; margin-bottom:9px; }
+    .lvl.l-pahit{ background:#5A3419; color:#FFE7C0; }
+    .lvl.l-asam{ background:var(--teal-d); color:#E6F6FA; }
+    .lvl.l-wine{ background:#C9922E; color:#fff; }
+    .body h3{ font-size:18px; font-weight:600; color:var(--ink); }
+    .origin{ color:var(--muted); font-size:11px; letter-spacing:.5px; margin-top:2px; }
+    .meters{ margin:10px 0; display:flex; flex-direction:column; gap:6px; }
+    .meter{ display:flex; align-items:center; gap:9px; }
+    .meter span{ font-size:11px; color:#7A6551; width:34px; }
+    .dots{ display:flex; gap:5px; }
+    .dots b{ width:12px; height:12px; border-radius:50%; border:1.5px solid #D8C6A8; background:#F3E7CE; }
+    .dots b.on{ background:#804C2A; border-color:#804C2A; }
+    .dots b.t.on{ background:var(--teal); border-color:var(--teal); }
+    .blurb{ color:#5A4636; font-size:13px; line-height:1.6; flex:1; }
+    .price{ display:flex; align-items:baseline; gap:8px; margin:13px 0 4px; flex-wrap:wrap; }
+    .price .mp{ color:#B0A088; font-size:14px; text-decoration:line-through; }
+    .price .now{ color:var(--brown); font-size:23px; font-weight:700; }
+    .price .per{ color:#7A6551; font-size:12px; }
+    .cups{ color:#7A6551; font-size:12px; margin-bottom:12px; }
+    .buy{ margin-top:auto; text-align:center; background:var(--green); color:#fff; border-radius:10px; padding:13px; font-size:14px; font-weight:600; }
+    .card:hover .buy{ filter:brightness(1.05); }
+
+    .lain{ text-align:center; margin:30px 0 0; }
+    .lainbtn{ display:inline-block; border:1.5px solid var(--brown); color:var(--brown); background:#fff;
+      border-radius:11px; padding:14px 26px; font-size:15px; font-weight:600; text-decoration:none; }
+    .lainbtn:hover{ background:var(--cream); }
+
+    .proof{ text-align:center; margin:40px 0 0; }
+    .proof h2, .ragu h2{ font-size:23px; font-weight:600; color:var(--brown-d); }
+    .psub{ color:#5A4636; font-size:14px; margin:8px auto 18px; max-width:520px; }
+    .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:12px; scrollbar-width:thin; }
+    .testi-card{ flex:0 0 auto; width:300px; scroll-snap-align:start; background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; overflow:hidden; }
+    .testi-card img{ width:100%; display:block; }
+
+    .ragu{ text-align:center; background:#FBF2DF; border-radius:16px; padding:28px 22px; margin:40px 0 0; }
+    .ragu p{ color:#5A4636; font-size:15px; line-height:1.7; max-width:580px; margin:12px auto 0; }
+
+    @media(max-width:720px){
+      .cards{ grid-template-columns:1fr; gap:14px; }
+      .card{ flex-direction:row; align-items:stretch; }
+      /* Kotak gambar tetap 1:1 dan menempel ke atas. Kalau dibiarkan meregang
+         setinggi kartu, object-fit:contain menyisakan pita krem yang lebar. */
+      .imgs{ width:150px; flex-shrink:0; align-self:flex-start; }
+      .hero h1{ font-size:24px; }
+      .testi-card{ width:250px; }
+    }
+    @media(max-width:440px){
+      .card{ flex-direction:column; }
+      .imgs{ width:100%; aspect-ratio:1/1; }
+    }
+  </style>
+
+  <script>
+    import { trackMeta } from '../data/scalev.js';
+
+    // Tombol keranjang cuma muncul kalau memang sudah ada isinya, biar halaman
+    // iklan tetap bersih buat pengunjung baru.
+    function syncFab(){
+      try{
+        const n=JSON.parse(localStorage.getItem('kb_cart')||'[]').reduce(function(s,i){ return s+i.qty; },0);
+        const fab=document.getElementById('cartFab');
+        if(!fab) return;
+        document.getElementById('cartFabN').textContent=n;
+        fab.style.display = n>0 ? 'flex' : 'none';
+      }catch(e){}
+    }
+    syncFab();
+    window.addEventListener('storage',syncFab);
+    window.addEventListener('pageshow',syncFab);
+
+    // Corong halaman iklan. Tanpa ini isi halaman jadi kotak hitam: Meta cuma
+    // melaporkan berapa yang mendarat, bukan berapa yang benar-benar memilih.
+    // Parameter `lp` sengaja dibawa supaya pola ini bisa dipakai ulang di /pahit.
+    // metaEvent memakai keepalive, jadi aman ditembakkan tepat sebelum pindah halaman.
+    function lpTrack(name, params){
+      const id=name.toLowerCase()+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      try{ trackMeta(name, Object.assign({ lp:'gayo' }, params), id, {}); }catch(e){}
+    }
+
+    document.querySelectorAll('.card').forEach(function(a){
+      a.addEventListener('click', function(){
+        lpTrack('LPPilihProduk', {
+          content_ids:[a.dataset.slug], content_type:'product', posisi:Number(a.dataset.pos),
+        });
+      });
+    });
+
+    const lain=document.getElementById('lainBtn');
+    if(lain) lain.addEventListener('click', function(){ lpTrack('LPKeKatalog',{}); });
+  </script>
+</Base>
