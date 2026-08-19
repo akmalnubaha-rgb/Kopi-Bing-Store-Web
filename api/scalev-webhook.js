@@ -11,7 +11,10 @@
 // IP server kita, bukan pelanggan.
 //
 // Dedup: event_id memakai pola yang sama dengan browser ({order_id}-Purchase),
-// jadi kalau dua-duanya terkirim Meta menghitungnya satu.
+// jadi kalau dua-duanya terkirim Meta menghitungnya satu. Tapi dedup itu TIDAK
+// bisa diandalkan untuk kiriman yang terpaut berjam-jam, jadi jangan pernah
+// menembakkan Purchase lebih dari sekali per order - lihat catatan di bawah
+// soal `order.status_changed`.
 //
 // Environment variable yang WAJIB diisi di Vercel (jangan pernah ditulis di kode):
 //   SCALEV_WEBHOOK_SECRET  - Signing Secret dari Settings > Developers > Webhooks
@@ -189,7 +192,14 @@ export default async function handler(request) {
     return Response.json({ ok: true, note: 'test event diterima' });
   }
 
-  const relevan = event === 'order.payment_status_changed' || event === 'order.status_changed';
+  // HANYA perubahan status PEMBAYARAN. `order.status_changed` sengaja TIDAK ikut:
+  // begitu order lunas, payment_status-nya tetap 'paid' selamanya, jadi tiap
+  // perubahan status pengiriman (dikemas, dikirim, selesai) ikut menembakkan
+  // Purchase lagi untuk order yang sama. Terukur 19 Agustus 2026: 2 order di
+  // Scalev menghasilkan 6 event Purchase dari server dalam satu pagi, dan
+  // dedup event_id tidak menangkap semuanya karena jaraknya berjam-jam.
+  // Itu sumber over-count ~35-40% yang selama ini dikira sifat pixel.
+  const relevan = event === 'order.payment_status_changed';
   const lunas = String(order.payment_status || '').toLowerCase() === 'paid';
   const cod = String(order.payment_method || '').toLowerCase() === 'cod';
 
