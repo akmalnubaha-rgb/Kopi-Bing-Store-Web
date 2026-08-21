@@ -42,10 +42,6 @@ async function sha256(s) {
 }
 const norm = (s) => String(s == null ? '' : s).trim().toLowerCase();
 
-async function hashPlain(value) {
-  const v = norm(value);
-  return v ? await sha256(v) : undefined;
-}
 async function hashPhone(value) {
   const v = String(value == null ? '' : value).replace(/\D/g, '');
   return v ? await sha256(v) : undefined;
@@ -107,8 +103,14 @@ async function buildPurchase(order) {
   const dest = order.destination_address || {};
   const name = await splitName(dest.name);
 
+  // Email SENGAJA tidak dikirim, sama seperti pixel browser (lihat src/data/scalev.js).
+  // Checkout membuat email sintetis {digit_hp}@mail.kopibing.id (checkout.astro), jadi
+  // yang terkirim ke Meta adalah hash yang DIJAMIN tidak pernah cocok dengan siapa pun.
+  // Isinya pun cuma nomor HP yang sudah dikirim lewat `ph`, jadi nol informasi tambahan.
+  // Efeknya cuma menaikkan angka "parameter terisi" di diagnosa match quality tanpa
+  // menambah satu pun kecocokan - itu membuat skor EMQ terbaca lebih baik dari kenyataan.
+  // Ditemukan Bambang 21 Agustus 2026, waktu Purchase tertahan di EMQ 3,9.
   const userData = {
-    em: await hashPlain(dest.email),
     ph: await hashPhone(dest.phone),
     fn: name.fn,
     ln: name.ln,
