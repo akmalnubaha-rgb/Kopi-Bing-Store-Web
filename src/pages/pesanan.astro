@@ -112,7 +112,7 @@ import Base from '../layouts/Base.astro';
 
   <script>
     import { getOrder, patchOrder, transferProofUpload, putFile,
-             trackMeta, analyticsItems, readOrderMeta, clearOrderMeta, sweepOrderMeta,
+             trackPixelOnly, analyticsItems, readOrderMeta, clearOrderMeta, sweepOrderMeta,
              purchaseFired, markPurchaseFired } from '../data/scalev.js';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
@@ -166,7 +166,7 @@ import Base from '../layouts/Base.astro';
           const res=await getOrder(slug); const o=res.data||res; order=o;
           const st=String(o.status||'').toLowerCase();
           const paid=PAID.indexOf(st)>=0 || String(o.payment_status||'').toLowerCase()==='paid';
-          if(paid){ clearInterval(pollTimer); pollTimer=null; showPaid(); window.scrollTo({top:0,behavior:'smooth'}); }
+          if(paid){ clearInterval(pollTimer); pollTimer=null; showPaid('polling'); window.scrollTo({top:0,behavior:'smooth'}); }
           else if(CANCELED.indexOf(st)>=0){ showCanceled(); window.scrollTo({top:0,behavior:'smooth'}); }
         }catch(e){}
       }, 15000);
@@ -200,12 +200,27 @@ import Base from '../layouts/Base.astro';
       $('cancelcard').style.display='block';
     }
     // Purchase ditembakkan di sini, saat pembayaran benar-benar masuk - bukan saat order dibuat.
-    // Sekali per order per browser; Meta juga men-dedup lewat event_id yang sama di jalur browser & CAPI.
-    function firePurchase(){
+    //
+    // Pembagian peran (audit sistem 22 Agu 2026):
+    //   - salinan SERVER  = webhook Scalev (api/scalev-webhook.js), event_id `{order_id}-Purchase`
+    //   - salinan BROWSER = pixel di halaman ini, event_id sama -> Meta men-dedup keduanya
+    // Halaman ini SENGAJA tidak memakai relay Scalev untuk Purchase: relay itu juga server,
+    // dan Meta tidak men-dedup server lawan server. Dulu tiga salinan (pixel + relay + webhook)
+    // dihitung DUA oleh Meta untuk tiap order yang browsernya sempat menembak.
+    //
+    // `sumber`:
+    //   'polling' = pembayaran masuk saat halaman ini terbuka -> tembak.
+    //   'muat'    = halaman dibuka dalam keadaan sudah lunas -> tembak HANYA kalau ada titipan
+    //               checkout (berarti ini browser yang memesan, <=7 hari). Kunjungan dari
+    //               browser lain atau berhari-hari kemudian (cek resi, link follow-up) tidak
+    //               menembak - webhook sudah mengirimnya, dan dedup Meta cuma berlaku 48 jam,
+    //               jadi tembakan telat itu akan dihitung sebagai pembelian baru.
+    function firePurchase(sumber){
       if(!order) return;
       const oid=String(order.order_id||'');
       if(!oid || purchaseFired(oid)) return;
       const m=readOrderMeta(oid); // dititipkan dari checkout
+      if(sumber!=='polling' && !m) return;
       const lines=order.orderlines||[];
       // Unique id varian ada di peta `order.variants`, jadi tidak bergantung pada titipan checkout.
       const ai=analyticsItems(order);
@@ -222,14 +237,15 @@ import Base from '../layouts/Base.astro';
       const userData={ ph:(m&&m.ph)||undefined, ct:(m&&m.ct)||dest.city||undefined, st:(m&&m.st)||dest.province||undefined,
                        external_id: order.customer_id ? String(order.customer_id) : ((m&&m.ex)||undefined) };
       try{
-        trackMeta('Purchase', params, oid+'-Purchase', userData, ai.items);
+        // Pixel saja - lihat catatan di atas. event_id HARUS sama dengan webhook.
+        trackPixelOnly('Purchase', params, oid+'-Purchase', userData);
         markPurchaseFired(oid);
         clearOrderMeta(oid); // titipan berisi nomor HP, tidak dibutuhkan lagi setelah ini
       }catch(e){}
     }
 
-    function showPaid(){
-      firePurchase();
+    function showPaid(sumber){
+      firePurchase(sumber||'muat');
       $('paycard').style.display='none'; $('epaycard').style.display='none'; $('codcard').style.display='none';
       $('okttl').textContent='Terima kasih!';
       const cod=payMethod==='cod';

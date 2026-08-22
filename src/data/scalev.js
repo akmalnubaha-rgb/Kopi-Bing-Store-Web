@@ -142,6 +142,23 @@ function applyAdvancedMatching(userData){
   try{ window.fbq('init', pid, am); }catch(e){}
 }
 
+// Pixel browser SAJA, tanpa relay Scalev. Dipakai untuk event yang salinan servernya
+// sudah dikirim pihak lain dengan event_id yang sama - yaitu Purchase non-COD, yang
+// servernya datang dari webhook (api/scalev-webhook.js).
+//
+// Kenapa harus dipisah: Meta hanya men-dedup BROWSER lawan SERVER. Dua event SERVER
+// dengan event_id sama TIDAK di-dedup - dokumentasi Meta: "If you send us two
+// consecutive server events with the same information, we do not discard either."
+// Jadi kalau Purchase dikirim lewat pixel + relay + webhook, yang dihitung Meta dua
+// (relay dan webhook sama-sama server). Terukur 22 Agu 2026: 2 dari 5 order non-COD
+// hari itu sempat menembak dari browser, jadi dihitung dobel. (Audit sistem 22 Agu 2026.)
+export function trackPixelOnly(name, parameters, eventId, userData){
+  if(typeof window==='undefined' || !window.fbq) return false;
+  applyAdvancedMatching(userData);
+  try{ window.fbq(META_STD.indexOf(name)>=0?'track':'trackCustom', name, parameters, {eventID:eventId}); }catch(e){ return false; }
+  return true;
+}
+
 export function trackMeta(name, parameters, eventId, userData, items){
   const at=fbAttribution();
   if(typeof window!=='undefined' && window.fbq){
