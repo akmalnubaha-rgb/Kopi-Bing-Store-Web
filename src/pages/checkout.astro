@@ -350,6 +350,22 @@ import Base from '../layouts/Base.astro';
         // Hanya dititipkan untuk metode yang Purchase-nya menyusul di halaman pesanan.
         // COD menembakkan Purchase di sini juga, jadi tidak perlu menyimpan HP pelanggan sama sekali.
         if(oid && payMethod!=='cod') stashOrderMeta(oid, {ids:contentIds, num:numItems, value:pval, ph:phone, ct:userData.ct, st:userData.st, ex:userData.external_id});
+
+        // Titipkan penanda iklan ke server, supaya webhook Purchase nanti punya fbc/fbp/IP/user agent.
+        // Webhook dipanggil server Scalev dan tidak pernah melihat browser pembeli, jadi ini
+        // satu-satunya kesempatan mengambilnya. COD dilewati: Purchase-nya ditembakkan di sini
+        // juga (lihat di bawah), lengkap dengan penanda, jadi webhook tidak perlu ikut campur.
+        //
+        // Sengaja TANPA await dan pakai keepalive: halaman langsung pindah setelah ini, dan
+        // checkout tidak boleh melambat cuma demi pelengkap atribusi.
+        if(oid && payMethod!=='cod'){
+          try{
+            const at=fbAttribution();
+            fetch('/api/stash-attribution', {method:'POST', keepalive:true,
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({order_id:oid, fbc:at.fbc, fbp:at.fbp})});
+          }catch(e){}
+        }
         // COD dibayar ke kurir, jadi konversinya dihitung saat order dibuat.
         // Metode lain: Purchase ditembakkan di halaman pesanan begitu pembayarannya benar-benar masuk.
         if(oid && payMethod==='cod'){

@@ -90,6 +90,42 @@ async function verifySignature(rawBody, headerRaw, secretRaw) {
   };
 }
 
+// --- Penanda iklan yang dititipkan checkout -------------------------------
+//
+// Webhook ini dipanggil server Scalev, jadi dia tidak pernah melihat browser pembeli.
+// `fbc` (ID klik iklan), `fbp`, IP, dan user agent dititipkan `api/stash-attribution.js`
+// waktu order dibuat, lalu diambil di sini lewat order_id. Tanpa ini match quality
+// Purchase tertahan di 3,7; OrderCreated yang punya keempatnya dapat 7,8.
+//
+// Helper KV sengaja disalin, tidak di-import dari route sebelah: dua-duanya Edge
+// function terpisah, dan saling meng-import antar-route bukan pola yang dijamin
+// bundler Vercel. Dua belas baris duplikat lebih murah daripada deploy yang gagal.
+function kvConfig() {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  return { url: url.replace(/\/+$/, ''), token };
+}
+
+async function bacaPenanda(orderId) {
+  const cfg = kvConfig();
+  if (!cfg || !orderId) return null;
+  try {
+    const res = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${cfg.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['GET', `kb:attr:${orderId}`]),
+    });
+    if (!res.ok) return null;
+    const raw = (await res.json()).result;
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    // Penanda hilang bukan alasan membatalkan Purchase. Lebih baik event terkirim
+    // dengan pencocokan seadanya daripada tidak terkirim sama sekali.
+    return null;
+  }
+}
+
 async function buildPurchase(order) {
   const lines = Array.isArray(order.orderlines) ? order.orderlines : [];
   const contents = lines
@@ -119,6 +155,16 @@ async function buildPurchase(order) {
     country: await sha256('id'),
     external_id: order.customer_id ? await sha256(String(order.customer_id)) : undefined,
   };
+  // Penanda dari browser. TIDAK di-hash - Meta minta keempatnya apa adanya,
+  // berbeda dengan PII di atas. Kalau di-hash, semuanya jadi tidak terpakai.
+  const penanda = await bacaPenanda(order.order_id);
+  if (penanda) {
+    if (penanda.fbc) userData.fbc = penanda.fbc;
+    if (penanda.fbp) userData.fbp = penanda.fbp;
+    if (penanda.ip) userData.client_ip_address = penanda.ip;
+    if (penanda.ua) userData.client_user_agent = penanda.ua;
+  }
+
   // Buang field kosong; Meta menolak nilai null.
   Object.keys(userData).forEach((k) => userData[k] === undefined && delete userData[k]);
 
