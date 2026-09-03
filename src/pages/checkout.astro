@@ -135,7 +135,7 @@ import Base from '../layouts/Base.astro';
   </style>
 
   <script>
-    import { toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
+    import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
 
     const LP = safeLp(new URLSearchParams(location.search).get('lp'));
     if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
@@ -144,7 +144,7 @@ import Base from '../layouts/Base.astro';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const params=new URLSearchParams(location.search);
     const isBuynow = params.get('buynow')==='1';
-    const cart = isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]');
+    const cart = pruneCart(isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]'));
     if(isBuynow){ const bl=document.getElementById('backLink'); if(bl){ bl.textContent='← Lanjut belanja'; bl.href='/#katalog'; } }
 
     const $=(id)=>document.getElementById(id);

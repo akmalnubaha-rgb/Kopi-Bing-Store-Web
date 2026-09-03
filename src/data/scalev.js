@@ -27,6 +27,15 @@ export const VARIANT_G = {
 };
 
 const WEIGHTS = [100,250,500,1000];
+// Produk yang sudah dihapus dari katalog otomatis hilang dari peta di atas. Keranjang
+// pelanggan tersimpan di localStorage dan TIDAK ikut terhapus, jadi barang yang sudah
+// ditarik masih bisa ikut checkout berhari-hari sesudahnya - varian lamanya masih
+// diterima Scalev. Karena itu isi keranjang disaring ulang tiap kali dibaca.
+export function stillSold(slug){ return !!VARIANT_G[slug]; }
+export function pruneCart(cart){
+  return (Array.isArray(cart) ? cart : []).filter(function(it){ return stillSold(it && it.slug); });
+}
+
 export function variantId(slug, g, grind){
   const m = VARIANT_G[slug]; if(!m) return null;
   const arr = m[grind] || m["Sedang"] || m["Halus"]; if(!arr) return null;
