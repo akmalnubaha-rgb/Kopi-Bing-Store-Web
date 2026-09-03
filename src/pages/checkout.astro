@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
+import { products } from '../data/products.js';
+
+const NAMES = Object.fromEntries(products.map(p => [p.slug, p.name]));
 ---
+<script is:inline define:vars={{ NAMES }}>window.KB_NAMES = NAMES;</script>
 <Base title="Checkout — Toko Kopi Bing" description="Selesaikan pesanan kopimu di Toko Kopi Bing." noindex={true}>
   <div class="wrap cop" id="formView">
     <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
@@ -144,7 +148,7 @@ import Base from '../layouts/Base.astro';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const params=new URLSearchParams(location.search);
     const isBuynow = params.get('buynow')==='1';
-    const cart = pruneCart(isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]'));
+    const cart = pruneCart(isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]'), window.KB_NAMES);
     if(isBuynow){ const bl=document.getElementById('backLink'); if(bl){ bl.textContent='← Lanjut belanja'; bl.href='/#katalog'; } }
 
     const $=(id)=>document.getElementById(id);

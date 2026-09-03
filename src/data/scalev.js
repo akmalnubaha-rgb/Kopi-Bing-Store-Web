@@ -32,8 +32,16 @@ const WEIGHTS = [100,250,500,1000];
 // ditarik masih bisa ikut checkout berhari-hari sesudahnya - varian lamanya masih
 // diterima Scalev. Karena itu isi keranjang disaring ulang tiap kali dibaca.
 export function stillSold(slug){ return !!VARIANT_G[slug]; }
-export function pruneCart(cart){
-  return (Array.isArray(cart) ? cart : []).filter(function(it){ return stillSold(it && it.slug); });
+// `names` opsional: peta slug -> nama terbaru. Nama ikut tersimpan di keranjang waktu
+// barang ditambahkan, jadi produk yang diganti namanya akan terus tampil dengan nama
+// lama sampai pelanggan menambahkannya ulang. Kalau petanya diberikan, nama disegarkan.
+export function pruneCart(cart, names){
+  return (Array.isArray(cart) ? cart : [])
+    .filter(function(it){ return stillSold(it && it.slug); })
+    .map(function(it){
+      const baru = names && names[it.slug];
+      return (baru && baru !== it.name) ? Object.assign({}, it, { name: baru }) : it;
+    });
 }
 
 export function variantId(slug, g, grind){

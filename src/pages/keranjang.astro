@@ -1,6 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
+import { products } from '../data/products.js';
+
+// Cuma slug -> nama, bukan seluruh katalog: yang dikirim ke browser tetap ringan.
+const NAMES = Object.fromEntries(products.map(p => [p.slug, p.name]));
 ---
+<script is:inline define:vars={{ NAMES }}>window.KB_NAMES = NAMES;</script>
 <Base title="Keranjang — Toko Kopi Bing" description="Isi keranjang belanjamu di Toko Kopi Bing." noindex={true}>
   <div class="wrap cartp">
     <a class="back" href="/#katalog">&#8592; Kembali ke beranda</a>
@@ -78,8 +83,9 @@ import Base from '../layouts/Base.astro';
     const trash='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>';
     function load(){
       const raw=JSON.parse(localStorage.getItem('kb_cart')||'[]');
-      const ok=pruneCart(raw);
-      if(ok.length!==raw.length) save(ok); // produk sudah ditarik dari katalog
+      const ok=pruneCart(raw, window.KB_NAMES);
+      // Produk ditarik dari katalog, atau namanya berubah - dua-duanya perlu disimpan balik.
+      if(JSON.stringify(ok)!==JSON.stringify(raw)) save(ok);
       return ok;
     }
     function save(c){ localStorage.setItem('kb_cart',JSON.stringify(c)); const el=document.getElementById('cartCount'); if(el) el.textContent=c.reduce((s,i)=>s+i.qty,0); }

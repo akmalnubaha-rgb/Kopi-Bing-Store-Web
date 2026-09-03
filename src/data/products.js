@@ -56,7 +56,7 @@ export const products = [
     prices:{100:54000,250:123000,500:225000,1000:420000},
     desc:"Ini arabika paling special di Kopi Bing. Namanya wine bukan karena ada alkoholnya, tapi dari cara prosesnya yang lewat fermentasi khusus. Hasilnya, asamnya tinggi dan ada rasa fermentasi yang khas, beda dari arabika biasa. Aman diminum, halal. Wine cuma istilah prosesnya aja." },
   { slug:"arabika-ijen-geisha", name:"Arabika Ijen Natural", cat:"arabika", taste:"asem",
-    origin:"Ijen, Jawa Timur", roast:"Medium", bestseller:false,
+    origin:"Ijen, Jawa Timur", roast:"Light to medium", bestseller:false,
     notes:["asam tinggi","fruity","natural"], intensity:{pahit:20,asam:85,body:50},
     brew:["V60","Manual brew"], grind:"Medium",
     prices:{100:50000,250:115000,500:215000,1000:385000},
