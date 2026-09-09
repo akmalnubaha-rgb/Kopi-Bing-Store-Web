@@ -209,6 +209,46 @@ async function sendToMeta(event) {
   return text;
 }
 
+// Meneruskan kiriman Scalev apa adanya ke n8n, yang mengirim notifikasi
+// WhatsApp dari nomor Kopi Bing sendiri.
+//
+// Kenapa lewat sini: Scalev cuma menyediakan SATU webhook URL per bisnis, dan
+// URL itu ini. n8n tidak bisa ikut berlangganan sendiri.
+//
+// Kenapa arahnya web -> n8n, bukan sebaliknya: kalau n8n yang berlangganan
+// lalu meneruskan ke sini, VPS jadi titik tunggal kegagalan untuk Purchase
+// yang mengendalikan bidding iklan CTWA. Dengan urutan ini, n8n mati hanya
+// berarti notifikasi tertunda - angka iklan tidak ikut buta.
+//
+// Body diteruskan MENTAH beserta header tanda tangannya, supaya n8n bisa
+// memverifikasi HMAC dengan Signing Secret yang sama. Satu byte bergeser
+// membuat tanda tangannya tidak cocok.
+//
+// Environment variable (opsional; kalau kosong, penerusan dilewati diam-diam):
+//   N8N_NOTIF_URL - https://n8n.kopibing.id/webhook/scalev
+async function teruskanKeN8n(raw, signature) {
+  const url = process.env.N8N_NOTIF_URL;
+  if (!url) return;
+
+  // Gagal meneruskan TIDAK BOLEH menjatuhkan jalur Purchase. Notifikasi yang
+  // telat jauh lebih murah daripada event iklan yang hilang, jadi apa pun
+  // yang terjadi di sini ditelan dan cukup dicatat di log.
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Scalev-Hmac-Sha256': signature || '',
+      },
+      body: raw,
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) console.error(`Terusan ke n8n ditolak: ${res.status}`);
+  } catch (err) {
+    console.error(`Terusan ke n8n gagal: ${err.message}`);
+  }
+}
+
 export default async function handler(request) {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -240,6 +280,10 @@ export default async function handler(request) {
     return Response.json({ ok: true, note: 'test event diterima' });
   }
 
+  // Diteruskan SEBELUM saringan Purchase di bawah: n8n butuh order.created dan
+  // order.status_changed, yang justru sengaja dilewati di jalur Purchase.
+  await teruskanKeN8n(raw, request.headers.get('x-scalev-hmac-sha256'));
+
   // HANYA perubahan status PEMBAYARAN. `order.status_changed` sengaja TIDAK ikut:
   // begitu order lunas, payment_status-nya tetap 'paid' selamanya, jadi tiap
   // perubahan status pengiriman (dikemas, dikirim, selesai) ikut menembakkan
@@ -257,15 +301,15 @@ export default async function handler(request) {
   //
   // Kenapa WAJIB dilewati: closing WhatsApp SUDAH ditembakkan GASS ke pixel yang
   // sama. Kalau webhook ini ikut menembak, satu penjualan terhitung DUA KALI -
-  // Meta tidak men-dedup dua event server (lihat CLAUDE.md 2, dokumentasi Meta
+  // Meta tidak men-dedup dua event server (lihat CLAUDE.md §2, dokumentasi Meta
   // verbatim). Lebih buruk lagi, kiriman dari sini membawa event_source_url
   // kopibing.id sehingga lolos filter custom conversion `Purchase Web`
   // (988796107511996) dan mencemari sinyal optimasi campaign WEB dengan
   // penjualan yang tidak pernah menyentuh web sama sekali.
   //
   // Pixel browser tidak perlu disaring: `firePurchase` di pesanan.astro berhenti
-  // kalau tidak ada titipan checkout di browser yang sama (pesanan.astro:222),
-  // dan order WA tidak pernah lewat checkout.
+  // kalau tidak ada titipan checkout di browser yang sama, dan order WA tidak
+  // pernah lewat checkout.
   const dariWa = /@wa\.kopibing\.id$/i.test(
     (order.destination_address && order.destination_address.email) || order.customer_email || ''
   );
