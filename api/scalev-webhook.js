@@ -251,11 +251,31 @@ export default async function handler(request) {
   const lunas = String(order.payment_status || '').toLowerCase() === 'paid';
   const cod = String(order.payment_method || '').toLowerCase() === 'cod';
 
+  // Order WhatsApp: dicatat ke Scalev oleh bot Telegram, BUKAN lewat checkout web.
+  // Penandanya domain email sintetis - checkout web memakai {hp}@mail.kopibing.id
+  // (checkout.astro), bot memakai {hp}@wa.kopibing.id.
+  //
+  // Kenapa WAJIB dilewati: closing WhatsApp SUDAH ditembakkan GASS ke pixel yang
+  // sama. Kalau webhook ini ikut menembak, satu penjualan terhitung DUA KALI -
+  // Meta tidak men-dedup dua event server (lihat CLAUDE.md 2, dokumentasi Meta
+  // verbatim). Lebih buruk lagi, kiriman dari sini membawa event_source_url
+  // kopibing.id sehingga lolos filter custom conversion `Purchase Web`
+  // (988796107511996) dan mencemari sinyal optimasi campaign WEB dengan
+  // penjualan yang tidak pernah menyentuh web sama sekali.
+  //
+  // Pixel browser tidak perlu disaring: `firePurchase` di pesanan.astro berhenti
+  // kalau tidak ada titipan checkout di browser yang sama (pesanan.astro:222),
+  // dan order WA tidak pernah lewat checkout.
+  const dariWa = /@wa\.kopibing\.id$/i.test(
+    (order.destination_address && order.destination_address.email) || order.customer_email || ''
+  );
+
   // Alasan melewatkan, semuanya disengaja:
   // - COD sudah ditembakkan browser saat order dibuat (bayarnya ke kurir).
+  // - Order WA sudah ditembakkan GASS; lihat catatan di atas.
   // - Order spam jangan dijadikan sinyal optimasi.
-  if (!relevan || !lunas || cod || order.is_probably_spam || !order.order_id) {
-    return Response.json({ ok: true, skipped: true, event });
+  if (!relevan || !lunas || cod || dariWa || order.is_probably_spam || !order.order_id) {
+    return Response.json({ ok: true, skipped: true, event, alasan: dariWa ? 'order WA' : undefined });
   }
 
   try {
