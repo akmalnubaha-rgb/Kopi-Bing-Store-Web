@@ -42,34 +42,39 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
   </section>
 
   <style>
-    .hero{ background:#3A2A1C; }
-    .heroin{ padding:44px 18px; text-align:center; }
-    .pricebanner{ display:inline-block; background:var(--yellow); color:#5A3419; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:18px; max-width:440px; }
-    .hero .q{ color:#fff; font-size:27px; font-weight:600; }
-    .hero .s{ color:#CBBBA6; font-size:14px; margin:9px 0 20px; }
+    /* Hero berlatar foto kebun kopi (public/img/hero-kebun.webp). Lapisan biru gelap di atasnya
+       menjaga tulisan putih tetap terbaca di bagian foto yang terang. Kalau berkas fotonya belum
+       ada, yang tampil cuma warna navy - halaman tidak rusak. */
+    .hero{ position:relative; background:#0F2A37 url('/img/hero-kebun.webp') center 40% / cover no-repeat; }
+    .hero::before{ content:""; position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(15,42,55,.50) 0%, rgba(15,42,55,.62) 55%, rgba(15,42,55,.80) 100%); }
+    .heroin{ position:relative; padding:64px 18px 58px; text-align:center; }
+    .pricebanner{ display:inline-block; background:var(--yellow); color:#133F52; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:20px; max-width:440px; }
+    .hero .q{ color:#fff; font-size:30px; font-weight:600; line-height:1.25; max-width:620px; margin:0 auto; text-shadow:0 2px 14px rgba(0,0,0,.35); }
+    .hero .s{ color:#D9ECF3; font-size:15px; margin:12px 0 24px; text-shadow:0 1px 8px rgba(0,0,0,.3); }
     .herobtn{ display:inline-block; background:var(--green); color:#fff; font-weight:500; font-size:16px; padding:14px 28px; border-radius:11px; }
     .herobtn:hover{ filter:brightness(1.06); }
     .choices{ display:flex; gap:14px; justify-content:center; }
     .ch{ border-radius:14px; padding:16px 30px; border:2px solid transparent; cursor:pointer; }
-    .ch.pahit{ background:var(--brown); border-color:var(--yellow); }
+    .ch.pahit{ background:var(--brand); border-color:var(--yellow); }
     .ch.asem{ background:var(--teal); border-color:#BEEAF1; }
     .ch .ct{ font-size:19px; font-weight:600; color:#fff; }
     .ch.pahit .ct{ color:var(--yellow); }
-    .ch .cs{ font-size:12px; color:#E4D6C2; }
+    .ch .cs{ font-size:12px; color:#D6EBF2; }
     .ch.asem .cs{ color:#D6F2F7; }
-    .grind{ display:inline-block; margin-top:22px; background:#4A3527; color:#EFE0CC; font-size:12px; padding:9px 16px; border-radius:20px; }
+    .grind{ display:table; margin:24px auto 0; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); color:#EAF6FA; font-size:12px; padding:9px 16px; border-radius:20px; backdrop-filter:blur(4px); }
     .filters{ display:flex; gap:9px; padding:24px 0 14px; flex-wrap:wrap; }
-    .fbtn{ background:#F3E7CE; color:var(--brown); border:none; font-family:inherit; font-size:14px; padding:8px 18px; border-radius:20px; cursor:pointer; }
-    .fbtn.active{ background:var(--brown); color:var(--cream-bg); }
+    .fbtn{ background:#E6F0F3; color:var(--brand); border:none; font-family:inherit; font-size:14px; padding:8px 18px; border-radius:20px; cursor:pointer; }
+    .fbtn.active{ background:var(--brand); color:var(--page-bg); }
     .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; padding-bottom:10px; }
     .testi-band{ grid-column:1 / -1; margin:14px 0 6px; }
     .testi-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
-    .testi-head span:first-child{ font-size:17px; font-weight:600; color:var(--brown); }
+    .testi-head span:first-child{ font-size:17px; font-weight:600; color:var(--brand); }
     .testi-head .hint{ font-size:12px; color:var(--muted); }
     .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; scrollbar-width:thin; }
-    .testi-card{ flex:0 0 auto; width:230px; scroll-snap-align:start; background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; overflow:hidden; }
+    .testi-card{ flex:0 0 auto; width:230px; scroll-snap-align:start; background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; overflow:hidden; }
     .testi-card img{ width:100%; display:block; }
-    @media(max-width:520px){ .hero .q{ font-size:22px; } .choices{ gap:10px; } }
+    @media(max-width:520px){ .heroin{ padding:48px 18px 44px; } .hero .q{ font-size:24px; } .choices{ gap:10px; } }
   </style>
 
   <script>

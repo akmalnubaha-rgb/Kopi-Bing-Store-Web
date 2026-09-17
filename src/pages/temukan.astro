@@ -37,7 +37,7 @@ const MAP = {
   <div id="kbapp" class="wrap" style="max-width:640px;color:var(--ink)"></div>
   <script define:vars={{ P, MAP }}>
     var TASTE={robusta:"pahit",arabika:"asem",blend:"seimbang"};
-    var BR="#804C2A",BRD="#5A3419",GRN="#3E8E41",CREAM="#F3E7CE",MUT="#8a7a68";
+    var BR="#247E9E",BRD="#133F52",GRN="#3E8E41",CREAM="#E6F0F3",MUT="#647C89";
     var app=document.getElementById('kbapp');var q={};
     // Script ini inline (define:vars memaksa is:inline), jadi tidak bisa import trackMeta.
     // Polanya sama seperti halaman produk: event dititipkan ke antrean, dikuras modul di bawah.
@@ -51,7 +51,7 @@ const MAP = {
     function rp(x){return "Rp"+Number(x).toLocaleString('id-ID');}
     function pic(pr){return '<div style="aspect-ratio:4/3;background:'+CREAM+';overflow:hidden"><img src="/img/'+pr.s+'.webp" alt="'+pr.n+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" /></div>';}
     function tile(pr){
-      return '<a href="/produk/'+pr.s+'" style="background:#fff;border:0.5px solid #E6D6B8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
+      return '<a href="/produk/'+pr.s+'" style="background:#fff;border:0.5px solid #D3E2E8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit">'
       +pic(pr)
       +'<div style="padding:9px 10px 11px;display:flex;flex-direction:column;flex:1">'
       +'<div style="font-size:12px;font-weight:500;line-height:1.25">'+pr.n+'</div>'
@@ -62,25 +62,25 @@ const MAP = {
       app.innerHTML='<div style="padding:26px 14px 34px;text-align:center">'
       +'<div style="font-size:11px;letter-spacing:1px;color:'+MUT+';margin-bottom:14px">KOPI GILING SELURUH INDONESIA</div>'
       +'<div style="font-size:24px;font-weight:600;color:'+BRD+';line-height:1.3;max-width:420px;margin:0 auto 16px">Kami bantu pilih kopi seleramu!</div>'
-      +'<div style="background:#F5C542;color:#6B3B15;font-size:13px;font-weight:500;line-height:1.45;padding:10px 14px;border-radius:10px;max-width:380px;margin:0 auto 22px">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>'
+      +'<div style="background:#FADC56;color:#0F2A37;font-size:13px;font-weight:500;line-height:1.45;padding:10px 14px;border-radius:10px;max-width:380px;margin:0 auto 22px">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>'
       +'<div id="g1" style="background:'+GRN+';color:#fff;font-weight:500;font-size:16px;padding:15px;border-radius:11px;cursor:pointer;max-width:340px;margin:0 auto">Bantu pilihkan (30 detik)</div>'
-      +'<a id="g2" href="/" style="display:block;border:1px solid #D8C6A8;color:'+BR+';font-weight:500;font-size:15px;padding:14px;border-radius:11px;text-decoration:none;max-width:340px;margin:12px auto 0">Lihat semua katalog</a>'
+      +'<a id="g2" href="/" style="display:block;border:1px solid #BCD2DA;color:'+BR+';font-weight:500;font-size:15px;padding:14px;border-radius:11px;text-decoration:none;max-width:340px;margin:12px auto 0">Lihat semua katalog</a>'
       +'<div style="max-width:340px;margin:22px auto 0;text-align:left;display:flex;flex-direction:column;gap:9px">'
-      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Bisa request gilingan</div>'
-      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Aman, live setiap hari di TikTok</div>'
-      +'<div style="font-size:13px;color:#5A4636"><span style="color:'+GRN+'">&#10003;</span> Pembayaran diproses aman</div>'
+      +'<div style="font-size:13px;color:#3D5360"><span style="color:'+GRN+'">&#10003;</span> Bisa request gilingan</div>'
+      +'<div style="font-size:13px;color:#3D5360"><span style="color:'+GRN+'">&#10003;</span> Aman, live setiap hari di TikTok</div>'
+      +'<div style="font-size:13px;color:#3D5360"><span style="color:'+GRN+'">&#10003;</span> Pembayaran diproses aman</div>'
       +'</div>'
       +'<div style="margin:28px 0 2px"><div style="font-size:13px;font-weight:600;color:'+BRD+';text-align:left;margin:0 0 10px">Kata pelanggan Kopi Bing</div>'
-      +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:260px;scroll-snap-align:start;background:#fff;border:0.5px solid #E6D6B8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
+      +'<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory">'+TESTI.map(function(src){return '<div style="flex:0 0 auto;width:260px;scroll-snap-align:start;background:#fff;border:0.5px solid #D3E2E8;border-radius:10px;overflow:hidden"><img src="'+src+'" loading="lazy" style="width:100%;display:block" /></div>';}).join('')+'</div></div>'
       +'</div>';
       document.getElementById('g1').onclick=function(){q={};kbTrack('KuisMulai',{asal:'gate'});go('q1');};}
-    function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #E6D6B8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
-    function prog(step){return '<div style="display:flex;gap:6px;margin-bottom:18px">'+[1,2].map(function(i){return '<div style="flex:1;height:5px;border-radius:3px;background:'+(i<=step?BR:'#E6D6B8')+'"></div>';}).join('')+'</div>';}
+    function opt(txt,sub,val){return '<div class="kbopt" data-v="'+val+'" style="border:1px solid #D3E2E8;background:#fff;border-radius:11px;padding:14px 16px;cursor:pointer;margin-bottom:10px;text-align:left"><div style="font-size:15px;font-weight:500;color:'+BRD+'">'+txt+'</div><div style="font-size:12px;color:'+GRN+';margin-top:3px">'+sub+'</div></div>';}
+    function prog(step){return '<div style="display:flex;gap:6px;margin-bottom:18px">'+[1,2].map(function(i){return '<div style="flex:1;height:5px;border-radius:3px;background:'+(i<=step?BR:'#D3E2E8')+'"></div>';}).join('')+'</div>';}
     function frame(step,qt,body){app.innerHTML='<div style="padding:20px 14px 26px">'+prog(step)
       +'<div style="font-size:12px;color:'+MUT+';margin-bottom:8px">Pertanyaan '+step+' dari 2</div>'
       +'<div style="font-size:19px;font-weight:600;color:'+BRD+';margin-bottom:16px;line-height:1.3">'+qt+'</div>'+body
       +'<div style="text-align:right;margin-top:6px"><a href="/" style="font-size:13px;color:'+BR+';text-decoration:underline">Lihat katalog</a></div></div>';
-      Array.prototype.forEach.call(document.querySelectorAll('.kbopt'),function(el){el.onmouseover=function(){el.style.borderColor=BR;el.style.background=CREAM;};el.onmouseout=function(){el.style.borderColor="#E6D6B8";el.style.background="#fff";};});}
+      Array.prototype.forEach.call(document.querySelectorAll('.kbopt'),function(el){el.onmouseover=function(){el.style.borderColor=BR;el.style.background=CREAM;};el.onmouseout=function(){el.style.borderColor="#D3E2E8";el.style.background="#fff";};});}
     function viewQ1(){
       var body=opt("Pahit &amp; nendang","enak buat tubruk, Vietnam drip, sanger - bikin melek","robusta")
       +opt("Asam &amp; fruity","diseduh manual: V60 / Japanese iced","arabika")
@@ -103,14 +103,14 @@ const MAP = {
       +'<div style="width:120px;flex-shrink:0;background:'+CREAM+'"><img src="/img/'+main.s+'.webp" alt="'+main.n+'" style="width:120px;height:100%;object-fit:cover;display:block" /></div>'
       +'<div style="padding:13px 15px;flex:1"><div style="font-size:11px;color:'+GRN+';font-weight:600">PILIHAN UTAMA</div>'
       +'<div style="font-size:17px;font-weight:600;color:'+BRD+';margin:2px 0">'+main.n+'</div>'
-      +'<div style="font-size:10px;background:#F0E0C6;color:#804C2A;padding:2px 8px;border-radius:20px;display:inline-block">'+main.c+' ('+TASTE[main.c]+')</div>'
+      +'<div style="font-size:10px;background:#E1ECF0;color:#247E9E;padding:2px 8px;border-radius:20px;display:inline-block">'+main.c+' ('+TASTE[main.c]+')</div>'
       +'<div style="font-size:12px;color:'+GRN+';margin:8px 0 2px">Paling enak: '+main.sd+'</div>'
       +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px"><span style="font-size:15px;font-weight:600;color:'+BR+'">mulai '+rp(main.p)+'</span><span style="font-size:13px;background:'+GRN+';color:#fff;padding:9px 16px;border-radius:8px">Pesan sekarang</span></div>'
       +'</div></a>'
       +'<div style="font-size:13px;color:'+MUT+';margin:16px 0 9px">Atau alternatif yang mirip:</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+alt.map(function(p){return tile(p);}).join('')+'</div>'
-      +'<div style="margin-top:16px;background:#FBF2DF;border-radius:10px;padding:12px 14px;font-size:12px;color:#5A4636;text-align:center">Digiling segar setiap pesanan - Live tiap hari di TikTok - Pembayaran aman</div>'
-      +'<div style="display:flex;gap:10px;margin-top:14px"><span id="kbretry" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;cursor:pointer;color:'+BR+'">Ulangi kuis</span><a href="/" style="flex:1;text-align:center;font-size:13px;border:1px solid #E6D6B8;border-radius:9px;padding:11px;text-decoration:none;color:'+BR+'">Lihat semua kopi</a></div></div>';
+      +'<div style="margin-top:16px;background:#EDF5F8;border-radius:10px;padding:12px 14px;font-size:12px;color:#3D5360;text-align:center">Digiling segar setiap pesanan - Live tiap hari di TikTok - Pembayaran aman</div>'
+      +'<div style="display:flex;gap:10px;margin-top:14px"><span id="kbretry" style="flex:1;text-align:center;font-size:13px;border:1px solid #D3E2E8;border-radius:9px;padding:11px;cursor:pointer;color:'+BR+'">Ulangi kuis</span><a href="/" style="flex:1;text-align:center;font-size:13px;border:1px solid #D3E2E8;border-radius:9px;padding:11px;text-decoration:none;color:'+BR+'">Lihat semua kopi</a></div></div>';
       document.getElementById('kbretry').onclick=function(){q={};kbTrack('KuisMulai',{asal:'ulangi'});go('q1');};
       kbTrack('KuisSelesai',{rasa:q.rasa,level:q.lvl,content_ids:slugs,content_type:'product',rekomendasi:main.s});
       // Klik rekomendasi: yang mana yang dipilih, sebelum pindah ke halaman produk.

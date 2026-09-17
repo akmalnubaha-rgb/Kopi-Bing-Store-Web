@@ -13,9 +13,9 @@ const weights = [{g:100,label:"100gr"},{g:250,label:"250gr"},{g:500,label:"500gr
 const defGrind = "Sedang";
 const dots = (v)=> Math.max(0, Math.min(5, Math.round(v/20)));
 const rows = [
-  { k:"Pahit", v:p.intensity.pahit, c:"#804C2A" },
+  { k:"Pahit", v:p.intensity.pahit, c:"#247E9E" },
   { k:"Asam", v:p.intensity.asam, c:"#0097B2" },
-  { k:"Body", v:p.intensity.body, c:"#C9922E" },
+  { k:"Body", v:p.intensity.body, c:"#3A95B5" },
 ];
 const minPrice = Math.min(...Object.values(p.prices));
 const metaDesc = `${p.desc} Digiling sesuai pesanan (halus, sedang, kasar, atau biji utuh). Mulai ${fmt(minPrice)} per 100gr.`.slice(0, 300);
@@ -107,36 +107,36 @@ const jsonLd = {
 
   <style>
     .dp{ padding-top:14px; max-width:640px; }
-    .back{ display:inline-block; color:var(--brown); font-size:13px; margin-bottom:10px; }
+    .back{ display:inline-block; color:var(--brand); font-size:13px; margin-bottom:10px; }
     .back:hover{ color:var(--teal-d); }
-    .hero-img{ border-radius:14px; margin:6px 0 16px; overflow:hidden; background:#F3E7CE; }
+    .hero-img{ border-radius:14px; margin:6px 0 16px; overflow:hidden; background:#E6F0F3; }
     .hero-img img{ width:100%; display:block; }
     .cat{ color:var(--muted); font-size:11px; letter-spacing:1px; }
     h1{ font-size:24px; font-weight:600; margin:3px 0 10px; }
     .notes{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
     .tag{ font-size:11px; padding:4px 11px; border-radius:20px; }
-    .t-brown{ background:#F0E0C6; color:#804C2A; } .t-teal{ background:#DCEFF3; color:#0A6B7E; } .t-soft{ background:#EFE1D6; color:#7A4A2B; }
-    .panel{ background:#fff; border:0.5px solid #E6D6B8; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
-    .panel.soft{ background:#FBF2DF; border:none; }
-    .pt{ color:#6B4E37; font-size:12px; font-weight:500; margin-bottom:10px; }
+    .t-brown{ background:#E1ECF0; color:#247E9E; } .t-teal{ background:#DCEFF3; color:#0A6B7E; } .t-soft{ background:#E6EFF2; color:#17566F; }
+    .panel{ background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+    .panel.soft{ background:#EDF5F8; border:none; }
+    .pt{ color:#36586A; font-size:12px; font-weight:500; margin-bottom:10px; }
     .bar{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
     .bar:last-child{ margin-bottom:0; }
-    .bar span{ width:50px; color:#7A6551; font-size:12px; }
+    .bar span{ width:50px; color:#5B7280; font-size:12px; }
     .dots{ display:flex; gap:6px; }
-    .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid #D8C6A8; background:#F3E7CE; display:inline-block; }
-    .desc{ color:#5A4636; font-size:14px; line-height:1.7; margin-bottom:18px; }
-    .lbl{ color:#6B4E37; font-size:12px; font-weight:500; margin-bottom:8px; }
-    .hint{ color:#A89372; font-weight:400; }
+    .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid #BCD2DA; background:#E6F0F3; display:inline-block; }
+    .desc{ color:#3D5360; font-size:14px; line-height:1.7; margin-bottom:18px; }
+    .lbl{ color:#36586A; font-size:12px; font-weight:500; margin-bottom:8px; }
+    .hint{ color:#869BA6; font-weight:400; }
     .opts{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-    .opt{ border:0.5px solid #D8C6A8; background:#fff; color:#6B4E37; font-family:inherit; font-size:13px; padding:8px 15px; border-radius:8px; cursor:pointer; }
+    .opt{ border:0.5px solid #BCD2DA; background:#fff; color:#36586A; font-family:inherit; font-size:13px; padding:8px 15px; border-radius:8px; cursor:pointer; }
     .opt.on{ border:1.5px solid var(--teal); background:#E3F3F6; color:var(--teal-d); }
-    .brew{ display:flex; gap:16px; flex-wrap:wrap; color:var(--brown); font-size:12px; }
-    .buybar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--brown); border-radius:12px; padding:12px 16px; position:sticky; bottom:12px; }
+    .brew{ display:flex; gap:16px; flex-wrap:wrap; color:var(--brand); font-size:12px; }
+    .buybar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--brand); border-radius:12px; padding:12px 16px; position:sticky; bottom:12px; }
     .bmeta{ min-width:110px; }
-    .bsel{ color:#D8B48C; font-size:11px; } .bprice{ color:var(--cream); font-size:19px; font-weight:600; }
+    .bsel{ color:#A9CDDB; font-size:11px; } .bprice{ color:var(--on-brand); font-size:19px; font-weight:600; }
     .bbtns{ display:flex; gap:8px; flex:1; justify-content:flex-end; }
-    .btn-cart{ background:#fff; color:var(--brown); border:1.5px solid var(--cream); border-radius:9px; padding:11px 16px; font-weight:500; font-size:14px; cursor:pointer; font-family:inherit; white-space:nowrap; }
-    .btn-cart:hover{ background:#FBF2DF; }
+    .btn-cart{ background:#fff; color:var(--brand); border:1.5px solid var(--on-brand); border-radius:9px; padding:11px 16px; font-weight:500; font-size:14px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .btn-cart:hover{ background:#EDF5F8; }
     .buybar .btn-buy{ white-space:nowrap; }
     @media(max-width:440px){ .bbtns{ flex-basis:100%; } .btn-cart,.buybar .btn-buy{ flex:1; } }
   </style>

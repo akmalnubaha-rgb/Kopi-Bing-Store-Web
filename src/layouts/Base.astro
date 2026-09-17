@@ -39,10 +39,10 @@ const imageUrl = new URL(image, site).href;
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Alice&display=swap" rel="stylesheet" />
   <style is:global>
-    :root{ --brown:#804C2A; --brown-d:#5A3419; --cream:#FFE7C0; --cream-bg:#FFF9EE;
-      --teal:#0097B2; --teal-d:#0A6B7E; --yellow:#F5C542; --green:#3E8E41; --ink:#3E2C1E; --muted:#A0876B; }
+    :root{ --brand:#247E9E; --brand-d:#133F52; --on-brand:#EAF6FA; --page-bg:#F4F8FA;
+      --teal:#0097B2; --teal-d:#0A6B7E; --yellow:#FADC56; --green:#3E8E41; --ink:#0F2A37; --muted:#7F95A1; }
     *{ box-sizing:border-box; margin:0; padding:0; }
-    body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--cream-bg); color:var(--ink); }
+    body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--page-bg); color:var(--ink); }
     a{ color:inherit; text-decoration:none; }
     img{ max-width:100%; }
     /* Mode corong LP: sembunyikan header & footer web biasa */
@@ -52,25 +52,25 @@ const imageUrl = new URL(image, site).href;
     .lp-mode footer.bot{ display:none !important; }
     .lp-mode .nav a.txt{ display:none !important; }
     .wrap{ max-width:1080px; margin:0 auto; padding:0 16px; }
-    header.top{ background:var(--brown); }
+    header.top{ background:var(--brand); }
     header.top .wrap{ display:flex; align-items:center; justify-content:space-between; padding:10px 16px; gap:10px; }
     .brand{ display:flex; align-items:center; gap:11px; min-width:0; }
     .brand .logo{ width:44px; height:44px; border-radius:50%; display:block; flex-shrink:0; }
-    .brand .tag{ color:#E8CBA6; font-size:11px; letter-spacing:1px; line-height:1.3; }
-    .nav{ display:flex; align-items:center; gap:16px; color:#F0DEC4; font-size:14px; flex-shrink:0; }
+    .brand .tag{ color:#CFE7F0; font-size:11px; letter-spacing:1px; line-height:1.3; }
+    .nav{ display:flex; align-items:center; gap:16px; color:#E1F1F6; font-size:14px; flex-shrink:0; }
     .nav a.txt{ display:inline; }
     .csbtn{ display:inline-flex; align-items:center; gap:6px; background:#25995a; color:#fff; font-size:13px; font-weight:500; padding:8px 13px; border-radius:20px; }
     .csbtn svg{ width:16px; height:16px; }
     .csbtn .cslabel{ display:inline; }
     .cart-ic{ position:relative; font-size:23px; color:var(--yellow); }
     .cart-ic .badge{ position:absolute; top:-6px; right:-8px; background:var(--green); color:#fff; font-size:10px; min-width:16px; height:16px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
-    footer.bot{ background:var(--brown); margin-top:40px; }
+    footer.bot{ background:var(--brand); margin-top:40px; }
     footer.bot .wrap{ padding:22px 16px; text-align:center; }
-    footer.bot .ft{ color:var(--cream); font-size:20px; font-family:'Alice',serif; letter-spacing:1px; }
-    footer.bot .fs{ color:#D8B48C; font-size:12px; margin-top:6px; }
-    footer.bot .trust{ color:#8A6A4A; font-size:11px; margin-top:14px; }
+    footer.bot .ft{ color:var(--on-brand); font-size:20px; font-family:'Alice',serif; letter-spacing:1px; }
+    footer.bot .fs{ color:#A9CDDB; font-size:12px; margin-top:6px; }
+    footer.bot .trust{ color:#8FB3C2; font-size:11px; margin-top:14px; }
     footer.bot .social{ display:flex; gap:16px; justify-content:center; margin-top:14px; }
-    footer.bot .social a{ color:#E8CBA6; display:inline-flex; }
+    footer.bot .social a{ color:#CFE7F0; display:inline-flex; }
     footer.bot .social a:hover{ color:var(--yellow); }
     footer.bot .social svg{ width:23px; height:23px; }
     .btn-buy{ background:var(--green); color:#fff; font-weight:500; border:none; border-radius:9px; padding:12px 22px; font-size:15px; cursor:pointer; font-family:inherit; }
