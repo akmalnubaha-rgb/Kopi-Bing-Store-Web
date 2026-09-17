@@ -1,10 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
+import fs from 'node:fs';
+import path from 'node:path';
 import { products } from '../data/products.js';
 
 const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.prices }]));
+
+// Logo metode bayar di public/img/bayar/. Hanya berkas yang benar-benar ada yang dipakai;
+// selebihnya tampil sebagai lencana teks, jadi tidak pernah ada gambar rusak.
+// Transfer bank memakai logo BCA karena rekening tujuannya BCA.
+const PAYLOGO_FILE = { qris:'qris', bank_transfer:'bca', cod:'cod', va_bca:'bca', va_bni:'bni', va_bri:'bri', va_bsi:'bsi', va_mandiri:'mandiri' };
+const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
+  .filter(([, f]) => fs.existsSync(path.join(process.cwd(), 'public/img/bayar', f + '.svg')))
+  .map(([code, f]) => [code, '/img/bayar/' + f + '.svg']));
 ---
-<script is:inline define:vars={{ CATALOG }}>window.KB_CATALOG = CATALOG;</script>
+<script is:inline define:vars={{ CATALOG, PAYLOGO }}>window.KB_CATALOG = CATALOG; window.KB_PAYLOGO = PAYLOGO;</script>
 <Base title="Checkout — Toko Kopi Bing" description="Selesaikan pesanan kopimu di Toko Kopi Bing." noindex={true}>
   <div class="wrap cop" id="formView">
     <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
@@ -116,6 +126,16 @@ const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.
     .cop .row.total{ font-size:17px; color:var(--ink); font-weight:600; padding-top:14px; margin-bottom:0; border-top:0.5px solid #D3E2E8; }
     .cop .btn-buy.full{ display:block; width:100%; text-align:center; margin-top:18px; padding:15px; }
     .cop .btn-buy.full:disabled{ opacity:.5; cursor:not-allowed; }
+    /* Metode bayar: kuning label kemasan, sama dengan pilihan berat & gilingan di halaman produk. */
+    .cop #paymethods .crow{ justify-content:flex-start; gap:12px; background:#FFF6D1; border:1px solid #F2D675; transition:background .12s; }
+    .cop #paymethods .crow:hover{ background:#FDEEAE; }
+    .cop #paymethods .crow.on{ background:var(--yellow); border:1.5px solid #D4A91A; box-shadow:0 1px 4px rgba(212,169,26,.35); }
+    .cop #paymethods .crow .cl{ color:#133F52; }
+    .cop #paymethods .crow.on .cl{ font-weight:600; }
+    .cop #paymethods .crow .cl small{ color:#5B7280; }
+    .cop .paylogo{ flex:0 0 64px; height:36px; background:#fff; border-radius:7px; display:flex; align-items:center; justify-content:center; padding:5px 7px; box-shadow:inset 0 0 0 1px rgba(15,42,55,.08); }
+    .cop .paylogo img{ max-width:100%; max-height:100%; display:block; }
+    .cop .paylogo.txt{ font-size:11px; font-weight:700; color:#133F52; letter-spacing:.3px; }
     .cop .note{ color:var(--muted); font-size:12px; text-align:center; margin-top:12px; }
     .cop .note.err{ color:#A3502F; }
 
@@ -172,6 +192,9 @@ const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.
       invoice:'Pilih VA bank atau e-wallet di halaman berikutnya', va_bca:'Bayar lewat m-BCA, ATM, atau internet banking', va_bni:'Bayar lewat m-banking atau ATM BNI',
       va_bri:'Bayar lewat BRImo atau ATM BRI', va_bsi:'Bayar lewat BSI Mobile atau ATM BSI', va_mandiri:'Bayar lewat Livin atau ATM Mandiri',
       dana:'Bayar lewat aplikasi DANA', ovo:'Bayar lewat aplikasi OVO', shopeepay:'Bayar lewat aplikasi Shopee' };
+    // Teks cadangan di kotak logo, dipakai selama berkas logonya belum ada.
+    const PAY_BADGE={ qris:'QRIS', bank_transfer:'BCA', cod:'COD', va_bca:'BCA', va_bni:'BNI', va_bri:'BRI', va_bsi:'BSI', va_mandiri:'mandiri',
+      invoice:'VA', dana:'DANA', ovo:'OVO', shopeepay:'SPay' };
     // Urutan tampil. Metode di luar daftar ini ikut tampil, ditaruh paling bawah.
     //
     // PENTING: yang pertama juga menjadi pilihan DEFAULT - lihat `i===0` dan
@@ -210,7 +233,12 @@ const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.
           .sort((a,b)=>{ const ia=PAY_ORDER.indexOf(a.code), ib=PAY_ORDER.indexOf(b.code);
             return (ia<0?99:ia)-(ib<0?99:ib); });
         if(!methods.length){ $('paymethods').innerHTML='<div class="note err">Belum ada metode pembayaran aktif.</div>'; return; }
-        $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'"><span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span></button>').join('');
+        const LOGO=window.KB_PAYLOGO||{};
+        const logoTag=function(code){
+          if(LOGO[code]) return '<span class="paylogo"><img src="'+LOGO[code]+'" alt="" loading="lazy" /></span>';
+          return '<span class="paylogo txt">'+(PAY_BADGE[code]||'')+'</span>';
+        };
+        $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'">'+logoTag(m.code)+'<span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span></button>').join('');
         payMethod=methods[0].code;
         $('paymethods').querySelectorAll('.crow').forEach(b=>b.addEventListener('click',function(){
           $('paymethods').querySelectorAll('.crow').forEach(x=>x.classList.remove('on'));
