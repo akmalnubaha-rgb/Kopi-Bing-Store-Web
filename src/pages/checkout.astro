@@ -215,18 +215,29 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     // Metode yang disembunyikan dari web (tetap aktif di Scalev untuk jalur WhatsApp/dashboard).
     const PAY_HIDE=[];
     // Saat dikembangkan di localhost, Scalev menolak permintaan dari browser (localhost sengaja
-    // tidak ada di daftar origin yang diizinkan). Supaya tampilan metode bayar tetap bisa dicek,
-    // mode dev memakai daftar contoh yang sama dengan kopibing.id (dicek 17 Sep 2026).
-    // `import.meta.env.DEV` bernilai false saat build produksi, jadi cabang ini ikut terbuang.
-    async function loadPaymentMethods(){
-      try{ return await paymentMethods(); }
+    // tidak ada di daftar origin yang diizinkan). Supaya alur checkout tetap bisa dicoba dari
+    // awal sampai layar konfirmasi COD, mode dev memakai data contoh untuk metode bayar, wilayah,
+    // kode pos, dan ongkir. Pembuatan order TIDAK diberi contoh: di localhost ia tetap gagal,
+    // jadi tidak mungkin ada order sungguhan terbuat dari mesin pengembang.
+    // `import.meta.env.DEV` bernilai false saat build produksi, jadi semua data contoh terbuang.
+    const DEV_CONTOH = import.meta.env.DEV ? {
+      bayar: ['qris','bank_transfer','cod','va_bca','va_bni','va_bri','va_bsi','va_mandiri'].map(function(code){ return { code: code, enabled: true }; }),
+      wilayah: [{ id: 1, display: 'Cibeber, Kota Cilegon, Banten', subdistrict_name: 'Cibeber', city_name: 'Kota Cilegon', province_name: 'Banten' }],
+      kodepos: ['42426'],
+      ongkir: [
+        { courier_code: 'ide', name: 'Reguler', etd: '1-2', cost: 9000,  courier_aggregator_code: 'lincah', courier_service_id: 0, warehouse_unique_id: 'dev' },
+        { courier_code: 'jne', name: 'REG',     etd: '1-2', cost: 10500, courier_aggregator_code: 'lincah', courier_service_id: 0, warehouse_unique_id: 'dev' },
+      ],
+    } : null;
+    async function atauContoh(janji, kunci){
+      try{ return await janji; }
       catch(e){
         if(!import.meta.env.DEV) throw e;
-        console.warn('[dev] Scalev menolak localhost - memakai daftar metode bayar contoh');
-        return ['qris','bank_transfer','cod','va_bca','va_bni','va_bri','va_bsi','va_mandiri']
-          .map(function(code){ return { code: code, enabled: true }; });
+        console.warn('[dev] Scalev menolak localhost - memakai data contoh: ' + kunci);
+        return DEV_CONTOH[kunci];
       }
     }
+    function loadPaymentMethods(){ return atauContoh(paymentMethods(), 'bayar'); }
     (async function loadPay(){
       try{
         const methods=(await loadPaymentMethods()).filter(m=>m.enabled!==false && PAY_HIDE.indexOf(m.code)<0)
@@ -254,7 +265,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       if(q.length<3){ $('locResults').style.display='none'; return; }
       t=setTimeout(async function(){
         try{
-          const res=await searchLocations(q); const box=$('locResults');
+          const res=await atauContoh(searchLocations(q), 'wilayah'); const box=$('locResults');
           if(!res.length){ box.style.display='none'; return; }
           box.innerHTML=res.slice(0,8).map((r,i)=>'<div data-i="'+i+'">'+r.display+'</div>').join('');
           box._data=res; box.style.display='block';
@@ -267,7 +278,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       $('locPicked').textContent='📍 '+loc.display; $('locPicked').style.display='block';
       resetCourier(); chosenPostal=null; const sel=$('postal');
       try{
-        const codes=await postalCodes(loc.id);
+        const codes=await atauContoh(postalCodes(loc.id), 'kodepos');
         if(codes && codes.length){
           const opts=codes.map(c=>{ const v=(typeof c==='string')?c:(c.postal_code||c.code||c); return '<option value="'+v+'">'+v+'</option>'; }).join('');
           sel.innerHTML=opts; chosenPostal=sel.options[0] ? sel.options[0].value : '';
@@ -286,7 +297,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       wrap.style.display='block'; box.innerHTML='<div class="note">Menghitung ongkir...</div>';
       courier=null; ship=0; $('ship').textContent='-'; $('total').textContent=fmt(sub); refreshPay();
       try{
-        let opts=await shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer');
+        let opts=await atauContoh(shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer'), 'ongkir');
         opts=opts.filter(o=>String(o.courier_aggregator_code||'').toLowerCase()==='lincah');
         if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; return; }
         box.innerHTML=opts.map((o,i)=>'<button class="crow" data-i="'+i+'"><span class="cl">'+(o.courier_code||'').toUpperCase()+' '+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
