@@ -92,6 +92,8 @@ const imageUrl = new URL(image, site).href;
   </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1134999975422565&ev=PageView&noscript=1" /></noscript>
   <!-- End Meta Pixel -->
+  <!-- Tambahan <head> per halaman, mis. preload gambar hero -->
+  <slot name="head" />
 </head>
 <body>
   {!naked && (

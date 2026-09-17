@@ -8,6 +8,11 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
   title="Toko Kopi Bing — Kopi Giling Seluruh Indonesia"
   description="Kopi robusta, arabika, dan blend dari seluruh Indonesia. Digiling segar saat kamu pesan, pilih sendiri kehalusannya. Harga lebih murah dari marketplace, kirim ke seluruh Indonesia."
 >
+  <Fragment slot="head">
+    <!-- Foto hero adalah elemen terbesar di layar awal: muat lebih dulu, sesuai ukuran layar. -->
+    <link rel="preload" as="image" href="/img/hero-kebun.webp" media="(min-width: 601px)" fetchpriority="high" />
+    <link rel="preload" as="image" href="/img/hero-kebun-hp.webp" media="(max-width: 600px)" fetchpriority="high" />
+  </Fragment>
   <section class="hero">
     <div class="wrap heroin">
       <div class="pricebanner">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>
@@ -42,16 +47,17 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
   </section>
 
   <style>
-    /* Hero berlatar foto kebun kopi (public/img/hero-kebun.webp). Lapisan biru gelap di atasnya
-       menjaga tulisan putih tetap terbaca di bagian foto yang terang. Kalau berkas fotonya belum
-       ada, yang tampil cuma warna navy - halaman tidak rusak. */
-    .hero{ position:relative; background:#0F2A37 url('/img/hero-kebun.webp') center 40% / cover no-repeat; }
-    .hero::before{ content:""; position:absolute; inset:0;
-      background:linear-gradient(180deg, rgba(15,42,55,.50) 0%, rgba(15,42,55,.62) 55%, rgba(15,42,55,.80) 100%); }
+    /* Hero berlatar foto kebun kopi. Foto hanya tampil ~30%: lapisan putih 70% di atasnya
+       membuat hero terang dan lapang, jadi teksnya memakai navy, bukan putih.
+       Desktop: public/img/hero-kebun.webp (1920x1072). HP: hero-kebun-hp.webp (900x1117).
+       Mengubah seberapa pudar fotonya cukup di angka .70 pada .hero::before. */
+    .hero{ position:relative; background:#fff url('/img/hero-kebun.webp') center 45% / cover no-repeat; }
+    .hero::before{ content:""; position:absolute; inset:0; background:rgba(255,255,255,.70); }
     .heroin{ position:relative; padding:64px 18px 58px; text-align:center; }
     .pricebanner{ display:inline-block; background:var(--yellow); color:#133F52; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:20px; max-width:440px; }
-    .hero .q{ color:#fff; font-size:30px; font-weight:600; line-height:1.25; max-width:620px; margin:0 auto; text-shadow:0 2px 14px rgba(0,0,0,.35); }
-    .hero .s{ color:#D9ECF3; font-size:15px; margin:12px 0 24px; text-shadow:0 1px 8px rgba(0,0,0,.3); }
+    .hero .q{ color:var(--ink); font-size:30px; font-weight:700; line-height:1.25; max-width:620px; margin:0 auto; }
+    .hero .s{ color:#36586A; font-size:15px; margin:12px 0 24px; }
+    @media(max-width:600px){ .hero{ background-image:url('/img/hero-kebun-hp.webp'); background-position:center 55%; } }
     .herobtn{ display:inline-block; background:var(--green); color:#fff; font-weight:600; font-size:16px; padding:14px 28px; border-radius:11px; }
     .herobtn:hover{ filter:brightness(1.06); }
     .choices{ display:flex; gap:14px; justify-content:center; }
@@ -62,7 +68,7 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .ch.pahit .ct{ color:var(--yellow); }
     .ch .cs{ font-size:12px; color:#D6EBF2; }
     .ch.asem .cs{ color:#D6F2F7; }
-    .grind{ display:table; margin:24px auto 0; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.28); color:#EAF6FA; font-size:12px; padding:9px 16px; border-radius:20px; backdrop-filter:blur(4px); }
+    .grind{ display:table; margin:24px auto 0; background:rgba(255,255,255,.75); border:1px solid #BCD2DA; color:#133F52; font-size:12px; padding:9px 16px; border-radius:20px; backdrop-filter:blur(4px); }
     .filters{ display:flex; gap:9px; padding:24px 0 14px; flex-wrap:wrap; }
     .fbtn{ background:#E6F0F3; color:var(--brand); border:none; font-family:inherit; font-size:14px; padding:8px 18px; border-radius:20px; cursor:pointer; }
     .fbtn.active{ background:var(--brand); color:var(--page-bg); }
@@ -74,7 +80,7 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; scrollbar-width:thin; }
     .testi-card{ flex:0 0 auto; width:230px; scroll-snap-align:start; background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; overflow:hidden; }
     .testi-card img{ width:100%; display:block; }
-    @media(max-width:520px){ .heroin{ padding:48px 18px 44px; } .hero .q{ font-size:24px; } .choices{ gap:10px; } }
+    @media(max-width:520px){ .heroin{ padding:48px 18px 44px; } .hero .q{ font-size:24px; } .grind{ font-size:11px; padding:8px 12px; } .choices{ gap:10px; } }
   </style>
 
   <script>
