@@ -128,8 +128,11 @@ const jsonLd = {
     .lbl{ color:#36586A; font-size:12px; font-weight:500; margin-bottom:8px; }
     .hint{ color:#869BA6; font-weight:400; }
     .opts{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-    .opt{ border:0.5px solid #BCD2DA; background:#fff; color:#36586A; font-family:inherit; font-size:13px; padding:8px 15px; border-radius:8px; cursor:pointer; }
-    .opt.on{ border:1.5px solid var(--teal); background:#E3F3F6; color:var(--teal-d); }
+    /* Pilihan berat & gilingan berwarna kuning label kemasan: muda untuk yang belum dipilih,
+       penuh + teks tebal untuk yang terpilih, supaya pilihan aktif tetap jelas terbaca. */
+    .opt{ border:1px solid #F2D675; background:#FFF6D1; color:#133F52; font-family:inherit; font-size:13px; font-weight:500; padding:8px 15px; border-radius:8px; cursor:pointer; transition:background .12s; }
+    .opt:hover{ background:#FDEEAE; }
+    .opt.on{ border:1.5px solid #D4A91A; background:var(--yellow); color:#0F2A37; font-weight:700; box-shadow:0 1px 4px rgba(212,169,26,.35); }
     .brew{ display:flex; gap:16px; flex-wrap:wrap; color:var(--brand); font-size:12px; }
     .buybar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--brand); border-radius:12px; padding:12px 16px; position:sticky; bottom:12px; }
     .bmeta{ min-width:110px; }
