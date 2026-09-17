@@ -191,9 +191,22 @@ const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.
     const PAY_ORDER=['qris','bank_transfer','cod','invoice','va_bca','va_bni','va_bri','va_bsi','va_mandiri','dana','ovo','shopeepay'];
     // Metode yang disembunyikan dari web (tetap aktif di Scalev untuk jalur WhatsApp/dashboard).
     const PAY_HIDE=[];
+    // Saat dikembangkan di localhost, Scalev menolak permintaan dari browser (localhost sengaja
+    // tidak ada di daftar origin yang diizinkan). Supaya tampilan metode bayar tetap bisa dicek,
+    // mode dev memakai daftar contoh yang sama dengan kopibing.id (dicek 17 Sep 2026).
+    // `import.meta.env.DEV` bernilai false saat build produksi, jadi cabang ini ikut terbuang.
+    async function loadPaymentMethods(){
+      try{ return await paymentMethods(); }
+      catch(e){
+        if(!import.meta.env.DEV) throw e;
+        console.warn('[dev] Scalev menolak localhost - memakai daftar metode bayar contoh');
+        return ['qris','bank_transfer','cod','va_bca','va_bni','va_bri','va_bsi','va_mandiri']
+          .map(function(code){ return { code: code, enabled: true }; });
+      }
+    }
     (async function loadPay(){
       try{
-        const methods=(await paymentMethods()).filter(m=>m.enabled!==false && PAY_HIDE.indexOf(m.code)<0)
+        const methods=(await loadPaymentMethods()).filter(m=>m.enabled!==false && PAY_HIDE.indexOf(m.code)<0)
           .sort((a,b)=>{ const ia=PAY_ORDER.indexOf(a.code), ib=PAY_ORDER.indexOf(b.code);
             return (ia<0?99:ia)-(ib<0?99:ib); });
         if(!methods.length){ $('paymethods').innerHTML='<div class="note err">Belum ada metode pembayaran aktif.</div>'; return; }
