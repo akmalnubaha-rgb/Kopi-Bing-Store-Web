@@ -159,7 +159,32 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
   </style>
 
   <script>
-    import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
+    import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, trackPixelOnly, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
+
+    // --- Pengukur langkah checkout (Build DNA, 24 Sep 2026) -----------------
+    // InitiateCheckout di bawah menembak TIAP halaman dimuat (termasuk muat ulang), jadi
+    // tidak bisa dipakai menghitung berapa orang berhenti di langkah mana. Event CO_* ini
+    // mengisi celahnya: satu kali per langkah per tab (sessionStorage), jadi muat ulang
+    // tidak menggandakan. Hanya pixel browser - ini alat ukur, bukan sinyal optimasi,
+    // dan tidak ada ad set yang dioptimasi ke event ini.
+    // Dibersihkan sesudah order berhasil dibuat, supaya checkout berikutnya di tab yang
+    // sama terhitung lagi.
+    const CO_LANGKAH=['CO_Buka','CO_Data','CO_Wilayah','CO_Kurir','CO_Klik'];
+    function langkah(nama, params){
+      try{
+        const k='kb_co_'+nama;
+        if(sessionStorage.getItem(k)) return;
+        sessionStorage.setItem(k,'1');
+      }catch(e){ /* sessionStorage diblokir: tetap kirim, lebih baik dobel daripada hilang */ }
+      trackPixelOnly(nama, params||{}, 'co_'+nama+'_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+    }
+    function resetLangkah(){ try{ CO_LANGKAH.forEach(function(n){ sessionStorage.removeItem('kb_co_'+n); }); }catch(e){} }
+    // CO_Gagal TIDAK dibatasi sekali per tab: tiap kegagalan penting dihitung.
+    // Pesan error dari Scalev dipotong dan angka panjang dibuang (jaga-jaga nomor HP).
+    function gagal(tahap, err){
+      const pesan=String((err && err.message) || err || '').replace(/\d{5,}/g,'#').slice(0,80);
+      trackPixelOnly('CO_Gagal', {tahap:tahap, pesan:pesan}, 'co_gagal_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+    }
 
     const LP = safeLp(new URLSearchParams(location.search).get('lp'));
     if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
@@ -184,6 +209,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     $('subtotal').textContent=fmt(sub);
     $('total').textContent=fmt(sub);
     if(cart.length) trackMeta('InitiateCheckout',{content_ids:cart.map(function(i){return String(i.vid||i.slug);}),content_type:'product',num_items:cart.reduce(function(s,i){return s+i.qty;},0),value:sub,currency:'IDR'}, 'ic_'+Date.now()+'_'+Math.random().toString(36).slice(2), {});
+    if(cart.length) langkah('CO_Buka', {cara:isBuynow?'beli_langsung':'keranjang', num_items:cart.reduce(function(s,i){return s+i.qty;},0), value:sub, currency:'IDR', lp:LP||''});
 
     const PAY_LABEL={ bank_transfer:'Transfer bank', qris:'QRIS', va:'Virtual Account', cod:'Bayar di tempat (COD)',
       invoice:'Virtual Account / E-Wallet', va_bca:'Virtual Account BCA', va_bni:'Virtual Account BNI', va_bri:'Virtual Account BRI',
@@ -258,7 +284,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
           this.classList.add('on'); payMethod=this.dataset.code; refreshPay();
         }));
         refreshPay();
-      }catch(e){ $('paymethods').innerHTML='<div class="note err">Gagal memuat metode pembayaran.</div>'; }
+      }catch(e){ $('paymethods').innerHTML='<div class="note err">Gagal memuat metode pembayaran.</div>'; gagal('metode_bayar', e); }
     })();
 
     let t=null;
@@ -277,6 +303,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     $('locResults').addEventListener('click',async function(e){
       const d=e.target.closest('[data-i]'); if(!d) return;
       loc=this._data[+d.dataset.i]; this.style.display='none'; $('locSearch').value='';
+      langkah('CO_Wilayah', {provinsi:loc.province_name||''});
       $('locPicked').textContent='📍 '+loc.display; $('locPicked').style.display='block';
       resetCourier(); chosenPostal=null; const sel=$('postal');
       try{
@@ -301,10 +328,10 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       try{
         let opts=await atauContoh(shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer'), 'ongkir');
         opts=opts.filter(o=>String(o.courier_aggregator_code||'').toLowerCase()==='lincah');
-        if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; return; }
+        if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; gagal('kurir_kosong', 'tidak ada kurir lincah'); return; }
         box.innerHTML=opts.map((o,i)=>'<button class="crow" data-i="'+i+'"><span class="cl">'+(o.courier_code||'').toUpperCase()+' '+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
         box._opts=opts;
-      }catch(err){ box.innerHTML='<div class="note err">'+(err.message||'Gagal menghitung ongkir.')+'</div>'; }
+      }catch(err){ box.innerHTML='<div class="note err">'+(err.message||'Gagal menghitung ongkir.')+'</div>'; gagal('ongkir', err); }
     }
 
     $('courier').addEventListener('click',function(e){
@@ -312,13 +339,19 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       this.querySelectorAll('.crow').forEach(x=>x.classList.remove('on')); b.classList.add('on');
       courier=this._opts[+b.dataset.i]; ship=Number(courier.cost);
       $('ship').textContent=fmt(ship); $('total').textContent=fmt(sub+ship);
+      langkah('CO_Kurir', {kurir:String(courier.courier_code||''), ongkir:ship, value:sub+ship, currency:'IDR'});
       refreshPay();
     });
 
     function setNote(msg,err){ const n=$('payNote'); n.textContent=msg; n.classList.toggle('err',!!err); }
     function ready(){ return cart.length && $('nama').value.trim() && $('wa').value.trim() && $('alamat').value.trim() && loc && chosenPostal && courier && payMethod; }
     function refreshPay(){ const ok=ready(); $('payBtn').disabled=!ok; if(ok) setNote('Siap. Klik untuk buat pesanan.',false); }
-    ['nama','wa','alamat'].forEach(id=>$(id).addEventListener('input',refreshPay));
+    // CO_Data: ketiga isian terisi (WA minimal 9 digit). Ditembak saat pembeli berhenti
+    // mengetik di salah satunya (blur), bukan tiap huruf.
+    function cekData(){
+      if($('nama').value.trim() && $('wa').value.replace(/\D/g,'').length>=9 && $('alamat').value.trim()) langkah('CO_Data', {});
+    }
+    ['nama','wa','alamat'].forEach(id=>{ $(id).addEventListener('input',refreshPay); $(id).addEventListener('blur',cekData); });
 
     // --- Langkah konfirmasi COD -------------------------------------------
     // Ditampilkan sebelum order dikirim ke Scalev, bukan sesudah. Kalau pembeli
@@ -366,6 +399,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
 
     $('payBtn').addEventListener('click',function(){
       if(!ready()) return;
+      langkah('CO_Klik', {metode:payMethod, value:sub+ship, currency:'IDR'});
       if(payMethod==='cod'){ showCodConfirm(); return; }
       submitOrder(this,'Buat pesanan & bayar',$('payNote'));
     });
@@ -433,6 +467,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
           }catch(e){}
         }
         try{ localStorage.removeItem('kb_cart'); sessionStorage.removeItem('kb_buynow'); }catch(e){}
+        resetLangkah();
         // ?bayar=1 menandai "baru selesai checkout". Halaman pesanan memakainya untuk
         // melempar langsung ke halaman pembayaran Scalev pada metode e-payment, tanpa
         // ketukan tambahan. Kunjungan berikutnya (mis. dari link follow-up) tidak
@@ -440,7 +475,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
         const dest = order.public_order_url || order.payment_url;
         if(dest){ window.location.href = dest + (dest.indexOf('?')>=0 ? '&' : '?') + 'bayar=1'; }
         else { noteEl.textContent='Pesanan dibuat. Cek WhatsApp untuk instruksi pembayaran.'; noteEl.classList.remove('err'); }
-      }catch(err){ fail('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.'); }
+      }catch(err){ gagal('buat_order', err); fail('Pesanan belum bisa dibuat. Coba cek lagi penulisan nomor WhatsApp dan alamatmu ya. Kalau masih belum bisa, hubungi kami lewat tombol WhatsApp di kanan atas.'); }
     }
   </script>
 </Base>
