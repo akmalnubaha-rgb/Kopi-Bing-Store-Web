@@ -90,6 +90,20 @@ const imageUrl = new URL(image, site).href;
     fbq('init',KB_PIXEL);
     fbq('track','PageView');
   </script>
+  <!-- Penanda iklan untuk atribusi order web (Referensi/SPEK-ATRIBUSI-WEB.md di sisi iklan).
+       Hanya ID numerik iklan Meta yang disimpan, di browser pembeli sendiri, 7 hari.
+       Kunjungan tanpa parameter iklan TIDAK menimpanya: yang dicatat klik iklan terakhir. -->
+  <script is:inline>
+    try{
+      var kbP=new URLSearchParams(location.search), kbId=function(v){ return v && /^\d{6,25}$/.test(v) ? v : null; };
+      if(kbP.get('utm_source')==='meta'){
+        localStorage.setItem('kb_iklan', JSON.stringify({cmp:kbId(kbP.get('utm_campaign')), adset:kbId(kbP.get('utm_term')), ad:kbId(kbP.get('utm_content')), fbclid:kbP.has('fbclid'), t:Date.now()}));
+      }else if(kbP.has('fbclid')){
+        // iklan lama tanpa parameter URL: tahu dari iklan Meta, tidak tahu iklan yang mana
+        localStorage.setItem('kb_iklan', JSON.stringify({cmp:null, adset:null, ad:null, fbclid:true, t:Date.now()}));
+      }
+    }catch(e){}
+  </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1134999975422565&ev=PageView&noscript=1" /></noscript>
   <!-- End Meta Pixel -->
   <!-- Tambahan <head> per halaman, mis. preload gambar hero -->

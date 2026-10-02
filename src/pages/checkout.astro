@@ -159,7 +159,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
   </style>
 
   <script>
-    import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, trackPixelOnly, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
+    import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, iklanTerakhir, trackMeta, trackPixelOnly, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
 
     // --- Pengukur langkah checkout (Build DNA, 24 Sep 2026) -----------------
     // InitiateCheckout di bawah menembak TIAP halaman dimuat (termasuk muat ulang), jadi
@@ -450,12 +450,17 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
         //
         // Sengaja TANPA await dan pakai keepalive: halaman langsung pindah setelah ini, dan
         // checkout tidak boleh melambat cuma demi pelengkap atribusi.
-        if(oid && payMethod!=='cod'){
+        //
+        // Iklan yang terakhir diklik (`iklan`) ikut dititipkan untuk SEMUA metode bayar, termasuk
+        // COD, supaya order lunas di Scalev bisa dihitung per ad set. Untuk COD hanya bagian iklan
+        // yang disimpan (`cod:true`), penanda fbc/fbp/IP/UA tetap tidak dititipkan.
+        if(oid){
           try{
             const at=fbAttribution();
+            const cod=payMethod==='cod';
             fetch('/api/stash-attribution', {method:'POST', keepalive:true,
               headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({order_id:oid, fbc:at.fbc, fbp:at.fbp})});
+              body:JSON.stringify(cod ? {order_id:oid, cod:true, iklan:iklanTerakhir()} : {order_id:oid, fbc:at.fbc, fbp:at.fbp, iklan:iklanTerakhir()})});
           }catch(e){}
         }
         // COD dibayar ke kurir, jadi konversinya dihitung saat order dibuat.

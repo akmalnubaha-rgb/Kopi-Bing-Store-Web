@@ -118,6 +118,14 @@ export function fbAttribution(){
   function val(n){ const c=_cookie(n); return c ? decodeURIComponent(c.split('=')[1]) : ''; }
   return { fbc: val('_fbc'), fbp: val('_fbp') };
 }
+// Klik iklan terakhir (ditulis Base.astro). Kedaluwarsa 7 hari, sama dengan jendela klik Meta.
+export function iklanTerakhir(){
+  try{
+    const a=JSON.parse(localStorage.getItem('kb_iklan')||'null');
+    if(!a || !a.t || Date.now()-a.t > 7*24*3600*1000) return null;
+    return a;
+  }catch(e){ return null; }
+}
 export async function metaEvent(payload){
   try{
     // keepalive: sebagian event ditembakkan tepat sebelum pindah halaman (mis. klik

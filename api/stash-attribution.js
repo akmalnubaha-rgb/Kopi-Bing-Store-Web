@@ -46,6 +46,34 @@ export async function kvCommand(cfg, perintah) {
 
 export const kunciAtribusi = (orderId) => `kb:attr:${orderId}`;
 
+// Atribusi order -> iklan, dibaca Yanto (VPS) dengan token KV baca-saja untuk menghitung
+// ROAS per ad set dari order LUNAS Scalev. Disimpan 120 hari supaya bisa dibandingkan
+// lintas bulan. Isinya TANPA data pribadi: tanpa IP, user agent, fbc, fbp, HP, atau nama.
+const TTL_IKLAN_DETIK = 120 * 24 * 3600;
+export const kunciIklan = (orderId) => `kb:iklan:${orderId}`;
+export const INDEKS_IKLAN = 'kb:iklan:idx';
+const idMeta = (v) => (typeof v === 'string' && /^\d{6,25}$/.test(v) ? v : null);
+
+async function simpanIklan(cfg, orderId, iklan, cod) {
+  const a = iklan && typeof iklan === 'object' ? iklan : {};
+  const t = Date.now();
+  const klik = Number(a.t);
+  const rec = {
+    o: orderId,
+    t,
+    cmp: idMeta(a.cmp),
+    adset: idMeta(a.adset),
+    ad: idMeta(a.ad),
+    fbclid: a.fbclid === true,
+    cod: cod === true,
+    umur_klik_jam: Number.isFinite(klik) && klik > 0 && klik <= t ? Math.round((t - klik) / 3.6e6) : null,
+  };
+  // Tetap ditulis walau semua kosong: supaya ketahuan berapa order yang memang tanpa jejak iklan.
+  await kvCommand(cfg, ['SET', kunciIklan(orderId), JSON.stringify(rec), 'EX', String(TTL_IKLAN_DETIK)]);
+  await kvCommand(cfg, ['ZADD', INDEKS_IKLAN, String(t), orderId]);
+  await kvCommand(cfg, ['ZREMRANGEBYSCORE', INDEKS_IKLAN, '0', String(t - TTL_IKLAN_DETIK * 1000)]);
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
@@ -66,6 +94,19 @@ export default async function handler(req) {
   // Sengaja membalas 204, bukan error: checkout TIDAK BOLEH gagal cuma karena
   // penyimpanan penanda iklan belum tersambung. Ini pelengkap, bukan syarat.
   if (!cfg) return new Response(null, { status: 204 });
+
+  // Atribusi iklan: untuk semua metode bayar. Kegagalannya tidak boleh menahan apa pun.
+  if ('iklan' in body) {
+    try {
+      await simpanIklan(cfg, orderId, body.iklan, body.cod);
+    } catch (err) {
+      console.error(`Gagal menyimpan atribusi iklan untuk order ${orderId}: ${err.message}`);
+    }
+  }
+
+  // COD: hanya atribusi iklan. Penanda fbc/fbp/IP/UA tidak dititipkan, persis seperti sebelumnya
+  // (Purchase COD ditembakkan di checkout, webhook tidak memakainya).
+  if (body.cod === true) return new Response(null, { status: 204 });
 
   const fwd = req.headers.get('x-forwarded-for') || '';
   const nilai = {
