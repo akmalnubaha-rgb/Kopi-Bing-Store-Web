@@ -19,12 +19,6 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
   <div class="wrap cop" id="formView">
     <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
     <h1>Checkout</h1>
-
-    <div class="sec">Data penerima</div>
-    <input class="fld" id="nama" placeholder="Nama lengkap" />
-    <input class="fld" id="wa" placeholder="Nomor WhatsApp (contoh 08123456789)" />
-    <input class="fld" id="alamat" placeholder="Alamat lengkap (nama jalan, no rumah, RT/RW)" />
-
     <div class="sec">Wilayah pengiriman</div>
     <div class="loc">
       <input class="fld" id="locSearch" placeholder="Ketik kecamatan / kota (min 3 huruf)" autocomplete="off" />
@@ -32,12 +26,18 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     </div>
     <div id="locPicked" class="picked" style="display:none"></div>
     <select class="fld" id="postal" style="display:none"></select>
-
     <div id="courierWrap" style="display:none">
       <div class="sec">Pilih kurir</div>
       <div class="courier" id="courier"></div>
     </div>
-
+    <!-- 2 Okt 2026: wilayah & kurir DIDAHULUKAN sebelum data diri. Data CO_* 25 Sep-1 Okt:
+         dari 490 yang membuka checkout, 56% pergi sebelum memilih wilayah, padahal ongkir
+         dan total baru kelihatan sesudah wilayah dipilih. Pembeli melihat total dulu, baru
+         diminta nama/WA/alamat. Ukur: CO_Buka->CO_Kurir (sebelumnya 36%) dan CO_Buka->OrderCreated (20%). -->
+    <div class="sec">Data penerima</div>
+    <input class="fld" id="nama" placeholder="Nama lengkap" />
+    <input class="fld" id="wa" placeholder="Nomor WhatsApp (contoh 08123456789)" />
+    <input class="fld" id="alamat" placeholder="Alamat lengkap (nama jalan, no rumah, RT/RW)" />
     <div class="sec">Metode pembayaran</div>
     <div class="courier" id="paymethods"><div class="note">Memuat metode pembayaran...</div></div>
 
@@ -51,7 +51,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     </div>
 
     <button class="btn-buy full" id="payBtn" disabled>Buat pesanan &amp; bayar</button>
-    <p class="note" id="payNote">Lengkapi data, wilayah, kurir, dan metode bayar dulu.</p>
+    <p class="note" id="payNote">Pilih wilayah &amp; kurir, isi data, lalu pilih metode bayar.</p>
   </div>
 
   <!-- Langkah konfirmasi khusus COD. Pesanan BELUM dibuat waktu halaman ini tampil;
