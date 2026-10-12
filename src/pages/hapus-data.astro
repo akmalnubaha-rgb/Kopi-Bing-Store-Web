@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Petunjuk penghapusan data — "Data deletion instructions URL" app Meta. Meta menolak URL
+// dengan #anchor (privasi#hapus-data), jadi dibuat halaman sendiri. Isi harus sama dengan
+// bagian "Hak kamu dan cara menghapus data" di privasi.astro.
+const waAdmin = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20mau%20minta%20hapus%20data%20saya";
+---
+<Base title="Hapus Data — Toko Kopi Bing" description="Cara meminta Toko Kopi Bing menghapus data pribadi kamu.">
+  <main class="wrap priv">
+    <h1>Cara Menghapus Data Kamu</h1>
+    <p>Kamu bisa meminta salinan data kamu, memperbaikinya, atau menghapusnya dari Toko Kopi Bing. Caranya:</p>
+    <ol>
+      <li>Kirim pesan ke WhatsApp admin <a class="lnk" href={waAdmin} target="_blank" rel="noopener">0851-6194-1214</a> dengan kalimat "minta hapus data", dari nomor yang dulu dipakai memesan atau chat.</li>
+      <li>Kami akan memastikan nomor itu memang milik kamu, lalu memproses permintaan paling lama 14 hari kerja dan mengabari kamu kalau sudah selesai.</li>
+    </ol>
+    <p>Catatan transaksi yang wajib disimpan untuk pembukuan dan pajak bisa tetap kami simpan sampai batas waktu yang diwajibkan, tanpa dipakai untuk keperluan lain.</p>
+    <p>Penjelasan lengkap data apa yang kami kumpulkan ada di <a class="lnk" href="/privasi">Kebijakan Privasi</a>.</p>
+  </main>
+</Base>
+
+<style>
+  .priv{ max-width:760px; padding-top:28px; line-height:1.65; font-size:15px; }
+  .priv h1{ font-family:'Alice',serif; font-size:28px; color:var(--brand-d); margin-bottom:12px; }
+  .priv p{ margin:8px 0; }
+  .priv ol{ margin:8px 0 8px 22px; }
+  .priv li{ margin:4px 0; }
+  .priv .lnk{ color:var(--teal-d); text-decoration:underline; }
+</style>
