@@ -1,10 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
+
 // Kebijakan privasi. Dibutuhkan juga oleh Meta: app iklan "Kopi Bing Ads Monitor" hanya bisa
 // pindah ke mode Live kalau punya Privacy Policy URL. Petunjuk hapus data untuk isian
-// "Data deletion instructions URL" ada di /hapus-data (Meta menolak URL ber-#anchor). Isinya harus tetap cocok dengan yang benar-benar dikumpulkan
-// "Data deletion instructions URL" (halaman /hapus-data). Isinya harus tetap cocok dengan yang benar-benar dikumpulkan
-// (checkout.astro, pixel di Base.astro, api/stash-attribution.js, api/scalev-webhook.js).
+// "Data deletion instructions URL" ada di /hapus-data (Meta menolak URL ber-#anchor). Isinya harus tetap
+// cocok dengan yang benar-benar dikumpulkan (checkout.astro, pixel di Base.astro, api/stash-attribution.js, api/scalev-webhook.js).
 const waAdmin = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20mau%20minta%20hapus%20data%20saya";
 const berlaku = "12 Oktober 2026";
 ---
