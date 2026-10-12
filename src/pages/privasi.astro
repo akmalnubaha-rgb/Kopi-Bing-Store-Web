@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Kebijakan privasi. Dibutuhkan juga oleh Meta: app iklan "Kopi Bing Ads Monitor" hanya bisa
+// pindah ke mode Live kalau punya Privacy Policy URL. Petunjuk hapus data untuk isian
+// "Data deletion instructions URL" ada di /hapus-data (Meta menolak URL ber-#anchor). Isinya harus tetap
+// cocok dengan yang benar-benar dikumpulkan (checkout.astro, pixel di Base.astro, api/stash-attribution.js, api/scalev-webhook.js).
+const waAdmin = "https://wa.me/6285161941214?text=Halo%20Kopi%20Bing%2C%20saya%20mau%20minta%20hapus%20data%20saya";
+const berlaku = "12 Oktober 2026";
+---
+<Base title="Kebijakan Privasi — Toko Kopi Bing" description="Data apa yang dikumpulkan Toko Kopi Bing, untuk apa, dibagikan ke siapa, dan cara meminta data kamu dihapus.">
+  <main class="wrap priv">
+    <h1>Kebijakan Privasi</h1>
+    <p class="meta">Berlaku sejak {berlaku}</p>
+
+    <p>Halaman ini menjelaskan data apa yang dikumpulkan Toko Kopi Bing (kopibing.id dan WhatsApp Kopi Bing), untuk apa data itu dipakai, dibagikan ke siapa, dan bagaimana kamu bisa meminta data kamu dihapus.</p>
+
+    <h2>Data yang kami kumpulkan</h2>
+    <ul>
+      <li><b>Saat kamu memesan di web:</b> nama, nomor WhatsApp, alamat pengiriman, pilihan kurir, dan metode pembayaran.</li>
+      <li><b>Saat kamu chat lewat WhatsApp:</b> nomor dan nama profil WhatsApp, isi percakapan, dan, kalau kamu datang dari iklan, iklan mana yang kamu klik.</li>
+      <li><b>Otomatis saat kamu membuka web:</b> cookie dan Meta Pixel mencatat halaman yang dilihat, barang yang dimasukkan ke keranjang, dan langkah checkout, beserta alamat IP, jenis browser, dan kode klik iklan. Isi keranjang disimpan di browser kamu sendiri.</li>
+    </ul>
+
+    <h2>Untuk apa data itu dipakai</h2>
+    <ul>
+      <li>Memproses, mengirim, dan mengonfirmasi pembayaran pesanan kamu.</li>
+      <li>Melayani pertanyaan dan keluhan. Sebagian balasan WhatsApp dibantu sistem balasan otomatis, dengan admin yang tetap memantau.</li>
+      <li>Mengukur iklan mana yang menghasilkan pesanan, supaya iklan kami lebih tepat sasaran.</li>
+      <li>Mencegah penipuan dan penyalahgunaan.</li>
+    </ul>
+
+    <h2>Dibagikan ke siapa</h2>
+    <ul>
+      <li><b>Scalev</b>, sistem pesanan dan pembayaran kami, serta bank atau penyedia pembayaran (transfer, QRIS, virtual account) yang dipakai lewat Scalev.</li>
+      <li><b>Jasa kurir</b>, hanya nama, nomor telepon, dan alamat yang dibutuhkan untuk mengantar paket.</li>
+      <li><b>Meta</b> (Facebook, Instagram, WhatsApp), untuk mengukur iklan. Nomor telepon dan nama dikirim dalam bentuk ter-<i>hash</i> (diacak satu arah), bukan teks aslinya.</li>
+    </ul>
+    <p>Kami <b>tidak menjual</b> data kamu ke siapa pun.</p>
+
+    <h2>Berapa lama disimpan</h2>
+    <ul>
+      <li>Data pesanan disimpan selama dibutuhkan untuk pengiriman, layanan purnajual, dan pembukuan.</li>
+      <li>Data pengukuran iklan per pesanan disimpan paling lama 120 hari. Kode klik iklan disimpan paling lama 7 hari.</li>
+    </ul>
+
+    <h2 id="hapus-data">Hak kamu dan cara menghapus data</h2>
+    <p>Kamu bisa meminta salinan data kamu, memperbaikinya, atau menghapusnya. Caranya:</p>
+    <ol>
+      <li>Kirim pesan ke WhatsApp admin <a class="lnk" href={waAdmin} target="_blank" rel="noopener">0851-6194-1214</a> dengan kalimat "minta hapus data", dari nomor yang dulu dipakai memesan atau chat.</li>
+      <li>Kami akan memastikan nomor itu memang milik kamu, lalu memproses permintaan paling lama 14 hari kerja dan mengabari kamu kalau sudah selesai.</li>
+    </ol>
+    <p>Catatan transaksi yang wajib disimpan untuk pembukuan dan pajak bisa tetap kami simpan sampai batas waktu yang diwajibkan, tanpa dipakai untuk keperluan lain.</p>
+    <p>Kamu juga bisa menolak cookie lewat pengaturan browser, dan mengatur iklan yang kamu lihat lewat pengaturan iklan di akun Facebook atau Instagram kamu.</p>
+
+    <h2>Keamanan</h2>
+    <p>Data dikirim lewat koneksi terenkripsi (HTTPS) dan hanya bisa diakses oleh tim dan sistem yang memerlukannya.</p>
+
+    <h2>Perubahan kebijakan</h2>
+    <p>Kalau kebijakan ini berubah, versi terbarunya kami pasang di halaman ini dengan tanggal berlaku yang baru.</p>
+
+    <h2>Kontak</h2>
+    <p>Pertanyaan soal privasi: WhatsApp admin Toko Kopi Bing <a class="lnk" href={waAdmin} target="_blank" rel="noopener">0851-6194-1214</a>.</p>
+  </main>
+</Base>
+
+<style>
+  .priv{ max-width:760px; padding-top:28px; line-height:1.65; font-size:15px; }
+  .priv h1{ font-family:'Alice',serif; font-size:28px; color:var(--brand-d); }
+  .priv .meta{ color:var(--muted); font-size:13px; margin:4px 0 18px; }
+  .priv h2{ font-size:17px; color:var(--brand-d); margin:26px 0 8px; scroll-margin-top:16px; }
+  .priv p{ margin:8px 0; }
+  .priv ul, .priv ol{ margin:8px 0 8px 22px; }
+  .priv li{ margin:4px 0; }
+  .priv .lnk{ color:var(--teal-d); text-decoration:underline; }
+</style>
