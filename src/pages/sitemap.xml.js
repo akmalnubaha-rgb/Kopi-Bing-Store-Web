@@ -6,6 +6,7 @@ export function GET({ site }) {
   const paths = [
     { loc: '/', priority: '1.0' },
     { loc: '/temukan', priority: '0.6' },
+    { loc: '/privasi', priority: '0.2' },
     ...products.map(p => ({ loc: `/produk/${p.slug}`, priority: '0.8' })),
   ];
   const today = new Date().toISOString().slice(0, 10);
