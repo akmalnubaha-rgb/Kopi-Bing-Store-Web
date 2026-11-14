@@ -371,7 +371,7 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
         let opts=await atauContoh(shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer'), 'ongkir');
         opts=opts.filter(o=>String(o.courier_aggregator_code||'').toLowerCase()==='lincah');
         if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; gagal('kurir_kosong', 'tidak ada kurir lincah'); return; }
-        box.innerHTML=opts.map((o,i)=>'<button class="crow kur" data-i="'+i+'">'+kurirLogo(o.courier_code)+'<span class="cl">'+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
+        box.innerHTML=opts.map((o,i)=>'<button class="crow kur" data-i="'+i+'">'+kurirLogo(o.courier_code)+'<span class="cl">'+(o.name||o.service_code||'')+'+(o.etd?'<small>estimasi '+o.etd+' hari</small>':'')+'</span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
         box._opts=opts;
       }catch(err){ box.innerHTML='<div class="note err">'+(err.message||'Gagal menghitung ongkir.')+'</div>'; gagal('ongkir', err); }
     }
