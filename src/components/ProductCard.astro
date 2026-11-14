@@ -1,34 +1,43 @@
 ---
 const { p } = Astro.props;
-const min = p.prices[100];
-const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
-const noteClass = p.taste === 'pahit' ? 'n-brown' : (p.taste==='asem' ? 'n-teal' : 'n-mix');
+const rb = (n)=> "Rp " + n.toLocaleString('id-ID');
+const tagTeks = p.taste === 'pahit' ? 'PAHIT' : (p.taste==='asem' ? 'ASAM' : 'SEIMBANG');
+import fs from 'node:fs';
+import path from 'node:path';
+const real = fs.existsSync(path.join(process.cwd(), 'public', 'img', 'real', `${p.slug}.webp`));
+const foto = real ? `/img/real/${p.slug}.webp` : `/img/${p.slug}.webp`;
 ---
 <a class="card" href={`/produk/${p.slug}`}>
   <div class="thumb">
-    <img src={`/img/${p.slug}.webp`} alt={p.name} loading="lazy" />
+    <img src={foto} alt={p.name} loading="lazy" data-vt={p.slug} />
   </div>
   <div class="body">
-    <div class="nm">{p.name}</div>
-    <div class="notes">
-      <span class={"tag " + noteClass}>{p.notes[0]}</span>
-      {p.notes[1] && <span class="tag n-soft">{p.notes[1]}</span>}
+    <div class="tags">
+      <span class={"tag t-" + p.taste}>{tagTeks}</span>
+      {p.bestseller && <span class="tag t-laris">TERLARIS</span>}
     </div>
-    <div class="price">mulai {fmt(min)}</div>
+    <div class="nm">{p.name}</div>
+    <div class="price">{rb(p.prices[100])} <small>/100 gr</small></div>
+    {p.prices[1000] && <div class="kg">1 kg {rb(p.prices[1000])}</div>}
   </div>
 </a>
 <style>
-  .card{ display:block; background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; overflow:hidden; transition:transform .12s, box-shadow .12s; }
-  .card:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(36,126,158,.12); }
-  .thumb{ aspect-ratio:1/1; background:#E6F0F3; }
-  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .body{ padding:11px 13px; }
-  .nm{ font-size:14px; font-weight:500; color:var(--ink); }
-  .notes{ margin:6px 0; display:flex; gap:5px; flex-wrap:wrap; }
-  .tag{ font-size:10px; padding:3px 9px; border-radius:20px; }
-  .n-brown{ background:#E1ECF0; color:#247E9E; }
-  .n-teal{ background:#DCEFF3; color:#0A6B7E; }
-  .n-mix{ background:#E6EFF2; color:#36586A; }
-  .n-soft{ background:#E6EFF2; color:#17566F; }
-  .price{ font-size:14px; font-weight:500; color:var(--brand); }
+  .card{ display:block; height:100%; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; transition:transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; }
+  .card:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); border-color:var(--garisk); }
+  .card:active{ transform:scale(.97); box-shadow:none; }
+  .thumb{ aspect-ratio:1/1; background:var(--kabut); margin:7px 7px 0; border-radius:10px; overflow:hidden; }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s var(--ease); }
+  .card:hover .thumb img{ transform:scale(1.04); }
+  .body{ padding:10px 10px 12px; }
+  .tags{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:7px; }
+  .tag{ font-size:10px; font-weight:700; letter-spacing:.04em; padding:3px 8px; border-radius:6px; line-height:1.3; }
+  .t-pahit{ background:var(--birutua); color:#fff; }
+  .t-asem{ background:var(--biru); color:#fff; }
+  .t-seimbang{ background:var(--kabut); color:var(--birutua); }
+  .t-laris{ background:var(--kuning); color:var(--birutua); }
+  .nm{ font-size:14px; font-weight:600; color:var(--tinta); line-height:1.3; }
+  .price{ font-size:16px; font-weight:700; color:var(--biru); margin-top:3px; }
+  .price{ white-space:nowrap; }
+  .price small{ font-size:11px; font-weight:600; color:var(--redup); }
+  .kg{ font-size:11px; color:var(--redup); margin-top:2px; }
 </style>
