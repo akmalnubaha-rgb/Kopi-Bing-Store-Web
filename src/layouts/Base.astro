@@ -18,6 +18,32 @@ const imageUrl = new URL(image, site).href;
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script is:inline>
+    document.documentElement.classList.add('kb-js');
+    try{ if(!sessionStorage.getItem('kb_awal')){ document.documentElement.classList.add('kb-awal'); sessionStorage.setItem('kb_awal','1'); } }catch(e){}
+    // Foto kartu membesar jadi foto produk: nama transisi hanya dipasang pada SATU foto yang
+    // berpasangan (beranda <-> /produk/<slug>), supaya foto lain tidak ikut berkedip.
+    (function(){
+      function slugDari(u){ try{ var m=new URL(u,location.href).pathname.match(/^\/produk\/([^\/]+)\/?$/); return m?m[1]:null; }catch(e){ return null; } }
+      function beranda(u){ try{ return new URL(u,location.href).pathname==='/'; }catch(e){ return false; } }
+      function kunci(a,b){ if(beranda(a)) return slugDari(b); if(beranda(b)) return slugDari(a); return null; }
+      function pasang(k,vt){
+        if(!k||!vt) return;
+        var el=document.querySelector('[data-vt="'+k+'"]'); if(!el) return;
+        el.style.viewTransitionName='kb-foto';
+        var bersih=function(){ el.style.viewTransitionName=''; }; vt.finished.then(bersih,bersih);
+      }
+      addEventListener('pageswap',function(e){
+        if(!e.viewTransition||!e.activation||!e.activation.entry) return;
+        pasang(kunci(location.href,e.activation.entry.url),e.viewTransition);
+      });
+      addEventListener('pagereveal',function(e){
+        if(!e.viewTransition) return;
+        var dari=(window.navigation&&navigation.activation&&navigation.activation.from)?navigation.activation.from.url:document.referrer;
+        pasang(kunci(dari,location.href),e.viewTransition);
+      });
+    })();
+  </script>
   <script is:inline>try{if(new URLSearchParams(location.search).get('lp')){document.documentElement.classList.add('lp-mode');}}catch(e){}</script>
   <title>{title}</title>
   <meta name="description" content={description} />
@@ -37,49 +63,106 @@ const imageUrl = new URL(image, site).href;
   <meta name="twitter:image" content={imageUrl} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Alice&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style is:global>
-    :root{ --brand:#247E9E; --brand-d:#133F52; --on-brand:#EAF6FA; --page-bg:#F4F8FA;
-      --teal:#0097B2; --teal-d:#0A6B7E; --yellow:#FADC56; --green:#28A745; --ink:#0F2A37; --muted:#7F95A1; }
+    /* Design system 2.0 (FigCraft "Semua halaman", 14 Nov 2026). Nama lama (--brand, --yellow, dst.)
+       tetap ada supaya halaman yang belum diubah tidak rusak. */
+    :root{
+      --birutua:#133F52; --biru:#1F7396; --kuning:#FADC56; --kabut:#E3EFF4; --tinta:#0F2A37; --isi:#33505F;
+      --redup:#5B6F7A; --latar:#F2F6F7; --garis:#D3E2E8; --garisk:#8FB0BF; --putih:#FFFFFF; --hijau:#1E8E57; --merah:#C8443A;
+      --brand:var(--biru); --brand-d:var(--birutua); --on-brand:#EAF6FA; --page-bg:var(--latar);
+      --teal:var(--biru); --teal-d:var(--birutua); --yellow:var(--kuning); --green:var(--hijau); --ink:var(--tinta); --muted:var(--redup);
+      --r-kartu:14px; --r-tombol:12px;
+      --ease:cubic-bezier(.2,.8,.2,1); --ease-pantul:cubic-bezier(.34,1.56,.64,1);
+    }
     *{ box-sizing:border-box; margin:0; padding:0; }
-    body{ font-family:'Montserrat',system-ui,sans-serif; background:var(--page-bg); color:var(--ink); }
+    html{ -webkit-text-size-adjust:100%; }
+    body{ font-family:'Plus Jakarta Sans',system-ui,sans-serif; background:var(--latar); color:var(--tinta); -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent; }
     a{ color:inherit; text-decoration:none; }
     img{ max-width:100%; }
-    /* Mode corong LP: sembunyikan header & footer web biasa */
-    /* Mode corong: header TETAP tampil supaya ikon keranjang ada di tempat biasa.
-       Yang disembunyikan cuma tautan navigasi teks (Beranda/Katalog) dan footer,
-       biar pengunjung iklan tidak bocor keluar corong sebelum selesai. */
+    button{ font-family:inherit; }
     .lp-mode footer.bot{ display:none !important; }
     .lp-mode .nav a.txt{ display:none !important; }
     .wrap{ max-width:1080px; margin:0 auto; padding:0 16px; }
-    header.top{ background:var(--brand); }
-    header.top .wrap{ display:flex; align-items:center; justify-content:space-between; padding:10px 16px; gap:10px; }
-    .brand{ display:flex; align-items:center; gap:11px; min-width:0; }
-    .brand .logo{ width:44px; height:44px; border-radius:50%; display:block; flex-shrink:0; }
-    .brand .tag{ color:#CFE7F0; font-size:11px; letter-spacing:1px; line-height:1.3; }
-    .nav{ display:flex; align-items:center; gap:16px; color:#E1F1F6; font-size:14px; flex-shrink:0; }
-    .nav a.txt{ display:inline; }
-    .csbtn{ display:inline-flex; align-items:center; gap:6px; background:#25995a; color:#fff; font-size:13px; font-weight:500; padding:8px 13px; border-radius:20px; }
-    .csbtn svg{ width:16px; height:16px; }
-    .csbtn .cslabel{ display:inline; }
-    .cart-ic{ position:relative; font-size:23px; color:var(--yellow); }
-    .cart-ic .badge{ position:absolute; top:-6px; right:-8px; background:var(--green); color:#fff; font-size:10px; min-width:16px; height:16px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
-    footer.bot{ background:var(--brand); margin-top:40px; }
-    footer.bot .wrap{ padding:22px 16px; text-align:center; }
-    footer.bot .ft{ color:var(--on-brand); font-size:20px; font-family:'Alice',serif; letter-spacing:1px; }
-    footer.bot .fs{ color:#A9CDDB; font-size:12px; margin-top:6px; }
-    footer.bot .trust{ color:#8FB3C2; font-size:11px; margin-top:14px; }
-    footer.bot .social{ display:flex; gap:16px; justify-content:center; margin-top:14px; }
+
+    /* Header: merek kiri, keranjang kanan (layar 01) */
+    header.top{ background:var(--birutua); position:sticky; top:0; z-index:50; view-transition-name:kb-header; }
+    header.top .wrap{ display:flex; align-items:center; justify-content:space-between; padding:10px 16px; gap:10px; min-height:56px; }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; color:#fff; font-weight:800; font-size:16px; }
+    .brand .logo{ width:36px; height:36px; border-radius:50%; display:block; flex-shrink:0; }
+    .nav{ display:flex; align-items:center; gap:10px; color:#D6E9F1; font-size:14px; font-weight:600; flex-shrink:0; }
+    .nav a.txt{ display:inline; padding:6px 4px; }
+    .nav a.txt:hover{ color:#fff; }
+    .ic-btn{ position:relative; width:36px; height:36px; border-radius:999px; background:rgba(255,255,255,.13); color:#fff; display:inline-flex; align-items:center; justify-content:center; }
+    .ic-btn svg{ width:20px; height:20px; }
+    .cart-ic .badge{ position:absolute; top:-3px; right:-3px; background:var(--kuning); color:var(--tinta); font-size:9px; font-weight:800; min-width:15px; height:15px; padding:0 3px; border-radius:999px; display:flex; align-items:center; justify-content:center; }
+    .cart-ic .badge.kosong{ display:none; }
+
+    /* Footer (layar 01) */
+    footer.bot{ background:var(--birutua); margin-top:40px; }
+    footer.bot .wrap{ padding:20px 16px 24px; display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+    footer.bot .ft{ color:#fff; font-size:16px; font-weight:800; }
+    footer.bot .fs{ color:#D6E9F1; font-size:13px; font-weight:500; }
+    footer.bot .wa{ display:inline-flex; align-items:center; gap:8px; color:#fff; font-size:14px; font-weight:700; padding:12px 16px; border:1.5px solid rgba(255,255,255,.55); border-radius:var(--r-tombol); margin-top:4px; }
+    footer.bot .wa svg{ width:18px; height:18px; }
+    footer.bot .social{ display:flex; gap:16px; margin-top:8px; }
     footer.bot .social a{ color:#CFE7F0; display:inline-flex; }
-    footer.bot .social a:hover{ color:var(--yellow); }
-    footer.bot .social svg{ width:23px; height:23px; }
-    .btn-buy{ background:var(--green); color:#fff; font-weight:600; border:none; border-radius:9px; padding:12px 22px; font-size:15px; cursor:pointer; font-family:inherit; }
+    footer.bot .social a:hover{ color:var(--kuning); }
+    footer.bot .social svg{ width:22px; height:22px; }
+    footer.bot .trust{ color:#8FB3C2; font-size:11px; margin-top:6px; }
+
+    /* Tombol bersama DS 2.0 */
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:46px; padding:12px 18px; border-radius:var(--r-tombol); font-size:15px; font-weight:700; border:1.5px solid transparent; cursor:pointer; text-align:center; }
+    .btn-kuning{ background:var(--kuning); color:var(--birutua); }
+    .btn-gelap{ background:var(--birutua); color:#fff; }
+    .btn-garis{ background:#fff; color:var(--birutua); border-color:var(--birutua); }
+    .btn[disabled], .btn.off{ opacity:.45; cursor:not-allowed; }
+    .btn-buy{ background:var(--kuning); color:var(--birutua); font-weight:700; border:none; border-radius:var(--r-tombol); padding:12px 22px; font-size:15px; cursor:pointer; font-family:inherit; }
+
+    /* ===== Gerak (motion) =====
+       1. Pindah halaman: View Transitions bawaan browser (tanpa router JS, jadi Pixel & skrip aman).
+       2. Tombol mengecil sedikit saat ditekan, lalu memantul balik.
+       3. Bagian halaman muncul bergantian ([data-muncul]).
+       4. Barang terbang ke keranjang + angka keranjang memantul (window.kbTerbang). */
+    @view-transition{ navigation:auto; }
+    /* Halaman lama tetap utuh di bawah, halaman baru memudar di atasnya: tidak ada kedip latar kosong. */
+    /* Tanpa crossfade: dua tata letak yang tumpang tindih setengah transparan itulah yang terasa kedip.
+       Halaman lama langsung disembunyikan, halaman baru tampil utuh dan sedikit naik; hanya foto yang bergerak. */
+    ::view-transition-old(root){ animation:none; opacity:0; }
+    ::view-transition-new(root){ animation:kb-masuk .26s var(--ease) both; }
+    ::view-transition-group(*){ animation-duration:.42s; animation-timing-function:var(--ease); }
+    ::view-transition-group(kb-header){ animation:none; }
+    ::view-transition-old(kb-foto), ::view-transition-new(kb-foto){ height:100%; width:100%; object-fit:cover; overflow:hidden; border-radius:var(--r-kartu); }
+    ::view-transition-group(kb-foto){ z-index:2; }
+    @keyframes kb-tahan{ from{ opacity:1; } to{ opacity:1; } }
+    @keyframes kb-masuk{ from{ transform:translateY(10px); } }
+
+    button, .btn, .tap, a.ic-btn{ transition:transform .18s var(--ease-pantul), background-color .15s, color .15s, border-color .15s, box-shadow .15s, opacity .15s; }
+    button:active:not([disabled]), .btn:active, .tap:active, a.ic-btn:active{ transform:scale(.95); transition-duration:.08s; }
+    @media(hover:hover){ .btn:hover{ filter:brightness(1.05); } }
+
+    html.kb-js [data-muncul]:not(.tampil){ opacity:0; transform:translateY(14px); }
+    [data-muncul].tampil{ opacity:1; transform:none; transition:opacity .45s var(--ease), transform .45s var(--ease); transition-delay:var(--tunda,0ms); }
+
+    .kb-terbang{ position:fixed; z-index:9999; pointer-events:none; border-radius:12px; object-fit:cover; box-shadow:0 8px 24px rgba(15,42,55,.25); }
+    @keyframes kb-pantul{ 0%{ transform:scale(1); } 35%{ transform:scale(1.45); } 65%{ transform:scale(.9); } 100%{ transform:scale(1); } }
+    .pantul{ animation:kb-pantul .5s var(--ease-pantul); }
+    @keyframes kb-goyang{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(-12deg); } 60%{ transform:rotate(9deg); } }
+    .goyang{ animation:kb-goyang .45s ease; }
+    @keyframes kb-gulir{ from{ opacity:0; transform:translateY(60%); } }
+    .gulir{ display:inline-block; animation:kb-gulir .28s var(--ease); }
+
+    .kb-toast{ position:fixed; left:50%; bottom:96px; transform:translate(-50%,20px); opacity:0; background:var(--tinta); color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:999px; z-index:9998; pointer-events:none; transition:opacity .25s, transform .3s var(--ease-pantul); white-space:nowrap; }
+    .kb-toast.on{ opacity:1; transform:translate(-50%,0); }
+
+    @media (prefers-reduced-motion: reduce){
+      @view-transition{ navigation:none; }
+      *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+      [data-muncul]{ opacity:1; transform:none; }
+    }
+
     @media(max-width:600px){
-      .brand .tag{ font-size:9px; letter-spacing:.5px; }
-      .nav{ gap:12px; }
       .nav a.txt{ display:none; }
-      .csbtn .cslabel{ display:none; }
-      .csbtn{ padding:8px; }
     }
   </style>
   <!-- Meta Pixel -->
@@ -101,23 +184,20 @@ const imageUrl = new URL(image, site).href;
     <div class="wrap">
       {bare ? (
         <span class="brand">
-          <img class="logo" src="/img/logo.png" alt="Toko Kopi Bing" />
-          <span class="tag">KOPI GILING<br>SELURUH INDONESIA</span>
+          <img class="logo" src="/img/logo.png" alt="" />
+          <span>Toko Kopi Bing</span>
         </span>
       ) : (
         <a class="brand" href="/">
-          <img class="logo" src="/img/logo.png" alt="Toko Kopi Bing" />
-          <span class="tag">KOPI GILING<br>SELURUH INDONESIA</span>
+          <img class="logo" src="/img/logo.png" alt="" />
+          <span>Toko Kopi Bing</span>
         </a>
       )}
       <nav class="nav">
         {!bare && <a class="txt" href="/">Beranda</a>}
         {!bare && <a class="txt" href="/#katalog">Katalog</a>}
-        <a class="csbtn" href={waUrl} target="_blank" rel="noopener" aria-label="Hubungi CS">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
-          <span class="cslabel">Hubungi CS</span>
-        </a>
-        {!bare && <a href="/keranjang" class="cart-ic" aria-label="Keranjang">&#128722;<span class="badge" id="cartCount">0</span></a>}
+        <a class="ic-btn" href={waUrl} target="_blank" rel="noopener" aria-label="Chat WhatsApp admin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg></a>
+        {!bare && <a href="/keranjang" class="ic-btn cart-ic" aria-label="Keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.3 10.2a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17" cy="19.5" r="1.3" fill="currentColor" stroke="none"/></svg><span class="badge kosong" id="cartCount">0</span></a>}
       </nav>
     </div>
   </header>
@@ -127,12 +207,13 @@ const imageUrl = new URL(image, site).href;
   <footer class="bot">
     <div class="wrap">
       <div class="ft">Toko Kopi Bing</div>
-      <div class="fs">Digiling segar setiap pesanan &middot; Kopi dari seluruh Indonesia</div>
+      <div class="fs">Tanya dulu? Chat WhatsApp admin &middot; Toko di Cilegon</div>
+      <a class="wa tap" href={waUrl} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg> Chat WhatsApp</a>
       <div class="social">
         <a href="https://www.instagram.com/kopibing.id/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
         <a href="https://www.tiktok.com/@kopibing_" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.6c-1.3 0-2.5-.4-3.5-1v5.9c0 3.2-2.4 5.6-5.5 5.6A5.5 5.5 0 0 1 5.5 14c0-3 2.3-5.4 5.3-5.5v2.7a2.8 2.8 0 1 0 2 2.7V3h3.7Z"/></svg></a>
       </div>
-      <div class="trust">Pembayaran aman &middot; Didukung oleh Scalev</div>
+      <div class="trust">Digiling saat kamu pesan &middot; Pembayaran aman, didukung Scalev</div>
     </div>
   </footer>
   )}
@@ -143,8 +224,74 @@ const imageUrl = new URL(image, site).href;
         const el=document.getElementById('cartCount'); if(el) el.textContent=n;
       }catch(e){}
     }
-    updateCartCount();
+    // Angka keranjang: sembunyi kalau 0, memantul tiap kali bertambah.
+    // Halaman lain cukup menulis textContent #cartCount seperti biasa; pengamat ini yang menganimasikan.
+    const badge=document.getElementById('cartCount');
+    let lastN=-1;
+    function syncBadge(){
+      if(!badge) return;
+      const n=parseInt(badge.textContent,10)||0;
+      badge.classList.toggle('kosong', n<=0);
+      if(lastN>=0 && n>lastN){ badge.classList.remove('pantul'); void badge.offsetWidth; badge.classList.add('pantul'); }
+      lastN=n;
+    }
+    if(badge) new MutationObserver(syncBadge).observe(badge,{childList:true,characterData:true,subtree:true});
+    updateCartCount(); syncBadge();
     window.addEventListener('storage',updateCartCount);
+
+    const diam=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Gambar produk "terbang" ke ikon keranjang. dari = elemen <img> (atau elemen apa saja).
+    window.kbTerbang=function(dari){
+      const tujuan=document.querySelector('.cart-ic');
+      if(!tujuan || !dari || diam) return;
+      const a=dari.getBoundingClientRect(), b=tujuan.getBoundingClientRect();
+      if(!a.width) return;
+      const s=Math.min(a.width,a.height,120);
+      const el=document.createElement(dari.tagName==='IMG'?'img':'div');
+      if(dari.tagName==='IMG') el.src=dari.currentSrc||dari.src; else el.style.background='var(--kuning)';
+      el.className='kb-terbang';
+      Object.assign(el.style,{left:(a.left+a.width/2-s/2)+'px',top:(a.top+a.height/2-s/2)+'px',width:s+'px',height:s+'px'});
+      document.body.appendChild(el);
+      const dx=b.left+b.width/2-(a.left+a.width/2), dy=b.top+b.height/2-(a.top+a.height/2);
+      el.animate([
+        {transform:'translate(0,0) scale(1)',opacity:1},
+        {transform:'translate('+dx*0.45+'px,'+(dy*0.45-60)+'px) scale(.55)',opacity:1,offset:.55},
+        {transform:'translate('+dx+'px,'+dy+'px) scale(.12)',opacity:.4}
+      ],{duration:700,easing:'cubic-bezier(.5,0,.75,0)'}).onfinish=function(){
+        el.remove(); tujuan.classList.remove('goyang'); void tujuan.offsetWidth; tujuan.classList.add('goyang');
+      };
+    };
+
+    // Pesan singkat di bawah layar, mis. "Masuk keranjang".
+    let toastT;
+    window.kbToast=function(teks){
+      let t=document.querySelector('.kb-toast');
+      if(!t){ t=document.createElement('div'); t.className='kb-toast'; t.setAttribute('role','status'); document.body.appendChild(t); }
+      t.textContent=teks; requestAnimationFrame(function(){ t.classList.add('on'); });
+      clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },1800);
+    };
+
+    // Ganti teks dengan efek angka bergulir (harga berubah saat pilih berat).
+    window.kbGulir=function(el,teks){
+      if(!el || el.textContent===teks) return;
+      el.textContent=teks;
+      if(diam) return;
+      el.classList.remove('gulir'); void el.offsetWidth; el.classList.add('gulir');
+    };
+
+    // Bagian bertanda [data-muncul] tampil bergantian saat masuk layar.
+    const muncul=document.querySelectorAll('[data-muncul]');
+    if('IntersectionObserver' in window && !diam){
+      const io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('tampil'); io.unobserve(e.target); } });
+      },{rootMargin:'0px 0px -8% 0px'});
+      muncul.forEach(function(el){
+        const kel=el.parentElement ? Array.prototype.indexOf.call(el.parentElement.querySelectorAll(':scope > [data-muncul]'),el) : 0;
+        if(!el.style.getPropertyValue('--tunda')) el.style.setProperty('--tunda',Math.min(kel,8)*60+'ms');
+        io.observe(el);
+      });
+    } else muncul.forEach(function(el){ el.classList.add('tampil'); });
     // Mode corong: bawa ?lp= ke halaman keranjang supaya dia tahu asal pengunjung
     // dan bisa menawarkan jalan kembali ke halaman pilihan.
     try{
@@ -155,5 +302,17 @@ const imageUrl = new URL(image, site).href;
       }
     }catch(e){}
   </script>
+  <script is:inline>(function(){try{
+    // Konten yang sudah terlihat saat halaman pertama digambar tidak boleh disembunyikan lalu dimunculkan:
+    // itu terasa kedip. Saat datang lewat #jangkar, tombol Kembali, atau muat ulang, posisi gulir belum
+    // diketahui di sini, jadi semua bagian langsung ditampilkan.
+    var nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
+    var semua=!!location.hash||nav.type==='back_forward'||nav.type==='reload';
+    var h=innerHeight;
+    document.querySelectorAll('[data-muncul]').forEach(function(el){
+      var r=el.getBoundingClientRect();
+      if(semua||(r.top<h&&r.bottom>0)){ el.style.transition='none'; el.classList.add('tampil'); requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.transition='';});}); }
+    });
+  }catch(e){}})();</script>
 </body>
 </html>

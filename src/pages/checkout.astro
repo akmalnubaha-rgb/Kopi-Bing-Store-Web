@@ -13,44 +13,56 @@ const PAYLOGO_FILE = { qris:'qris', bank_transfer:'bca', cod:'cod', va_bca:'bca'
 const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
   .filter(([, f]) => fs.existsSync(path.join(process.cwd(), 'public/img/bayar', f + '.svg')))
   .map(([code, f]) => [code, '/img/bayar/' + f + '.svg']));
+const kurirDir = path.join(process.cwd(), 'public/img/kurir');
+const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(kurirDir).filter(f => /\.(svg|png|webp)$/.test(f)).map(f => [f.replace(/\.[^.]+$/, '').toLowerCase(), '/img/kurir/' + f])) : {};
 ---
-<script is:inline define:vars={{ CATALOG, PAYLOGO }}>window.KB_CATALOG = CATALOG; window.KB_PAYLOGO = PAYLOGO;</script>
+<script is:inline define:vars={{ CATALOG, PAYLOGO, KURIRLOGO }}>window.KB_CATALOG = CATALOG; window.KB_PAYLOGO = PAYLOGO; window.KB_KURIRLOGO = KURIRLOGO;</script>
 <Base title="Checkout — Toko Kopi Bing" description="Selesaikan pesanan kopimu di Toko Kopi Bing." noindex={true}>
   <div class="wrap cop" id="formView">
     <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
     <h1>Checkout</h1>
 
-    <div class="sec">Data penerima</div>
-    <input class="fld" id="nama" placeholder="Nama lengkap" />
-    <input class="fld" id="wa" placeholder="Nomor WhatsApp (contoh 08123456789)" />
-    <input class="fld" id="alamat" placeholder="Alamat lengkap (nama jalan, no rumah, RT/RW)" />
+    <section class="kar" data-muncul>
+      <div class="kh"><span class="no">1</span><h2>Kirim ke mana?</h2></div>
+      <label class="lb" for="locSearch">Kecamatan atau kota</label>
+      <div class="loc">
+        <input class="fld" id="locSearch" placeholder="Ketik kecamatan / kota (min 3 huruf)" autocomplete="off" />
+        <div id="locResults" class="locres" style="display:none"></div>
+      </div>
+      <div id="locPicked" class="picked" style="display:none"></div>
+      <select class="fld" id="postal" style="display:none"></select>
+    </section>
 
-    <div class="sec">Wilayah pengiriman</div>
-    <div class="loc">
-      <input class="fld" id="locSearch" placeholder="Ketik kecamatan / kota (min 3 huruf)" autocomplete="off" />
-      <div id="locResults" class="locres" style="display:none"></div>
-    </div>
-    <div id="locPicked" class="picked" style="display:none"></div>
-    <select class="fld" id="postal" style="display:none"></select>
+    <section class="kar" id="courierWrap" data-muncul>
+      <div class="kh"><span class="no">2</span><h2>Pilih kurir</h2></div>
+      <div class="courier" id="courier"><div class="note ktunggu">Ketik kecamatan di atas, ongkir tiap kurir langsung muncul di sini.</div></div>
+    </section>
 
-    <div id="courierWrap" style="display:none">
-      <div class="sec">Pilih kurir</div>
-      <div class="courier" id="courier"></div>
-    </div>
+    <section class="kar" data-muncul>
+      <div class="kh"><span class="no">3</span><h2>Data penerima</h2></div>
+      <label class="lb" for="nama">Nama penerima</label>
+      <input class="fld" id="nama" placeholder="Nama lengkap" autocomplete="name" />
+      <label class="lb" for="wa">Nomor WhatsApp</label>
+      <input class="fld" id="wa" placeholder="Nomor WhatsApp (contoh 08123456789)" inputmode="tel" autocomplete="tel" />
+      <label class="lb" for="alamat">Alamat rumah</label>
+      <input class="fld" id="alamat" placeholder="Nama jalan, no rumah, RT/RW, patokan" autocomplete="street-address" />
+    </section>
 
-    <div class="sec">Metode pembayaran</div>
-    <div class="courier" id="paymethods"><div class="note">Memuat metode pembayaran...</div></div>
+    <section class="kar" data-muncul>
+      <div class="kh"><span class="no">4</span><h2>Metode pembayaran</h2></div>
+      <div class="paylist" id="paymethods"><div class="note">Memuat metode pembayaran...</div></div>
+    </section>
 
-    <div class="summary">
+    <section class="kar summary" data-muncul>
       <div class="pt">Ringkasan pesanan</div>
       <div id="items"></div>
       <div class="line"></div>
       <div class="row"><span id="subLabel">Subtotal</span><span id="subtotal">Rp 0</span></div>
       <div class="row"><span>Ongkir</span><span id="ship">-</span></div>
       <div class="row total"><span>Total bayar</span><span id="total">Rp 0</span></div>
-    </div>
+    </section>
 
-    <button class="btn-buy full" id="payBtn" disabled>Buat pesanan &amp; bayar</button>
+    <button class="btn btn-kuning full" id="payBtn" disabled>Buat pesanan &amp; bayar</button>
     <p class="note" id="payNote">Lengkapi data, wilayah, kurir, dan metode bayar dulu.</p>
   </div>
 
@@ -71,10 +83,10 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
 
     <!-- Tombol utama sengaja ditaruh tepat di bawah nominal, sebelum peringatan dan
          rincian: pembeli harus langsung tahu apa yang mesti ditekan tanpa menggulir. -->
-    <button class="btn-buy full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
+    <button class="btn btn-kuning full" id="codYes">Ya, saya siap bayar <span id="codBtnAmt"></span> ke kurir</button>
     <p class="note" id="codNote">Pesanan baru dibuat setelah kamu menekan tombol di atas.</p>
 
-    <div class="summary">
+    <div class="kar summary">
       <div class="pt">Dikirim ke</div>
       <div class="dest" id="codDest"></div>
       <div class="line"></div>
@@ -86,7 +98,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       <div class="row total"><span>Bayar ke kurir</span><span id="codTotal2">Rp 0</span></div>
     </div>
 
-    <button class="btn-outline full" id="codEdit">Ubah dulu pesanan saya</button>
+    <button class="btn btn-garis full" id="codEdit">Ubah dulu pesanan saya</button>
 
     <a class="wabtn" id="codWa" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
@@ -96,67 +108,86 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
 
   <style is:global>
     .cop{ max-width:600px; margin:0 auto; padding:16px 16px 10px; }
-    .cop .back{ display:inline-block; color:var(--brand); font-size:13px; margin-bottom:12px; }
-    .cop .back:hover{ color:var(--teal-d); }
-    .cop h1{ font-size:24px; font-weight:600; margin-bottom:18px; }
-    .cop .sec{ color:#36586A; font-size:13px; font-weight:600; margin:20px 0 10px; }
-    .cop .fld{ width:100%; background:#fff; border:0.5px solid #D3E2E8; border-radius:10px; padding:13px 14px; font-family:inherit; font-size:14px; color:var(--ink); margin-bottom:10px; }
-    .cop .fld:focus{ outline:none; border-color:var(--teal); }
+    .cop .back{ display:inline-block; color:var(--biru); font-size:13px; font-weight:600; margin-bottom:12px; }
+    .cop h1{ font-size:24px; font-weight:800; color:var(--tinta); margin-bottom:16px; }
+    .cop .kar{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:18px; margin-bottom:14px; }
+    .cop .kh{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .cop .kh h2{ font-size:16px; font-weight:700; color:var(--tinta); margin:0; }
+    .cop .no{ width:24px; height:24px; border-radius:12px; background:var(--birutua); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; }
+    .cop .lb{ display:block; font-size:12px; font-weight:600; color:var(--redup); margin:0 0 6px; }
+    .cop .fld{ width:100%; background:#fff; border:1.5px solid var(--garis); border-radius:12px; padding:13px 14px; font-family:inherit; font-size:15px; color:var(--tinta); margin-bottom:12px; transition:border-color .2s var(--ease), box-shadow .2s var(--ease); }
+    .cop .fld:last-child{ margin-bottom:0; }
+    .cop .fld:focus{ outline:none; border-color:var(--biru); box-shadow:0 0 0 3px rgba(31,115,150,.15); }
+    .cop .fld.salah{ border-color:var(--merah); animation:kbGetar .35s var(--ease); }
+    @keyframes kbGetar{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
     .cop .loc{ position:relative; }
-    .cop .locres{ position:absolute; top:52px; left:0; right:0; background:#fff; border:0.5px solid #BCD2DA; border-radius:10px; z-index:5; overflow:hidden; max-height:230px; overflow-y:auto; }
-    .cop .locres div{ padding:11px 14px; font-size:13px; color:var(--ink); cursor:pointer; border-bottom:0.5px solid #E3EDF1; }
-    .cop .locres div:hover{ background:#EAF3F6; }
-    .cop .picked{ background:#EAF6F8; border:0.5px solid #9FD8E2; border-radius:9px; padding:10px 13px; font-size:13px; color:var(--teal-d); margin-bottom:10px; }
-    .cop .courier{ display:flex; flex-direction:column; gap:9px; }
-    .cop .crow{ display:flex; align-items:center; justify-content:space-between; background:#fff; border:0.5px solid #BCD2DA; border-radius:11px; padding:13px 15px; cursor:pointer; font-family:inherit; text-align:left; }
-    .cop .crow.on{ border:1.5px solid var(--teal); background:#EAF6F8; }
-    .cop .cl{ display:flex; flex-direction:column; align-items:flex-start; color:var(--ink); font-size:14px; }
-    .cop .cl small{ color:var(--muted); font-size:11px; margin-top:3px; font-weight:400; }
-    .cop .cc{ color:var(--brand); font-size:14px; font-weight:500; white-space:nowrap; }
-    .cop .crow.on .cc{ color:var(--teal-d); }
-    .cop .summary{ background:#fff; border:0.5px solid #D3E2E8; border-radius:14px; padding:20px; margin-top:24px; }
-    .cop .pt{ color:#36586A; font-size:13px; font-weight:600; margin-bottom:14px; }
-    .cop #items .ci, .cop #codItems .ci{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:11px 0; border-top:0.5px solid #E3EDF1; }
+    .cop .locres{ position:absolute; top:52px; left:0; right:0; background:#fff; border:1px solid var(--garisk); border-radius:12px; z-index:5; overflow:hidden; max-height:230px; overflow-y:auto; box-shadow:0 8px 24px rgba(15,42,55,.12); }
+    .cop .locres div{ padding:12px 14px; font-size:14px; color:var(--tinta); cursor:pointer; border-bottom:1px solid var(--kabut); }
+    .cop .locres div:hover{ background:var(--kabut); }
+    .cop .picked{ background:var(--kabut); border-radius:10px; padding:10px 13px; font-size:13px; font-weight:500; color:var(--birutua); margin-bottom:12px; }
+    .cop .courier .crow.kur{ display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto; align-items:center; gap:4px 8px; text-align:left; }
+    .cop .klogo{ grid-column:1 / -1; height:22px; display:flex; align-items:center; font-size:13px; font-weight:800; letter-spacing:.2px; }
+    .cop .klogo img{ height:100%; width:auto; max-width:90px; object-fit:contain; }
+    .cop .courier .crow.kur .cl{ grid-column:1 / -1; }
+    .cop .courier .crow.kur .cc{ grid-column:1 / -1; }
+    .cop .ktunggu{ grid-column:1 / -1; background:var(--kabut); color:var(--birutua); border-radius:10px; padding:12px 14px; font-size:13px; font-weight:600; }
+    .cop .kskel{ height:84px; border-radius:12px; background:linear-gradient(90deg,var(--kabut) 0%,#F4F8FA 50%,var(--kabut) 100%); background-size:200% 100%; animation:kb-kilap 1.1s linear infinite; }
+    @keyframes kb-kilap{ to{ background-position:-200% 0; } }
+    .cop .courier{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+    .cop .crow{ position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:2px; background:#fff; border:1.5px solid var(--garisk); border-radius:12px; padding:12px 13px; cursor:pointer; font-family:inherit; text-align:left; color:var(--tinta); transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease); }
+    .cop .crow:hover{ border-color:var(--biru); }
+    .cop .crow.on{ background:var(--biru); border-color:var(--biru); color:#fff; box-shadow:0 4px 12px rgba(31,115,150,.28); }
+    .cop .cl{ display:flex; flex-direction:column; align-items:flex-start; font-size:14px; font-weight:700; }
+    .cop .cl small{ color:var(--redup); font-size:11px; margin-top:3px; font-weight:400; transition:color .2s var(--ease); }
+    .cop .cc{ font-size:12px; font-weight:600; white-space:nowrap; }
+    .cop .crow.on .cl small{ color:rgba(255,255,255,.85); }
+    .cop .paylist{ display:flex; flex-direction:column; gap:10px; }
+    .cop .paylist .crow{ display:grid; grid-template-columns:22px 1fr; column-gap:12px; row-gap:6px; align-items:start; width:100%; padding:14px; border-color:var(--garis); }
+    .cop .paylist .crow::before{ content:''; grid-row:1 / span 2; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--garisk); background:#fff; box-sizing:border-box; margin-top:1px; transition:border-color .2s var(--ease), border-width .2s var(--ease); }
+    .cop .paylist .crow.on{ background:var(--kabut); border-color:var(--biru); color:var(--tinta); box-shadow:none; }
+    .cop .paylist .crow.on::before{ border:6px solid var(--biru); }
+    .cop .paylist .crow .cl{ grid-column:2; font-weight:700; color:var(--tinta); }
+    .cop .paylist .crow .cl small{ color:var(--redup); }
+    .cop .paylist .crow.on .cl small{ color:var(--isi); }
+    .cop .paylogo{ grid-column:2; display:flex; align-items:center; height:24px; justify-self:start; }
+    .cop .paylogo img{ height:100%; width:auto; max-width:90px; object-fit:contain; display:block; }
+    .cop .paylogo.txt{ font-size:12px; font-weight:800; color:var(--birutua); letter-spacing:.3px; }
+    .cop .summary{ margin-top:0; }
+    .cop .pt{ color:var(--tinta); font-size:15px; font-weight:700; margin-bottom:14px; }
+    .cop #items .ci, .cop #codItems .ci{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:11px 0; border-top:1px solid var(--kabut); }
     .cop #items .ci:first-child, .cop #codItems .ci:first-child{ border-top:none; padding-top:0; }
-    .cop .cnm{ font-size:14px; color:var(--ink); line-height:1.35; }
-    .cop .cno{ color:var(--muted); font-size:12px; margin-top:3px; }
-    .cop .cip{ font-size:14px; color:var(--ink); white-space:nowrap; font-weight:500; }
-    .cop .line{ height:0.5px; background:#D3E2E8; margin:12px 0 14px; }
-    .cop .row{ display:flex; justify-content:space-between; font-size:14px; color:#36586A; margin-bottom:11px; }
-    .cop .row.total{ font-size:17px; color:var(--ink); font-weight:600; padding-top:14px; margin-bottom:0; border-top:0.5px solid #D3E2E8; }
-    .cop .btn-buy.full{ display:block; width:100%; text-align:center; margin-top:18px; padding:15px; }
-    .cop .btn-buy.full:disabled{ opacity:.5; cursor:not-allowed; }
-    /* Metode bayar: kuning label kemasan, sama dengan pilihan berat & gilingan di halaman produk. */
-    .cop #paymethods .crow{ justify-content:flex-start; gap:12px; background:#FFF6D1; border:1px solid #F2D675; transition:background .12s; }
-    .cop #paymethods .crow:hover{ background:#FDEEAE; }
-    .cop #paymethods .crow.on{ background:var(--yellow); border:1.5px solid #D4A91A; box-shadow:0 1px 4px rgba(212,169,26,.35); }
-    .cop #paymethods .crow .cl{ color:#133F52; }
-    .cop #paymethods .crow.on .cl{ font-weight:600; }
-    .cop #paymethods .crow .cl small{ color:#5B7280; }
-    .cop .paylogo{ flex:0 0 64px; height:36px; background:#fff; border-radius:7px; display:flex; align-items:center; justify-content:center; padding:5px 7px; box-shadow:inset 0 0 0 1px rgba(15,42,55,.08); }
-    .cop .paylogo img{ width:100%; height:100%; object-fit:contain; display:block; }
-    .cop .paylogo.txt{ font-size:11px; font-weight:700; color:#133F52; letter-spacing:.3px; }
-    .cop .note{ color:var(--muted); font-size:12px; text-align:center; margin-top:12px; }
-    .cop .note.err{ color:#A3502F; }
+    .cop .cnm{ font-size:14px; font-weight:600; color:var(--tinta); line-height:1.35; }
+    .cop .cno{ color:var(--redup); font-size:12px; margin-top:3px; }
+    .cop .cip{ font-size:14px; color:var(--tinta); white-space:nowrap; font-weight:600; }
+    .cop .line{ height:1px; background:var(--garis); margin:12px 0 14px; }
+    .cop .row{ display:flex; justify-content:space-between; font-size:14px; color:var(--redup); margin-bottom:10px; }
+    .cop .row.total{ font-size:20px; color:var(--biru); font-weight:800; padding-top:14px; margin-bottom:0; border-top:1px solid var(--garis); }
+    .cop .row.total span:first-child{ font-size:15px; font-weight:700; color:var(--tinta); align-self:center; }
+    .cop .btn.full{ display:flex; width:100%; margin-top:4px; }
+    .cop .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .cop .btn.memuat{ position:relative; opacity:.9; cursor:progress; }
+    .cop .btn.memuat::before{ content:''; width:16px; height:16px; margin-right:9px; border-radius:50%; border:2px solid rgba(15,42,55,.25); border-top-color:var(--tinta); animation:kbPutar .7s linear infinite; flex:none; }
+    @keyframes kbPutar{ to{ transform:rotate(360deg) } }
+    .cop .note{ color:var(--redup); font-size:12px; text-align:center; margin-top:12px; }
+    .cop .note.err{ color:var(--merah); }
 
-    .codv .lead{ color:#3D5360; font-size:14px; line-height:1.65; margin-bottom:18px; }
-    .codv .bigamt{ background:#EDF5F8; border:1px solid #D3E2E8; border-radius:14px; padding:18px; text-align:center; }
-    .codv .bigamt span{ display:block; color:#5B7280; font-size:12px; }
-    .codv .bigamt b{ display:block; color:var(--brand-d); font-size:30px; font-weight:700; margin:5px 0 3px; }
-    .codv .bigamt small{ color:var(--muted); font-size:11px; }
+    .codv .lead{ color:var(--isi); font-size:14px; line-height:1.65; margin-bottom:18px; }
+    .codv .bigamt{ background:var(--kabut); border:1px solid var(--garis); border-radius:var(--r-kartu); padding:18px; text-align:center; }
+    .codv .bigamt span{ display:block; color:var(--redup); font-size:12px; }
+    .codv .bigamt b{ display:block; color:var(--birutua); font-size:30px; font-weight:800; margin:5px 0 3px; }
+    .codv .bigamt small{ color:var(--redup); font-size:11px; }
     .codv .summary{ margin-top:14px; }
-    .codv .dest{ color:var(--ink); font-size:13px; line-height:1.6; }
-    .codv .dest b{ font-weight:600; }
-    .codv .btn-buy.full{ margin-top:18px; }
-    .codv .btn-outline{ display:block; width:100%; text-align:center; background:#fff; color:var(--brand);
-      border:1.5px solid #BCD2DA; border-radius:9px; padding:13px; font-weight:500; font-size:14px;
-      font-family:inherit; cursor:pointer; margin-top:10px; }
-    .codv .btn-outline:hover{ background:#F1F7F9; }
+    .codv .dest{ color:var(--tinta); font-size:13px; line-height:1.6; }
+    .codv .dest b{ font-weight:700; }
+    .codv .btn.full{ margin-top:18px; }
+    .codv .btn-garis.full{ margin-top:10px; }
     .codv .wabtn{ display:flex; align-items:center; justify-content:center; gap:9px; background:#25995a; color:#fff;
-      border-radius:9px; padding:13px; font-size:14px; font-weight:500; margin-top:10px; }
+      border-radius:var(--r-tombol); padding:13px; font-size:14px; font-weight:600; margin-top:10px; transition:background .2s var(--ease); }
     .codv .wabtn:hover{ background:#1F8850; }
     .codv .wabtn svg{ width:18px; height:18px; flex-shrink:0; }
+    @media (min-width:900px){ .cop{ max-width:720px; } }
   </style>
+
 
   <script>
     import { pruneCart, toItems, searchLocations, postalCodes, paymentMethods, shippingOptions, createOrder, patchOrder, metaEvent, fbAttribution, trackMeta, trackPixelOnly, analyticsItems, stashOrderMeta, sweepOrderMeta, markPurchaseFired, safeLp } from '../data/scalev.js';
@@ -208,6 +239,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     $('subLabel').textContent='Subtotal ('+cart.reduce((s,i)=>s+i.qty,0)+' item)';
     $('subtotal').textContent=fmt(sub);
     $('total').textContent=fmt(sub);
+    function gulir(el,t){ if(el.textContent===t) return; if(window.kbGulir){ try{ window.kbGulir(el,t); return; }catch(e){} } el.textContent=t; }
     if(cart.length) trackMeta('InitiateCheckout',{content_ids:cart.map(function(i){return String(i.vid||i.slug);}),content_type:'product',num_items:cart.reduce(function(s,i){return s+i.qty;},0),value:sub,currency:'IDR'}, 'ic_'+Date.now()+'_'+Math.random().toString(36).slice(2), {});
     if(cart.length) langkah('CO_Buka', {cara:isBuynow?'beli_langsung':'keranjang', num_items:cart.reduce(function(s,i){return s+i.qty;},0), value:sub, currency:'IDR', lp:LP||''});
 
@@ -277,7 +309,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
           if(LOGO[code]) return '<span class="paylogo"><img src="'+LOGO[code]+'" alt="" width="50" height="26" /></span>';
           return '<span class="paylogo txt">'+(PAY_BADGE[code]||'')+'</span>';
         };
-        $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'">'+logoTag(m.code)+'<span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span></button>').join('');
+        $('paymethods').innerHTML=methods.map((m,i)=>'<button class="crow'+(i===0?' on':'')+'" data-code="'+m.code+'"><span class="cl">'+(PAY_LABEL[m.code]||m.label||m.code)+'<small>'+(PAY_DESC[m.code]||'')+'</small></span>'+logoTag(m.code)+'</button>').join('');
         payMethod=methods[0].code;
         $('paymethods').querySelectorAll('.crow').forEach(b=>b.addEventListener('click',function(){
           $('paymethods').querySelectorAll('.crow').forEach(x=>x.classList.remove('on'));
@@ -318,18 +350,28 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     });
     $('postal').addEventListener('change',function(){ chosenPostal=this.value; if(chosenPostal){ loadCouriers(); } });
 
-    function resetCourier(){ courier=null; ship=0; $('ship').textContent='-'; $('total').textContent=fmt(sub); $('courierWrap').style.display='none'; refreshPay(); }
+    function resetCourier(){ courier=null; ship=0; gulir($('ship'),'-'); gulir($('total'),fmt(sub)); $('courier').innerHTML='<div class="note ktunggu">Ketik kecamatan di atas, ongkir tiap kurir langsung muncul di sini.</div>'; $('courier')._opts=null; refreshPay(); }
 
+    // Logo kurir: pakai /img/kurir/<kode>.svg kalau berkasnya ada (KB_KURIRLOGO), kalau tidak tulisan merek berwarna.
+    const KURIR={ jne:['JNE','#0B3F8F'], jnt:['J&T','#E3001B'], 'j&t':['J&T','#E3001B'], ide:['ID Express','#C8102E'], idexpress:['ID Express','#C8102E'],
+      sicepat:['SiCepat','#C8161D'], anteraja:['AnterAja','#E6007E'], sap:['SAP','#F15A22'], ninja:['Ninja','#C8102E'], pos:['POS','#F26B21'],
+      lion:['Lion Parcel','#E31E24'], tiki:['TIKI','#003A8C'], wahana:['Wahana','#00A651'], sentral:['Sentral','#1D3C8F'], jtcargo:['J&T Cargo','#E3001B'] };
+    function kurirLogo(code){
+      const k=String(code||'').toLowerCase(), f=(window.KB_KURIRLOGO||{})[k];
+      if(f) return '<span class="klogo"><img src="'+f+'" alt="" /></span>';
+      const m=KURIR[k]||[k.toUpperCase(),'#133F52'];
+      return '<span class="klogo txt" style="color:'+m[1]+'">'+m[0]+'</span>';
+    }
     async function loadCouriers(){
       if(!loc) return;
       const wrap=$('courierWrap'), box=$('courier');
-      wrap.style.display='block'; box.innerHTML='<div class="note">Menghitung ongkir...</div>';
-      courier=null; ship=0; $('ship').textContent='-'; $('total').textContent=fmt(sub); refreshPay();
+      wrap.style.display='block'; box.innerHTML='<div class="kskel"></div><div class="kskel"></div>';
+      courier=null; ship=0; gulir($('ship'),'-'); gulir($('total'),fmt(sub)); refreshPay();
       try{
         let opts=await atauContoh(shippingOptions(toItems(cart), loc.id, chosenPostal, payMethod||'bank_transfer'), 'ongkir');
         opts=opts.filter(o=>String(o.courier_aggregator_code||'').toLowerCase()==='lincah');
         if(!opts.length){ box.innerHTML='<div class="note err">Kurir tidak tersedia untuk wilayah ini.</div>'; gagal('kurir_kosong', 'tidak ada kurir lincah'); return; }
-        box.innerHTML=opts.map((o,i)=>'<button class="crow" data-i="'+i+'"><span class="cl">'+(o.courier_code||'').toUpperCase()+' '+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
+        box.innerHTML=opts.map((o,i)=>'<button class="crow kur" data-i="'+i+'">'+kurirLogo(o.courier_code)+'<span class="cl">'+(o.name||o.service_code||'')+'<small>estimasi '+(o.etd||'-')+' hari</small></span><span class="cc">'+fmt(o.cost)+'</span></button>').join('');
         box._opts=opts;
       }catch(err){ box.innerHTML='<div class="note err">'+(err.message||'Gagal menghitung ongkir.')+'</div>'; gagal('ongkir', err); }
     }
@@ -338,7 +380,7 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
       const b=e.target.closest('.crow'); if(!b || !this._opts) return;
       this.querySelectorAll('.crow').forEach(x=>x.classList.remove('on')); b.classList.add('on');
       courier=this._opts[+b.dataset.i]; ship=Number(courier.cost);
-      $('ship').textContent=fmt(ship); $('total').textContent=fmt(sub+ship);
+      gulir($('ship'),fmt(ship)); gulir($('total'),fmt(sub+ship));
       langkah('CO_Kurir', {kurir:String(courier.courier_code||''), ongkir:ship, value:sub+ship, currency:'IDR'});
       refreshPay();
     });
@@ -351,7 +393,9 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
     function cekData(){
       if($('nama').value.trim() && $('wa').value.replace(/\D/g,'').length>=9 && $('alamat').value.trim()) langkah('CO_Data', {});
     }
-    ['nama','wa','alamat'].forEach(id=>{ $(id).addEventListener('input',refreshPay); $(id).addEventListener('blur',cekData); });
+    ['nama','wa','alamat'].forEach(id=>{ $(id).addEventListener('input',function(){ this.classList.remove('salah'); refreshPay(); }); $(id).addEventListener('blur',cekData); });
+    // Gaya saja: isian WA yang jelas keliru bergetar kecil. Tidak mengubah syarat tombol.
+    $('wa').addEventListener('blur',function(){ const v=this.value.trim(); if(v && v.replace(/\D/g,'').length<9){ this.classList.remove('salah'); void this.offsetWidth; this.classList.add('salah'); } });
 
     // --- Langkah konfirmasi COD -------------------------------------------
     // Ditampilkan sebelum order dikirim ke Scalev, bukan sesudah. Kalau pembeli
@@ -406,8 +450,8 @@ const PAYLOGO = Object.fromEntries(Object.entries(PAYLOGO_FILE)
 
     async function submitOrder(btn, idleLabel, noteEl){
       if(!ready()) return;
-      btn.disabled=true; btn.textContent='Membuat pesanan...';
-      const fail=function(msg){ btn.disabled=false; btn.textContent=idleLabel;
+      btn.disabled=true; btn.textContent='Membuat pesanan...'; btn.classList.add('memuat');
+      const fail=function(msg){ btn.disabled=false; btn.classList.remove('memuat'); btn.textContent=idleLabel;
         noteEl.textContent=msg; noteEl.classList.add('err'); };
       try{
         const phone=$('wa').value.replace(/\D/g,'');

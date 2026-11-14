@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="410" height="372" viewBox="-10 0 410 372" preserveAspectRatio="xMidYMax slice">
+  <title>B · Lanskap kebun</title>
+  <g id="Ilustrasi">
+    <path id="Awan" d="M16 24 C15.703 22.244 16.201 20.447 17.36 19.095 C18.519 17.742 20.219 16.975 22 17 C22.261 13.578 24.445 10.603 27.631 9.328 C30.818 8.054 34.451 8.702 37 11 C39.609 7.884 43.724 6.46 47.701 7.297 C51.678 8.134 54.869 11.096 56 15 C58.427 14.53 60.921 15.374 62.563 17.222 C64.205 19.069 64.751 21.645 64 24 Z" fill="#eaf2f5"/>
+    <path id="Burung" d="M99.5 12 C101 10.5 102.5 10.5 104 12 C105.5 10.5 107 10.5 108.5 12" fill="none" stroke="#7fa9ba" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="Burung-2" data-name="Burung" d="M110.5 8 C111.667 6.833 112.833 6.833 114 8 C115.167 6.833 116.333 6.833 117.5 8" fill="none" stroke="#7fa9ba" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="Gunung_api" data-name="Gunung api" d="M-6 298 C-4 292.67 2.33 275.5 6 266 C9.67 256.5 12.83 245.42 16 241 C19.17 236.58 22 239.5 25 239.5 C28 239.5 30.5 236.58 34 241 C37.5 245.42 38.33 255.83 46 266 C53.67 276.17 66 289.33 80 302 C94 314.67 115 332 130 342 C145 352 163.33 358.67 170 362 L170 372 L-6 372 Z" fill="#ddeaf0"/>
+    <path id="Bukit_jauh_kanan" data-name="Bukit jauh kanan" d="M230 362 C238.33 355.33 263.33 334 280 322 C296.67 310 315 298.67 330 290 C345 281.33 358.33 274 370 270 C381.67 266 395 266.67 400 266 L400 372 Z" fill="#ddeaf0"/>
+    <path id="Bukit_tengah" data-name="Bukit tengah" d="M-10 304 C-1.67 303 22.33 293.33 40 298 C57.67 302.67 76 323 96 332 C116 341 137.67 348.33 160 352 C182.33 355.67 206.67 356 230 354 C253.33 352 280 348 300 340 C320 332 333.33 313.33 350 306 C366.67 298.67 391.67 297.67 400 296 L400 372 L-10 372 Z" fill="#bcd6e0"/>
+    <path id="Bukit_depan" data-name="Bukit depan" d="M-10 334 C1 333.33 32.67 326.33 56 330 C79.33 333.67 104.33 350.67 130 356 C155.67 361.33 183.33 362 210 362 C236.67 362 266.67 361 290 356 C313.33 351 331.67 337.67 350 332 C368.33 326.33 391.67 323.67 400 322 L400 372 L-10 372 Z" fill="#8fb8c8"/>
+    <ellipse id="Semak_kopi" data-name="Semak kopi" cx="22" cy="330" rx="8" ry="6.24" fill="#5e93a8"/>
+    <ellipse id="Semak_kopi-2" data-name="Semak kopi" cx="38" cy="345" rx="7" ry="5.46" fill="#5e93a8"/>
+    <ellipse id="Semak_kopi-3" data-name="Semak kopi" cx="365" cy="322" rx="8" ry="6.24" fill="#5e93a8"/>
+    <ellipse id="Semak_kopi-4" data-name="Semak kopi" cx="346" cy="340" rx="6" ry="4.68" fill="#5e93a8"/>
+    <ellipse id="Semak_kopi-5" data-name="Semak kopi" cx="384" cy="336" rx="6" ry="4.68" fill="#5e93a8"/>
+  </g>
+  <defs><linearGradient id="pudar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2F6F7" stop-opacity="0"/><stop offset="1" stop-color="#F2F6F7"/></linearGradient></defs>
+  <rect x="-10" y="318" width="410" height="54" fill="url(#pudar)"/>
+</svg>

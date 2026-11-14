@@ -2,6 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import { products } from '../../data/products.js';
 import { VARIANT_G } from '../../data/scalev.js';
+import fs from 'node:fs';
+import path from 'node:path';
 export function getStaticPaths(){
   return products.map(p => ({ params:{ slug:p.slug }, props:{ p } }));
 }
@@ -10,13 +12,16 @@ const vg = VARIANT_G[p.slug] || {};
 const fmt = (n)=> "Rp " + n.toLocaleString('id-ID');
 const grinds = ["Halus","Sedang","Kasar","Biji utuh"];
 const weights = [{g:100,label:"100gr"},{g:250,label:"250gr"},{g:500,label:"500gr"},{g:1000,label:"1kg"}];
-const defGrind = "Sedang";
-const dots = (v)=> Math.max(0, Math.min(5, Math.round(v/20)));
+const defGrind = "Halus";
 const rows = [
-  { k:"Pahit", v:p.intensity.pahit, c:"#247E9E" },
-  { k:"Asam", v:p.intensity.asam, c:"#0097B2" },
-  { k:"Body", v:p.intensity.body, c:"#3A95B5" },
+  { k:"Pahit", v:p.intensity.pahit },
+  { k:"Asam", v:p.intensity.asam },
+  { k:"Body", v:p.intensity.body },
 ];
+const hasReal = fs.existsSync(path.join(process.cwd(), 'public', 'img', 'real', `${p.slug}.webp`));
+const hemat = 4*p.prices[250] - p.prices[1000];
+const rb = (n)=> "Rp " + Math.round(n/1000) + "rb";
+const tasteLabel = p.taste==='pahit' ? 'PAHIT' : p.taste==='asem' ? 'ASAM' : 'SEIMBANG';
 const minPrice = Math.min(...Object.values(p.prices));
 const metaDesc = `${p.desc} Digiling sesuai pesanan (halus, sedang, kasar, atau biji utuh). Mulai ${fmt(minPrice)} per 100gr.`.slice(0, 300);
 // JSON-LD biar harga & nama produk bisa muncul di hasil pencarian Google.
@@ -46,51 +51,67 @@ const jsonLd = {
   ogType="product"
 >
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <div class="wrap dp">
-    <a class="back" id="backLink" href="/#katalog">&#8592; Kembali ke katalog</a>
-    <div class="hero-img">
-      <img src={`/img/${p.slug}.webp`} alt={p.name} />
+  <div class="dp">
+    <div class="backbar"><a class="back" id="backLink" href="/#katalog">&#8592; Semua kopi</a></div>
+    <div class="gal" id="gal">
+      <div class="gscroll" id="gscroll">
+        <div class="gslide"><img id="mainImg" src={hasReal ? `/img/real/${p.slug}.webp` : `/img/${p.slug}.webp`} alt={p.name + (hasReal ? " (foto asli)" : "")} data-vt={p.slug} fetchpriority="high" /></div>
+        {hasReal && <div class="gslide"><img src={`/img/${p.slug}.webp`} alt={p.name + " (kemasan)"} loading="lazy" /></div>}
+      </div>
+      {hasReal && (
+        <>
+          <button type="button" class="thumb" id="thumb" aria-label="Lihat foto kemasan"><img src={`/img/${p.slug}.webp`} alt="" /></button>
+          <div class="dotsg" id="dotsg"><i class="on"></i><i></i></div>
+        </>
+      )}
     </div>
 
-    <div class="cat">{p.cat.toUpperCase()} &middot; {p.origin}</div>
-    <h1>{p.name}</h1>
-    <div class="notes">
-      {p.notes.map((n,i)=>(<span class={"tag " + (i===0 ? (p.taste==='asem'?'t-teal':'t-brown') : 't-soft')}>{n}</span>))}
-    </div>
+    <div class="wrap isi">
+      <div class="tags">
+        <span class="tag t-gelap">{tasteLabel}</span>
+        {p.bestseller && <span class="tag t-kuning">TERLARIS</span>}
+        <span class="tag t-kabut">{p.roast.toUpperCase()}</span>
+      </div>
+      <h1>{p.name}</h1>
+      <div class="asal">{p.origin}</div>
+      <div class="harga"><span class="hg" id="hargaBig">{fmt(p.prices[250])}</span><span class="hper" id="hargaPer">/ 250 gr</span></div>
+      <p class="desc">{p.desc}</p>
 
-    <div class="panel">
-      <div class="pt">Profil rasa</div>
-      {rows.map(r=>(
-        <div class="bar">
-          <span>{r.k}</span>
-          <div class="dots">
-            {[0,1,2,3,4].map(i=>(
-              <b class="dot" style={i < dots(r.v) ? `background:${r.c};border-color:${r.c}` : ''}></b>
-            ))}
-          </div>
+      <div class="kartu" data-muncul>
+        <div class="kt">Rasanya</div>
+        <div class="bars" id="bars">
+          {rows.map(r=>(
+            <div class="brow">
+              <span class="bk">{r.k}</span>
+              <div class="trk"><i style={`width:${r.v}%`}></i></div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+        <div class="cocok">Cocok untuk: {p.brew.map(b=>b.toLowerCase()).join(' · ')}</div>
+      </div>
 
-    <p class="desc">{p.desc}</p>
+      <div class="grp">
+        <div class="lbl">Pilih berat</div>
+        <div class="chips" id="weights">
+          {weights.map((w,i)=>(
+            <button class={"chip" + (i===1?' on':'')} data-g={w.g} data-price={p.prices[w.g]}>
+              {w.g===1000 && hemat>0 && <em class="hemat">HEMAT {Math.round(hemat/1000)}RB</em>}
+              <b>{w.g>=1000?'1 kg':w.g+' gr'}</b><small>{rb(p.prices[w.g])}</small>
+            </button>
+          ))}
+        </div>
+      </div>
 
-    <div class="lbl">Pilih berat</div>
-    <div class="opts" id="weights">
-      {weights.map((w,i)=>(
-        <button class={"opt" + (i===1?' on':'')} data-g={w.g} data-price={p.prices[w.g]}>{w.label}</button>
-      ))}
-    </div>
+      <div class="grp">
+        <div class="lbl">Pilih gilingan <span class="hint">&middot; disarankan {defGrind}</span></div>
+        <div class="chips" id="grinds">
+          {grinds.map(g=>(
+            <button class={"chip g" + (g===defGrind?' on':'')} data-grind={g}><b>{g}</b></button>
+          ))}
+        </div>
+      </div>
 
-    <div class="lbl">Pilih gilingan <span class="hint">&middot; disarankan {defGrind}</span></div>
-    <div class="opts" id="grinds">
-      {grinds.map(g=>(
-        <button class={"opt" + (g===defGrind?' on':'')} data-grind={g}>{g}</button>
-      ))}
-    </div>
-
-    <div class="panel soft">
-      <div class="pt">Paling enak diseduh</div>
-      <div class="brew">{p.brew.map(b=>(<span>&#9749; {b}</span>))}</div>
+      <div class="jamin">Digiling saat kamu pesan &middot; COD bisa &middot; dikirim dari Cilegon</div>
     </div>
 
     <div class="buybar">
@@ -98,54 +119,69 @@ const jsonLd = {
         <div class="bsel" id="selInfo">250gr &middot; {defGrind}</div>
         <div class="bprice" id="selPrice">{fmt(p.prices[250])}</div>
       </div>
-      <div class="bbtns">
-        <button class="btn-cart" id="addBtn">+ Keranjang</button>
-        <button class="btn-buy" id="buyBtn">Beli langsung</button>
-      </div>
+      <button class="btn btn-garis" id="addBtn">+ Keranjang</button>
+      <button class="btn btn-kuning" id="buyBtn">Beli langsung</button>
     </div>
   </div>
 
   <style>
-    .dp{ padding-top:14px; max-width:640px; }
-    .back{ display:inline-block; color:var(--brand); font-size:13px; margin-bottom:10px; }
-    .back:hover{ color:var(--teal-d); }
-    .hero-img{ border-radius:14px; margin:6px 0 16px; overflow:hidden; background:#E6F0F3; }
-    .hero-img img{ width:100%; display:block; }
-    .cat{ color:var(--muted); font-size:11px; letter-spacing:1px; }
-    h1{ font-size:24px; font-weight:600; margin:3px 0 10px; }
-    .notes{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
-    .tag{ font-size:11px; padding:4px 11px; border-radius:20px; }
-    .t-brown{ background:#E1ECF0; color:#247E9E; } .t-teal{ background:#DCEFF3; color:#0A6B7E; } .t-soft{ background:#E6EFF2; color:#17566F; }
-    .panel{ background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
-    .panel.soft{ background:#EDF5F8; border:none; }
-    .pt{ color:#36586A; font-size:12px; font-weight:500; margin-bottom:10px; }
-    .bar{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
-    .bar:last-child{ margin-bottom:0; }
-    .bar span{ width:50px; color:#5B7280; font-size:12px; }
-    .dots{ display:flex; gap:6px; }
-    .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid #BCD2DA; background:#E6F0F3; display:inline-block; }
-    .desc{ color:#3D5360; font-size:14px; line-height:1.7; margin-bottom:18px; }
-    .lbl{ color:#36586A; font-size:12px; font-weight:500; margin-bottom:8px; }
-    .hint{ color:#869BA6; font-weight:400; }
-    .opts{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-    /* Pilihan berat & gilingan berwarna kuning label kemasan: muda untuk yang belum dipilih,
-       penuh + teks tebal untuk yang terpilih, supaya pilihan aktif tetap jelas terbaca. */
-    .opt{ border:1px solid #F2D675; background:#FFF6D1; color:#133F52; font-family:inherit; font-size:13px; font-weight:500; padding:8px 15px; border-radius:8px; cursor:pointer; transition:background .12s; }
-    .opt:hover{ background:#FDEEAE; }
-    .opt.on{ border:1.5px solid #D4A91A; background:var(--yellow); color:#0F2A37; font-weight:700; box-shadow:0 1px 4px rgba(212,169,26,.35); }
-    .brew{ display:flex; gap:16px; flex-wrap:wrap; color:var(--brand); font-size:12px; }
-    .buybar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--brand); border-radius:12px; padding:12px 16px; position:sticky; bottom:12px; }
-    .bmeta{ min-width:110px; }
-    .bsel{ color:#A9CDDB; font-size:11px; } .bprice{ color:var(--on-brand); font-size:19px; font-weight:600; }
-    .bbtns{ display:flex; gap:8px; flex:1; justify-content:flex-end; }
-    .btn-cart{ background:#fff; color:var(--brand); border:1.5px solid var(--on-brand); border-radius:9px; padding:11px 16px; font-weight:500; font-size:14px; cursor:pointer; font-family:inherit; white-space:nowrap; }
-    .btn-cart:hover{ background:#EDF5F8; }
-    .buybar .btn-buy{ white-space:nowrap; }
-    @media(max-width:440px){ .bbtns{ flex-basis:100%; } .btn-cart,.buybar .btn-buy{ flex:1; } }
+    .dp{ padding-bottom:104px; max-width:640px; margin:0 auto; }
+    .gal{ position:relative; background:#F4F7F4; }
+    .gscroll{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; }
+    .gscroll::-webkit-scrollbar{ display:none; }
+    .gslide{ flex:0 0 100%; scroll-snap-align:center; aspect-ratio:1/1; max-height:420px; display:flex; justify-content:center; }
+    .gslide img{ height:100%; width:auto; max-width:100%; object-fit:contain; display:block; }
+    .backbar{ max-width:1080px; margin:0 auto; padding:10px 16px 8px; }
+    .back{ display:inline-flex; align-items:center; gap:4px; color:var(--birutua); font-size:13px; font-weight:700; padding:6px 12px 6px 8px; border-radius:999px; background:var(--kabut); }
+    .thumb{ position:absolute; right:12px; bottom:12px; width:60px; height:60px; padding:0; border:2px solid #fff; border-radius:10px; overflow:hidden; background:var(--kabut); cursor:pointer; }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .dotsg{ position:absolute; left:0; right:0; bottom:12px; display:flex; gap:6px; justify-content:center; pointer-events:none; }
+    .dotsg i{ width:6px; height:6px; border-radius:3px; background:var(--garisk); transition:width .25s var(--ease), background .25s var(--ease); }
+    .dotsg i.on{ width:18px; background:var(--biru); }
+    .isi{ padding-top:16px; display:flex; flex-direction:column; gap:18px; }
+    .tags{ display:flex; gap:4px; flex-wrap:wrap; }
+    .tag{ font-size:10px; font-weight:800; letter-spacing:.4px; padding:5px 9px; border-radius:6px; }
+    .t-gelap{ background:var(--birutua); color:#fff; } .t-kuning{ background:var(--kuning); color:var(--birutua); } .t-kabut{ background:var(--kabut); color:var(--birutua); }
+    h1{ font-size:26px; line-height:1.23; font-weight:800; color:var(--tinta); margin:-6px 0 0; }
+    .asal{ font-size:13px; font-weight:500; color:var(--redup); margin-top:-12px; }
+    .harga{ display:flex; align-items:baseline; gap:6px; }
+    .hg{ font-size:28px; font-weight:800; color:var(--biru); display:inline-block; }
+    .hper{ font-size:14px; font-weight:600; color:var(--redup); }
+    .desc{ font-size:14px; line-height:1.57; color:var(--isi); margin:0; }
+    .kartu{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .kt{ font-size:15px; font-weight:800; color:var(--tinta); }
+    .bars{ display:flex; flex-direction:column; gap:10px; }
+    .brow{ display:flex; align-items:center; gap:10px; }
+    .bk{ width:52px; font-size:13px; font-weight:700; color:var(--birutua); }
+    .trk{ flex:1; height:8px; border-radius:4px; background:var(--kabut); overflow:hidden; }
+    .trk i{ display:block; height:100%; border-radius:4px; background:var(--biru); transform-origin:left; transform:scaleX(0); transition:transform .9s var(--ease); }
+    .bars.go .trk i{ transform:scaleX(1); }
+    .brow:nth-child(2) .trk i{ transition-delay:.1s; } .brow:nth-child(3) .trk i{ transition-delay:.2s; }
+    .cocok{ font-size:13px; font-weight:500; color:var(--isi); }
+    .grp{ display:flex; flex-direction:column; gap:8px; }
+    .lbl{ font-size:13px; font-weight:700; color:var(--isi); }
+    .hint{ font-size:12px; font-weight:500; color:var(--redup); }
+    .chips{ display:flex; gap:8px; }
+    .chip{ position:relative; flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; min-height:54px; padding:8px 4px; background:#fff; color:var(--birutua); border:1.5px solid var(--garisk); border-radius:var(--r-tombol); font-family:inherit; cursor:pointer; transition:background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease); }
+    .chip.g{ min-height:46px; }
+    .chip b{ font-size:14px; font-weight:700; }
+    .chip small{ font-size:11px; font-weight:500; color:var(--redup); transition:color .2s var(--ease); }
+    .chip.on{ background:var(--biru); border-color:var(--biru); color:#fff; }
+    .chip.on small{ color:#D6E9F1; }
+    .hemat{ position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:var(--kuning); color:var(--birutua); font-style:normal; font-size:9px; font-weight:800; letter-spacing:.3px; padding:2px 7px; border-radius:6px; white-space:nowrap; }
+    .jamin{ background:var(--kabut); color:var(--birutua); font-size:12px; font-weight:600; line-height:1.4; padding:12px 14px; border-radius:12px; }
+    .buybar{ position:fixed; left:0; right:0; bottom:0; z-index:40; background:#fff; border-top:1px solid var(--garis); padding:12px 16px calc(16px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:10px; }
+    .buybar .bmeta{ flex:1; min-width:0; }
+    .bsel{ font-size:11px; font-weight:600; color:var(--redup); }
+    .bprice{ font-size:19px; font-weight:800; color:var(--tinta); display:inline-block; white-space:nowrap; }
+    @media(max-width:420px){ .bprice{ font-size:16px; } .buybar{ gap:8px; } .buybar .btn{ padding-left:11px; padding-right:11px; font-size:14px; } }
+    .buybar .btn{ flex:none; padding-left:14px; padding-right:14px; white-space:nowrap; }
+    @media(min-width:700px){ .buybar{ left:50%; right:auto; width:640px; transform:translateX(-50%); border-radius:14px 14px 0 0; border:1px solid var(--garis); border-bottom:0; } }
+    @media(max-width:370px){ .buybar .btn{ padding-left:10px; padding-right:10px; font-size:13px; } .chip b{ font-size:13px; } }
   </style>
 
   <script define:vars={{ product:{ slug:p.slug, name:p.name, prices:p.prices, vg: vg } }}>
-    let g=250, grind = document.querySelector('#grinds .opt.on').dataset.grind;
+    let g=250, grind = document.querySelector('#grinds .chip.on').dataset.grind;
     const fmt=(n)=>"Rp "+n.toLocaleString('id-ID');
     // Skrip ini inline (define:vars) jadi tidak bisa impor safeLp dari scalev.js.
     // Aturannya harus sama: tanpa saringan, lp="/situs-lain.com" jadi "//situs-lain.com" (open redirect).
@@ -156,13 +192,19 @@ const jsonLd = {
       // menawarkan tiga kopi berdampingan, tapi mode corong memaksa beli satu-satu.
     }
     const info=document.getElementById('selInfo'), price=document.getElementById('selPrice');
-    function refresh(){ info.textContent=(g>=1000?'1kg':g+'gr')+' · '+grind; price.textContent=fmt(product.prices[g]); }
-    document.querySelectorAll('#weights .opt').forEach(function(b){ b.addEventListener('click',function(){
-      document.querySelectorAll('#weights .opt').forEach(function(x){x.classList.remove('on');});
+    const big=document.getElementById('hargaBig'), per=document.getElementById('hargaPer');
+    function refresh(){
+      info.textContent=(g>=1000?'1kg':g+'gr')+' · '+grind;
+      const t=fmt(product.prices[g]);
+      if(window.kbGulir){ window.kbGulir(price,t); window.kbGulir(big,t); } else { price.textContent=t; big.textContent=t; }
+      per.textContent='/ '+(g>=1000?'1 kg':g+' gr');
+    }
+    document.querySelectorAll('#weights .chip').forEach(function(b){ b.addEventListener('click',function(){
+      document.querySelectorAll('#weights .chip').forEach(function(x){x.classList.remove('on');});
       b.classList.add('on'); g=+b.dataset.g; refresh();
     });});
-    document.querySelectorAll('#grinds .opt').forEach(function(b){ b.addEventListener('click',function(){
-      document.querySelectorAll('#grinds .opt').forEach(function(x){x.classList.remove('on');});
+    document.querySelectorAll('#grinds .chip').forEach(function(b){ b.addEventListener('click',function(){
+      document.querySelectorAll('#grinds .chip').forEach(function(x){x.classList.remove('on');});
       b.classList.add('on'); grind=b.dataset.grind; refresh();
     });});
     const WORDER=[100,250,500,1000];
@@ -187,7 +229,9 @@ const jsonLd = {
     }
     document.getElementById('addBtn').addEventListener('click',function(){
       addToCart();
-      const btn=this; const t=btn.textContent; btn.textContent='✓ Ditambahkan'; setTimeout(function(){btn.textContent=t;},1200);
+      const btn=this; btn.textContent='✓ Ditambahkan'; setTimeout(function(){btn.textContent='+ Keranjang';},1200);
+      if(window.kbTerbang) window.kbTerbang(document.getElementById('mainImg'));
+      if(window.kbToast) window.kbToast('Masuk keranjang');
     });
     document.getElementById('buyBtn').addEventListener('click',function(){
       const item={key:product.slug+'-'+g+'-'+grind,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)};
@@ -195,6 +239,15 @@ const jsonLd = {
       window.location.href='/checkout?buynow=1' + (LP?('&lp='+encodeURIComponent(LP)):'');
     });
     refresh();
+    (function(){
+      const bars=document.getElementById('bars');
+      if(bars){ if('IntersectionObserver' in window){ const io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ bars.classList.add('go'); io.disconnect(); } }); },{threshold:.4}); io.observe(bars); } else bars.classList.add('go'); }
+      const gs=document.getElementById('gscroll'), dg=document.getElementById('dotsg'), th=document.getElementById('thumb');
+      if(gs && dg){
+        gs.addEventListener('scroll',function(){ const i=Math.round(gs.scrollLeft/gs.clientWidth); Array.prototype.forEach.call(dg.children,function(d,k){ d.classList.toggle('on',k===i); }); },{passive:true});
+        if(th) th.addEventListener('click',function(){ gs.scrollTo({left:gs.clientWidth,behavior:'smooth'}); });
+      }
+    })();
     kbTrack('ViewContent',{content_ids:[product.slug],content_name:product.name,content_type:'product',value:product.prices[250],currency:'IDR'});
   </script>
 

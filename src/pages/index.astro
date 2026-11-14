@@ -2,95 +2,263 @@
 import Base from '../layouts/Base.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { products, categories } from '../data/products.js';
+const jejerBelakang=['robusta-lampung','arabika-gn-halu','robusta-gayo','arabika-papua-wamena'];
+const jejerDepan=['robusta-sidikalang','arabika-aceh-gayo','arabika-gayo-wine'];
+// Angka sosmed dicek langsung di profil 14 Nov 2026 (total pengikut TikTok+IG+FB = 63,6 rb). Perbarui di sini saja.
+const sosmed=[
+  { k:'tiktok', nama:'TikTok', akun:'@kopibing_', url:'https://www.tiktok.com/@kopibing_', angka:'18,7 rb', ket:'pengikut', tambah:'56,6 rb suka · rutin live' },
+  { k:'ig', nama:'Instagram', akun:'@kopibing.id', url:'https://www.instagram.com/kopibing.id/', angka:'25,9 rb', ket:'pengikut', tambah:'440 unggahan' },
+  { k:'fb', nama:'Facebook', akun:'Kopi Bing', url:'https://www.facebook.com/profile.php?id=61564660573659', angka:'19 rb', ket:'pengikut', tambah:'' },
+  { k:'shopee', nama:'Shopee', akun:'Toko Kopi Bing', url:'https://shopee.co.id/kopibing.id', angka:'4,9', ket:'1.500+ penilaian', tambah:'' },
+];
+const ikon={"tiktok": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.6c-1.3 0-2.5-.4-3.5-1v5.9c0 3.2-2.4 5.6-5.5 5.6A5.5 5.5 0 0 1 5.5 14c0-3 2.3-5.4 5.3-5.5v2.7a2.8 2.8 0 1 0 2 2.7V3h3.7Z\"/></svg>", "ig": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\"1\" fill=\"currentColor\" stroke=\"none\"/></svg>", "shopee": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"><path d=\"M4.5 8h15l-1.2 11.2a2 2 0 0 1-2 1.8H7.7a2 2 0 0 1-2-1.8L4.5 8Z\"/><path d=\"M8.5 8V7a3.5 3.5 0 0 1 7 0v1\"/><path d=\"M14.3 12.3c-.5-.6-1.3-.9-2.2-.9-1.1 0-1.9.6-1.9 1.4 0 1.9 4.2 1 4.2 3 0 .9-.9 1.6-2.2 1.6-1 0-1.9-.4-2.4-1\"/></svg>", "fb": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21h3.1Z\"/></svg>"};
+const tokoFoto=[['/img/ds2/toko-1.webp','Disendok langsung dari toples'],['/img/ds2/toko-2.webp','Ditimbang pas sesuai pesanan'],['/img/ds2/toko-3.webp','Digiling saat kamu pesan'],['/img/ds2/toko-4.webp','Dikemas saat kamu pesan']];
 const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
 ---
 <Base
   title="Toko Kopi Bing — Kopi Giling Seluruh Indonesia"
-  description="Kopi robusta, arabika, dan blend dari seluruh Indonesia. Digiling segar saat kamu pesan, pilih sendiri kehalusannya. Harga lebih murah dari marketplace, kirim ke seluruh Indonesia."
+  description="Kopi robusta, arabika, dan blend dari seluruh Indonesia. Digiling segar saat kamu pesan, pilih sendiri kehalusannya. Kirim ke seluruh Indonesia."
 >
-  <Fragment slot="head">
-    <!-- Foto hero adalah elemen terbesar di layar awal: muat lebih dulu, sesuai ukuran layar. -->
-    <link rel="preload" as="image" href="/img/hero-kebun.webp" media="(min-width: 601px)" fetchpriority="high" />
-    <link rel="preload" as="image" href="/img/hero-kebun-hp.webp" media="(max-width: 600px)" fetchpriority="high" />
-  </Fragment>
   <section class="hero">
+    <img class="latar" src="/img/ds2/latar-hero-b.svg" alt="" aria-hidden="true" />
     <div class="wrap heroin">
-      <div class="pricebanner">Harga di web ini jauh lebih murah dari Shopee, TikTok Shop &amp; Tokopedia &#128522;</div>
-      <h1 class="q">Mau kami bantu pilihkan kopi sesuai seleramu?</h1>
-      <div class="s">2 pertanyaan singkat, langsung ketemu yang pas</div>
-      <a class="herobtn" href="/temukan?mulai=1">Bantu saya pilihkan &rarr;</a>
-      <div class="grind">&#9881; Bisa request gilingan: halus &middot; sedang &middot; kasar &middot; biji utuh</div>
+      <div class="geser" id="heroGeser" aria-roledescription="carousel">
+        <div class="slide on" data-slide="0">
+          <div class="judul">
+            <img class="peta" src="/img/ds2/peta-nusantara-hero.svg" alt="" aria-hidden="true" width="280" height="98" />
+            <h1>Biji Kopi dari<br /><span class="sorot">Aceh sampai Papua</span></h1>
+          </div>
+          <div class="panggung">
+          <div class="jejer" aria-hidden="true">
+            <div class="baris blk">{jejerBelakang.map((slug,i) => (<img src={`/img/${slug}.webp`} alt="" width="104" height="104" style={`--i:${i};--n:4`} />))}</div>
+            <div class="baris dpn">{jejerDepan.map((slug,i) => (<img src={`/img/${slug}.webp`} alt="" width="128" height="128" style={`--i:${i};--n:3`} />))}</div>
+          </div>
+          </div>
+        </div>
+        <div class="slide sl-sos" data-slide="1" aria-hidden="true">
+          <div class="judul"><p class="h1">Diikuti<br /><span class="sorot">60 ribu+ orang</span></p></div>
+          <p class="smini">di TikTok, Instagram, dan Facebook Kopi Bing</p>
+        <div class="sgrid">
+          {sosmed.map((m) => (
+            <a class={"skartu s-" + m.k} href={m.url} target="_blank" rel="noopener">
+              <span class="sik" set:html={ikon[m.k]} />
+              <span class="snama">{m.nama} <small>{m.akun}</small></span>
+              <span class="sangka">{m.k==='shopee' && <i class="bintang">★</i>}{m.angka}</span>
+              <span class="sket">{m.ket}</span>
+              {m.tambah && <span class="stambah">{m.tambah}</span>}
+            </a>
+          ))}
+        </div>
+        </div>
+      </div>
+      <div class="titikh" id="heroTitik"><button type="button" class="on" aria-label="Slide 1"></button><button type="button" aria-label="Slide 2"></button></div>
+      <p class="sub">{products.length} kopi pilihan, digiling sesuai alat seduhmu.</p>
+      <a class="btn btn-kuning" href="#katalog">Lihat semua kopi &darr;</a>
+      <a class="bingung" href="/temukan?mulai=1">Bingung pilih? Jawab 2 pertanyaan &rarr;</a>
     </div>
   </section>
 
-  <section class="wrap" id="katalog">
+  <section class="wrap katalog" id="katalog">
     <div class="filters">
       {categories.map(c => (
         <button class={"fbtn" + (c.id==='all'?' active':'')} data-cat={c.id}>{c.label}</button>
       ))}
     </div>
     <div class="grid" id="grid">
-      {products.map((p,idx) => (
-        <>
-          <div class="cell" data-cat={p.cat}><ProductCard p={p} /></div>
-          {idx===7 && (
-            <div class="testi-band">
-              <div class="testi-head"><span>Kata pelanggan Kopi Bing</span><span class="hint">geser &rarr;</span></div>
-              <div class="testi-track">
-                {testis.map(src => (<div class="testi-card"><img src={src} loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>))}
-              </div>
-            </div>
-          )}
-        </>
+      {products.slice(0, 6).map((p) => (
+        <div class="cell" data-cat={p.cat} data-muncul><ProductCard p={p} /></div>
       ))}
     </div>
   </section>
 
+  <section class="toko">
+    <div class="wrap">
+      <h2 data-muncul>Toko kopi beneran, bukan gudang</h2>
+    </div>
+    <div class="strip" id="tokoStrip">
+      {tokoFoto.map(([src,cap]) => (
+        <figure class="tk"><img src={src} alt={cap} loading="lazy" /><figcaption>{cap}</figcaption></figure>
+      ))}
+    </div>
+    <div class="wrap">
+      <div class="dots" id="tokoDots">{tokoFoto.map((_,i)=>(<span class={i===0?'on':''}></span>))}</div>
+      <ol class="poin">
+        <li><b>01</b>Digiling saat kamu pesan, bukan stok bubuk lama.</li>
+        <li><b>02</b>Dikirim dari toko kami di Cilegon.</li>
+        <li><b>03</b>COD bisa, bayar ke kurir saat paket sampai.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap katalog lanjut">
+    <div class="grid">
+      {products.slice(6, 12).map((p) => (
+        <div class="cell" data-cat={p.cat} data-muncul><ProductCard p={p} /></div>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap ulasan">
+    <h2>Kata pembeli</h2>
+    <p class="ulsub">Tangkapan layar ulasan asli dari pembeli Kopi Bing.</p>
+    <div class="utrack">
+      {testis.map(src => (<div class="ucard"><img src={src} loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>))}
+    </div>
+  </section>
+
+  <section class="wrap katalog lanjut">
+    <div class="grid">
+      {products.slice(12).map((p) => (
+        <div class="cell" data-cat={p.cat} data-muncul><ProductCard p={p} /></div>
+      ))}
+    </div>
+  </section>
+
+
   <style>
-    /* Hero berlatar foto kebun kopi. Foto hanya tampil ~30%: lapisan putih 70% di atasnya
-       membuat hero terang dan lapang, jadi teksnya memakai navy, bukan putih.
-       Desktop: public/img/hero-kebun.webp (1920x1072). HP: hero-kebun-hp.webp (900x1117).
-       Mengubah seberapa pudar fotonya cukup di angka .70 pada .hero::before. */
-    .hero{ position:relative; background:#fff url('/img/hero-kebun.webp') center 45% / cover no-repeat; }
-    .hero::before{ content:""; position:absolute; inset:0; background:rgba(255,255,255,.70); }
-    .heroin{ position:relative; padding:64px 18px 58px; text-align:center; }
-    .pricebanner{ display:inline-block; background:var(--yellow); color:#133F52; font-size:13.5px; font-weight:600; line-height:1.4; padding:9px 18px; border-radius:20px; margin-bottom:20px; max-width:440px; }
-    .hero .q{ color:var(--ink); font-size:30px; font-weight:700; line-height:1.25; max-width:620px; margin:0 auto; }
-    .hero .s{ color:#36586A; font-size:15px; margin:12px 0 24px; }
-    @media(max-width:600px){ .hero{ background-image:url('/img/hero-kebun-hp.webp'); background-position:center 55%; } }
-    .herobtn{ display:inline-block; background:var(--green); color:#fff; font-weight:600; font-size:16px; padding:14px 28px; border-radius:11px; }
-    .herobtn:hover{ filter:brightness(1.06); }
-    .choices{ display:flex; gap:14px; justify-content:center; }
-    .ch{ border-radius:14px; padding:16px 30px; border:2px solid transparent; cursor:pointer; }
-    .ch.pahit{ background:var(--brand); border-color:var(--yellow); }
-    .ch.asem{ background:var(--teal); border-color:#BEEAF1; }
-    .ch .ct{ font-size:19px; font-weight:600; color:#fff; }
-    .ch.pahit .ct{ color:var(--yellow); }
-    .ch .cs{ font-size:12px; color:#D6EBF2; }
-    .ch.asem .cs{ color:#D6F2F7; }
-    .grind{ display:table; margin:24px auto 0; background:rgba(255,255,255,.75); border:1px solid #BCD2DA; color:#133F52; font-size:12px; padding:9px 16px; border-radius:20px; backdrop-filter:blur(4px); }
-    .filters{ display:flex; gap:9px; padding:24px 0 14px; flex-wrap:wrap; }
-    .fbtn{ background:#E6F0F3; color:var(--brand); border:none; font-family:inherit; font-size:14px; padding:8px 18px; border-radius:20px; cursor:pointer; }
-    .fbtn.active{ background:var(--brand); color:var(--page-bg); }
-    .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; padding-bottom:10px; }
-    .testi-band{ grid-column:1 / -1; margin:14px 0 6px; }
-    .testi-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
-    .testi-head span:first-child{ font-size:17px; font-weight:600; color:var(--brand); }
-    .testi-head .hint{ font-size:12px; color:var(--muted); }
-    .testi-track{ display:flex; align-items:flex-start; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; scrollbar-width:thin; }
-    .testi-card{ flex:0 0 auto; width:230px; scroll-snap-align:start; background:#fff; border:0.5px solid #D3E2E8; border-radius:12px; overflow:hidden; }
-    .testi-card img{ width:100%; display:block; }
-    @media(max-width:520px){ .heroin{ padding:48px 18px 44px; } .hero .q{ font-size:24px; } .grind{ font-size:11px; padding:8px 12px; } .choices{ gap:10px; } }
+    .hero{ position:relative; overflow:hidden; background:linear-gradient(#fff 0%, #E8F1F5 70%, var(--latar) 100%); }
+    .hero .latar{ position:absolute; left:0; bottom:0; width:100%; height:min(240px,100%); object-fit:cover; object-position:center bottom; pointer-events:none; }
+    .heroin{ position:relative; padding:28px 16px 44px; text-align:center; display:flex; flex-direction:column; align-items:center; }
+    .hero h1{ font-size:32px; font-weight:800; line-height:1.2; color:var(--birutua); max-width:360px; margin:0; letter-spacing:-.01em; }
+    .hero .panggung{ position:relative; width:100%; display:flex; justify-content:center; margin-top:14px; }
+    .hero .judul{ position:relative; width:100%; display:flex; justify-content:center; padding:10px 0; }
+    .hero .judul h1{ position:relative; }
+    .hero .peta{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,108%); height:auto; opacity:.4; pointer-events:none; }
+    .hero .jejer{ display:flex; flex-direction:column; align-items:center; margin:0 0 10px; width:100%; position:relative; }
+    .hero .jejer .baris{ display:flex; justify-content:center; }
+    .hero .jejer img{ border-radius:16px; object-fit:cover; border:3px solid #fff; box-shadow:0 8px 20px rgba(19,63,82,.2); background:#fff;
+      transform:rotate(calc((var(--i) - (var(--n) - 1) / 2) * 5deg)); }
+    :global(html.kb-awal) .hero .jejer img{ animation:kb-jejer .6s var(--ease-pantul) both; }
+    .hero .jejer .blk img{ width:100px; height:100px; margin:0 -9px; animation-delay:calc(var(--i) * 60ms); }
+    .hero .jejer .dpn{ margin-top:-38px; position:relative; z-index:1; }
+    .hero .jejer .dpn img{ width:124px; height:124px; margin:0 -10px; animation-delay:calc(240ms + var(--i) * 70ms); }
+    .hero .jejer .dpn img:nth-child(2){ position:relative; z-index:1; transform:translateY(6px); }
+    @keyframes kb-jejer{ from{ opacity:0; transform:translateY(18px) scale(.85); } }
+    @media(min-width:700px){ .hero .jejer .blk img{ width:132px; height:132px; margin:0 -10px; } .hero .jejer .dpn img{ width:164px; height:164px; margin:0 -12px; } .hero .jejer .dpn{ margin-top:-50px; } }
+    .hero .sorot{ display:inline-block; margin-top:6px; padding:3px 10px 4px; border-radius:9px; font-size:.72em; line-height:1.25; background:var(--birutua); color:#fff; white-space:nowrap; }
+    .hero .sub{ font-size:16px; font-weight:600; color:var(--tinta); margin:10px 0 20px; line-height:1.45; }
+    .hero .btn{ padding:0 34px; }
+    .bingung{ margin-top:18px; font-size:14px; font-weight:600; color:var(--biru); text-decoration:underline; text-underline-offset:3px; }
+    @media(min-width:700px){ .hero h1{ font-size:44px; max-width:640px; } .heroin{ padding:44px 16px 140px; } .hero .latar{ height:min(440px,100%); } }
+
+    .katalog{ padding-top:8px; padding-bottom:28px; }
+    .katalog.lanjut{ padding-top:24px; }
+    .katalog.lanjut .grid:empty{ display:none; }
+    .filters{ display:flex; gap:9px; padding:0 0 14px; overflow-x:auto; scrollbar-width:none; }
+    .filters::-webkit-scrollbar{ display:none; }
+    .fbtn{ flex:0 0 auto; height:42px; padding:0 20px; background:#fff; color:var(--birutua); border:1.5px solid var(--garisk); font-family:inherit; font-size:14px; font-weight:600; border-radius:var(--r-tombol); cursor:pointer; transition:background .2s var(--ease), color .2s, border-color .2s, transform .15s; }
+    .fbtn.active{ background:var(--biru); border-color:var(--biru); color:#fff; }
+    .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    @media(min-width:700px){ .grid{ grid-template-columns:repeat(3,1fr); gap:16px; } }
+    @media(min-width:960px){ .grid{ grid-template-columns:repeat(4,1fr); } }
+    .cell.masuk{ animation:kbfade .28s var(--ease) both; }
+    .cell.keluar{ opacity:0 !important; transform:scale(.97) !important; transition:opacity .16s, transform .16s !important; }
+    @keyframes kbfade{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+
+    .toko{ background:var(--kabut); padding:30px 0 28px; }
+    .toko h2, .ulasan h2{ font-size:22px; font-weight:800; line-height:1.25; color:var(--birutua); margin:0; max-width:320px; }
+    .strip{ display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:16px 16px 4px; scrollbar-width:none; }
+    .strip::-webkit-scrollbar{ display:none; }
+    .tk{ position:relative; flex:0 0 min(310px,82%); aspect-ratio:1/1.05; margin:0; border-radius:var(--r-kartu); overflow:hidden; scroll-snap-align:start; background:var(--garis); }
+    .tk img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .tk figcaption{ position:absolute; left:10px; bottom:10px; background:rgba(19,63,82,.88); color:#fff; font-size:13px; font-weight:600; padding:7px 12px; border-radius:999px; }
+    @media(min-width:900px){ .strip{ padding-left:max(16px,calc((100vw - 1080px)/2 + 16px)); } .tk{ flex-basis:300px; } }
+    .dots{ display:flex; gap:6px; margin:12px 0 16px; }
+    .dots span{ width:7px; height:7px; border-radius:99px; background:var(--garisk); transition:width .25s var(--ease), background .25s; }
+    .dots span.on{ width:22px; background:var(--biru); }
+    .poin{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
+    .poin li{ display:flex; gap:12px; align-items:baseline; font-size:15px; line-height:1.4; color:var(--isi); }
+    .poin b{ font-size:12px; font-weight:800; color:var(--biru); flex:0 0 auto; }
+
+    .hero .geser{ display:grid; width:100%; touch-action:pan-y; }
+    .hero .slide{ grid-area:1 / 1; display:flex; flex-direction:column; align-items:center; transition:opacity .5s var(--ease), transform .5s var(--ease); }
+    .hero .slide:not(.on){ opacity:0; transform:translateX(28px); pointer-events:none; }
+    .hero .slide.keluar{ transform:translateX(-28px); }
+    .hero .h1{ font-size:32px; font-weight:800; line-height:1.2; color:var(--birutua); margin:0; position:relative; text-align:center; }
+    .hero .smini{ font-size:13px; font-weight:600; color:var(--isi); margin:4px 0 14px; }
+    .hero .sl-sos .sgrid{ width:100%; max-width:440px; text-align:left; }
+    .hero .titikh{ display:flex; gap:6px; justify-content:center; margin:4px 0 2px; }
+    .hero .titikh button{ width:7px; height:7px; padding:0; border:0; border-radius:4px; background:var(--garisk); cursor:pointer; transition:width .3s var(--ease), background .3s; }
+    .hero .titikh button.on{ width:20px; background:var(--biru); }
+    @media(min-width:700px){ .hero .h1{ font-size:44px; } }
+    .sgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .skartu{ display:grid; grid-template-columns:34px 1fr; column-gap:9px; row-gap:0; align-items:center; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:12px 10px; min-width:0; transition:transform .2s var(--ease), box-shadow .2s var(--ease); }
+    .skartu:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(19,63,82,.1); }
+    .skartu:active{ transform:scale(.97); }
+    .sik{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; grid-column:1; grid-row:1 / span 3; align-self:center; margin:0; }
+    .sik :global(svg){ width:17px; height:17px; }
+    .s-tiktok .sik{ background:#111; }
+    .s-ig .sik{ background:linear-gradient(45deg,#F9A825,#E1306C 55%,#7B3FE4); }
+    .s-shopee .sik{ background:#EE4D2D; }
+    .s-fb .sik{ background:#1877F2; }
+    .skartu > :not(.sik){ grid-column:2; min-width:0; }
+    .snama{ font-size:12px; font-weight:700; color:var(--tinta); line-height:1.25; }
+    .snama small{ display:none; font-size:10px; font-weight:500; color:var(--redup); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sangka{ font-size:20px; font-weight:800; color:var(--birutua); line-height:1.1; white-space:nowrap; order:-1; }
+    .sangka .bintang{ font-style:normal; color:#F5A623; font-size:17px; margin-right:2px; }
+    .sket{ font-size:11px; font-weight:600; color:var(--isi); line-height:1.3; }
+    .sket, .snama{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .stambah{ display:none; }
+    @media(max-width:360px){ .sangka{ font-size:18px; } .skartu{ padding:10px 8px; } }
+    @media(min-width:700px){ .sgrid{ gap:12px; } .skartu{ padding:14px 16px; } .sangka{ font-size:26px; } }
+    .ulasan{ padding-top:28px; padding-bottom:34px; }
+    .ulsub{ font-size:13px; color:var(--redup); margin:6px 0 14px; }
+    .utrack{ display:flex; align-items:flex-start; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 12px; scrollbar-width:thin; }
+    .ucard{ flex:0 0 232px; scroll-snap-align:start; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; box-shadow:0 2px 8px rgba(19,63,82,.06); transition:transform .2s var(--ease), box-shadow .2s var(--ease); }
+    .ucard:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); }
+    .ucard img{ width:100%; display:block; }
   </style>
 
   <script>
+    // Hero bergeser: slide 1 kopi, slide 2 bukti sosmed. Ganti tiap 5 detik, berhenti kalau disentuh.
+    (function(){
+      const g=document.getElementById('heroGeser'); if(!g) return;
+      const sl=[...g.querySelectorAll('.slide')], dt=[...document.querySelectorAll('#heroTitik button')];
+      let i=0, t=null, x0=null;
+      const diam=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function ke(n){
+        n=(n+sl.length)%sl.length; if(n===i) return;
+        sl[i].classList.add('keluar'); const lama=sl[i]; setTimeout(function(){ lama.classList.remove('keluar'); },520);
+        sl.forEach(function(s,k){ s.classList.toggle('on',k===n); s.setAttribute('aria-hidden',k===n?'false':'true'); });
+        dt.forEach(function(d,k){ d.classList.toggle('on',k===n); });
+        i=n;
+      }
+      function jalan(){ stop(); if(!diam) t=setInterval(function(){ ke(i+1); },5000); }
+      function stop(){ if(t) clearInterval(t); t=null; }
+      dt.forEach(function(d,k){ d.addEventListener('click',function(){ ke(k); jalan(); }); });
+      g.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; stop(); },{passive:true});
+      g.addEventListener('touchend',function(e){ if(x0===null) return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>40) ke(i+(dx<0?1:-1)); x0=null; jalan(); });
+      g.addEventListener('mouseenter',stop); g.addEventListener('mouseleave',jalan);
+      document.addEventListener('visibilitychange',function(){ document.hidden?stop():jalan(); });
+      jalan();
+    })();
+
     const btns=document.querySelectorAll('.fbtn');
     const cells=document.querySelectorAll('.cell');
+    let ganti=null;
     function apply(cat){
       btns.forEach(b=>b.classList.toggle('active', b.dataset.cat===cat));
-      cells.forEach(c=>{ c.style.display=(cat==='all'||c.dataset.cat===cat)?'':'none'; });
+      cells.forEach(c=>c.classList.add('keluar'));
+      clearTimeout(ganti);
+      ganti=setTimeout(()=>{
+        cells.forEach(c=>{
+          const tampil=(cat==='all'||c.dataset.cat===cat);
+          c.style.display=tampil?'':'none';
+          c.classList.remove('keluar','masuk');
+          if(tampil){ c.classList.add('tampil'); void c.offsetWidth; c.classList.add('masuk'); }
+        });
+      },170);
     }
     btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.cat)));
-    document.querySelectorAll('.ch').forEach(a=>a.addEventListener('click',()=>apply(a.dataset.filter)));
+
+    const strip=document.getElementById('tokoStrip');
+    const dots=document.querySelectorAll('#tokoDots span');
+    if(strip){
+      strip.addEventListener('scroll',()=>{
+        const k=strip.querySelector('.tk'); if(!k) return;
+        const i=Math.round(strip.scrollLeft/(k.offsetWidth+12));
+        dots.forEach((d,j)=>d.classList.toggle('on',j===Math.min(i,dots.length-1)));
+      },{passive:true});
+    }
   </script>
 </Base>
