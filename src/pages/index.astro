@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import ProductCard from '../components/ProductCard.astro';
+import Icon from '../components/Icon.astro';
+const ikonSos={ tiktok:'tiktok', ig:'instagram', fb:'facebook', shopee:'shopee' };
 import { products, categories } from '../data/products.js';
 const jejerBelakang=['robusta-lampung','arabika-gn-halu','robusta-gayo','arabika-papua-wamena'];
 const jejerDepan=['robusta-sidikalang','arabika-aceh-gayo','arabika-gayo-wine'];
@@ -11,7 +13,6 @@ const sosmed=[
   { k:'fb', nama:'Facebook', akun:'Kopi Bing', url:'https://www.facebook.com/profile.php?id=61564660573659', angka:'19 rb', ket:'pengikut', tambah:'' },
   { k:'shopee', nama:'Shopee', akun:'Toko Kopi Bing', url:'https://shopee.co.id/kopibing.id', angka:'4,9', ket:'1.500+ penilaian', tambah:'' },
 ];
-const ikon={"tiktok": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.6c-1.3 0-2.5-.4-3.5-1v5.9c0 3.2-2.4 5.6-5.5 5.6A5.5 5.5 0 0 1 5.5 14c0-3 2.3-5.4 5.3-5.5v2.7a2.8 2.8 0 1 0 2 2.7V3h3.7Z\"/></svg>", "ig": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.5\" cy=\"6.5\" r=\"1\" fill=\"currentColor\" stroke=\"none\"/></svg>", "shopee": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"><path d=\"M4.5 8h15l-1.2 11.2a2 2 0 0 1-2 1.8H7.7a2 2 0 0 1-2-1.8L4.5 8Z\"/><path d=\"M8.5 8V7a3.5 3.5 0 0 1 7 0v1\"/><path d=\"M14.3 12.3c-.5-.6-1.3-.9-2.2-.9-1.1 0-1.9.6-1.9 1.4 0 1.9 4.2 1 4.2 3 0 .9-.9 1.6-2.2 1.6-1 0-1.9-.4-2.4-1\"/></svg>", "fb": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21h3.1Z\"/></svg>"};
 const tokoFoto=[['/img/ds2/toko-1.webp','Disendok langsung dari toples'],['/img/ds2/toko-2.webp','Ditimbang pas sesuai pesanan'],['/img/ds2/toko-3.webp','Digiling saat kamu pesan'],['/img/ds2/toko-4.webp','Dikemas saat kamu pesan']];
 const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
 ---
@@ -41,9 +42,9 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
         <div class="sgrid">
           {sosmed.map((m) => (
             <a class={"skartu s-" + m.k} href={m.url} target="_blank" rel="noopener">
-              <span class="sik" set:html={ikon[m.k]} />
+              <span class="sik"><Icon name={ikonSos[m.k]} /></span>
               <span class="snama">{m.nama} <small>{m.akun}</small></span>
-              <span class="sangka">{m.k==='shopee' && <i class="bintang">★</i>}{m.angka}</span>
+              <span class="sangka">{m.k==='shopee' && <i class="bintang"><Icon name="star" /></i>}{m.angka}</span>
               <span class="sket">{m.ket}</span>
               {m.tambah && <span class="stambah">{m.tambah}</span>}
             </a>
@@ -53,8 +54,8 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
       </div>
       <div class="titikh" id="heroTitik"><button type="button" class="on" aria-label="Slide 1"></button><button type="button" aria-label="Slide 2"></button></div>
       <p class="sub">{products.length} kopi pilihan, digiling sesuai alat seduhmu.</p>
-      <a class="btn btn-kuning" href="#katalog">Lihat semua kopi &darr;</a>
-      <a class="bingung" href="/temukan?mulai=1">Bingung pilih? Jawab 2 pertanyaan &rarr;</a>
+      <a class="btn btn-kuning" href="#katalog">Lihat semua kopi <Icon name="arrow-down" /></a>
+      <a class="bingung" href="/temukan?mulai=1">Bingung pilih? Jawab 2 pertanyaan <Icon name="arrow-right" /></a>
     </div>
   </section>
 
@@ -138,7 +139,7 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .hero .sorot{ display:inline-block; margin-top:6px; padding:3px 10px 4px; border-radius:9px; font-size:.72em; line-height:1.25; background:var(--birutua); color:#fff; white-space:nowrap; }
     .hero .sub{ font-size:16px; font-weight:600; color:var(--tinta); margin:10px 0 20px; line-height:1.45; }
     .hero .btn{ padding:0 34px; }
-    .bingung{ margin-top:18px; font-size:14px; font-weight:600; color:var(--biru); text-decoration:underline; text-underline-offset:3px; }
+    .bingung{ display:inline-flex; align-items:center; gap:5px; margin-top:18px; font-size:14px; font-weight:600; color:var(--biru); text-decoration:underline; text-underline-offset:3px; }
     @media(min-width:700px){ .hero h1{ font-size:44px; max-width:640px; } .heroin{ padding:44px 16px 140px; } .hero .latar{ height:min(440px,100%); } }
 
     .katalog{ padding-top:8px; padding-bottom:28px; }
@@ -147,6 +148,8 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .filters{ display:flex; gap:9px; padding:0 0 14px; overflow-x:auto; scrollbar-width:none; }
     .filters::-webkit-scrollbar{ display:none; }
     .fbtn{ flex:0 0 auto; height:42px; padding:0 20px; background:#fff; color:var(--birutua); border:1.5px solid var(--garisk); font-family:inherit; font-size:14px; font-weight:600; border-radius:var(--r-tombol); cursor:pointer; transition:background .2s var(--ease), color .2s, border-color .2s, transform .15s; }
+    .fbtn:active{ transform:scale(.95); }
+    @media(hover:hover) and (pointer:fine){ .fbtn:not(.active):hover{ border-color:var(--biru); } }
     .fbtn.active{ background:var(--biru); border-color:var(--biru); color:#fff; }
     .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
     @media(min-width:700px){ .grid{ grid-template-columns:repeat(3,1fr); gap:16px; } }
@@ -160,7 +163,8 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .strip{ display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:16px 16px 4px; scrollbar-width:none; }
     .strip::-webkit-scrollbar{ display:none; }
     .tk{ position:relative; flex:0 0 min(310px,82%); aspect-ratio:1/1.05; margin:0; border-radius:var(--r-kartu); overflow:hidden; scroll-snap-align:start; background:var(--garis); }
-    .tk img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .tk img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform var(--dur-3) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .tk:hover img{ transform:scale(1.04); } }
     .tk figcaption{ position:absolute; left:10px; bottom:10px; background:rgba(19,63,82,.88); color:#fff; font-size:13px; font-weight:600; padding:7px 12px; border-radius:999px; }
     @media(min-width:900px){ .strip{ padding-left:max(16px,calc((100vw - 1080px)/2 + 16px)); } .tk{ flex-basis:300px; } }
     .dots{ display:flex; gap:6px; margin:12px 0 16px; }
@@ -182,9 +186,9 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .hero .titikh button.on{ width:20px; background:var(--biru); }
     @media(min-width:700px){ .hero .h1{ font-size:44px; } }
     .sgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-    .skartu{ display:grid; grid-template-columns:34px 1fr; column-gap:9px; row-gap:0; align-items:center; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:12px 10px; min-width:0; transition:transform .2s var(--ease), box-shadow .2s var(--ease); }
-    .skartu:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(19,63,82,.1); }
-    .skartu:active{ transform:scale(.97); }
+    .skartu{ display:grid; grid-template-columns:34px 1fr; column-gap:9px; row-gap:0; align-items:center; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:12px 10px; min-width:0; transition:transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .skartu:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(19,63,82,.1); } }
+    .skartu:active{ transform:scale(.97); transition-duration:.08s; }
     .sik{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; grid-column:1; grid-row:1 / span 3; align-self:center; margin:0; }
     .sik :global(svg){ width:17px; height:17px; }
     .s-tiktok .sik{ background:#111; }
@@ -195,7 +199,8 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .snama{ font-size:12px; font-weight:700; color:var(--tinta); line-height:1.25; }
     .snama small{ display:none; font-size:10px; font-weight:500; color:var(--redup); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .sangka{ font-size:20px; font-weight:800; color:var(--birutua); line-height:1.1; white-space:nowrap; order:-1; }
-    .sangka .bintang{ font-style:normal; color:#F5A623; font-size:17px; margin-right:2px; }
+    .sangka .bintang{ font-style:normal; color:#F5A623; font-size:17px; margin-right:3px; display:inline-flex; vertical-align:-1px; }
+    .sangka .bintang :global(.ik){ width:.95em; height:.95em; }
     .sket{ font-size:11px; font-weight:600; color:var(--isi); line-height:1.3; }
     .sket, .snama{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .stambah{ display:none; }
@@ -204,8 +209,8 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     .ulasan{ padding-top:28px; padding-bottom:34px; }
     .ulsub{ font-size:13px; color:var(--redup); margin:6px 0 14px; }
     .utrack{ display:flex; align-items:flex-start; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:2px 2px 12px; scrollbar-width:thin; }
-    .ucard{ flex:0 0 232px; scroll-snap-align:start; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; box-shadow:0 2px 8px rgba(19,63,82,.06); transition:transform .2s var(--ease), box-shadow .2s var(--ease); }
-    .ucard:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); }
+    .ucard{ flex:0 0 232px; scroll-snap-align:start; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; box-shadow:0 2px 8px rgba(19,63,82,.06); transition:transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .ucard:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); } }
     .ucard img{ width:100%; display:block; }
   </style>
 
@@ -234,13 +239,21 @@ const testis = Array.from({length:15},(_,i)=>'/img/testi/'+(i+1)+'.webp');
     })();
 
     const btns=document.querySelectorAll('.fbtn');
-    const cells=document.querySelectorAll('.cell');
+    const cells=[...document.querySelectorAll('.cell')];
+    const rumah=cells.map(c=>c.parentElement);
+    const gridUtama=document.getElementById('grid');
     let ganti=null;
     function apply(cat){
       btns.forEach(b=>b.classList.toggle('active', b.dataset.cat===cat));
       cells.forEach(c=>c.classList.add('keluar'));
       clearTimeout(ganti);
       ganti=setTimeout(()=>{
+        // Saat difilter, kumpulkan semua produk yang cocok tepat di bawah tombol filter;
+        // saat "Semua", kembalikan tiap produk ke grid asalnya (urutan tetap).
+        cells.forEach((c,i)=>{
+          const tujuan=(cat==='all')?rumah[i]:(c.dataset.cat===cat?gridUtama:rumah[i]);
+          tujuan.appendChild(c);
+        });
         cells.forEach(c=>{
           const tampil=(cat==='all'||c.dataset.cat===cat);
           c.style.display=tampil?'':'none';

@@ -1,4 +1,5 @@
 ---
+import Icon from '../components/Icon.astro';
 const {
   title = "Toko Kopi Bing",
   description = "Kopi giling segar dari seluruh Indonesia. Digiling saat kamu pesan, bisa pilih halus, sedang, kasar, atau biji utuh. Kirim ke seluruh Indonesia.",
@@ -20,6 +21,8 @@ const imageUrl = new URL(image, site).href;
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script is:inline>
     document.documentElement.classList.add('kb-js');
+    (function(){ var siap=function(e){ var im=e.target; if(im&&im.tagName==='IMG'&&im.classList.contains('kb-img')) im.classList.add('kb-ok'); };
+      document.addEventListener('load',siap,true); document.addEventListener('error',siap,true); })();
     try{ if(!sessionStorage.getItem('kb_awal')){ document.documentElement.classList.add('kb-awal'); sessionStorage.setItem('kb_awal','1'); } }catch(e){}
     // Foto kartu membesar jadi foto produk: nama transisi hanya dipasang pada SATU foto yang
     // berpasangan (beranda <-> /produk/<slug>), supaya foto lain tidak ikut berkedip.
@@ -73,7 +76,9 @@ const imageUrl = new URL(image, site).href;
       --brand:var(--biru); --brand-d:var(--birutua); --on-brand:#EAF6FA; --page-bg:var(--latar);
       --teal:var(--biru); --teal-d:var(--birutua); --yellow:var(--kuning); --green:var(--hijau); --ink:var(--tinta); --muted:var(--redup);
       --r-kartu:14px; --r-tombol:12px;
-      --ease:cubic-bezier(.2,.8,.2,1); --ease-pantul:cubic-bezier(.34,1.56,.64,1);
+      --ease:cubic-bezier(.2,.8,.2,1); --ease-pantul:cubic-bezier(.34,1.56,.64,1); --ease-masuk:cubic-bezier(.4,0,1,1);
+      /* Durasi gerak: 1 = tekan/hover, 2 = ganti keadaan (tombol, laci, toast), 3 = muncul/pudar gambar. */
+      --dur-1:.14s; --dur-2:.24s; --dur-3:.42s;
     }
     *{ box-sizing:border-box; margin:0; padding:0; }
     html{ -webkit-text-size-adjust:100%; }
@@ -137,23 +142,50 @@ const imageUrl = new URL(image, site).href;
     @keyframes kb-tahan{ from{ opacity:1; } to{ opacity:1; } }
     @keyframes kb-masuk{ from{ transform:translateY(10px); } }
 
-    button, .btn, .tap, a.ic-btn{ transition:transform .18s var(--ease-pantul), background-color .15s, color .15s, border-color .15s, box-shadow .15s, opacity .15s; }
-    button:active:not([disabled]), .btn:active, .tap:active, a.ic-btn:active{ transform:scale(.95); transition-duration:.08s; }
-    @media(hover:hover){ .btn:hover{ filter:brightness(1.05); } }
+    /* Ikon: satu gaya garis untuk seluruh situs (src/data/ikon.js). */
+    .ik{ display:inline-block; flex-shrink:0; vertical-align:-.14em; }
+    .btn .ik{ width:18px; height:18px; }
+    .back .ik, .backhome .ik{ width:16px; height:16px; transition:transform var(--dur-2) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .back:hover .ik, .backhome:hover .ik{ transform:translateX(-3px); } }
+    .ik-arrow-right{ transition:transform var(--dur-2) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ a:hover > .ik-arrow-right, .card:hover .ik-arrow-right{ transform:translateX(3px); } }
+
+    button, .btn, .tap, a.ic-btn{ transition:transform .18s var(--ease-pantul), background-color var(--dur-1), color var(--dur-1), border-color var(--dur-1), box-shadow var(--dur-1), opacity var(--dur-1); }
+    button:active:not([disabled]), .btn:active, .tap:active, a.ic-btn:active{ transform:scale(.96); transition-duration:.08s; }
+    @media(hover:hover) and (pointer:fine){ .btn:hover{ filter:brightness(1.05); } a.ic-btn:hover{ background:rgba(255,255,255,.2); } }
+
+    /* Tombol "+ Keranjang" sesudah ditekan: ikon centang muncul, tombol kembali sendiri. */
+    .btn.sukses{ border-color:var(--hijau); color:var(--hijau); }
+    .btn.sukses .ik-check{ animation:kb-cek var(--dur-3) var(--ease-pantul) backwards; }
+    @keyframes kb-cek{ from{ transform:scale(.3) rotate(-20deg); opacity:0; } }
+
+    /* Gambar memudar masuk begitu selesai dimuat. Kotaknya sudah berukuran tetap (aspect-ratio)
+       jadi tidak ada geser tata letak. Hanya gambar lazy yang belum siap; foto pasangan
+       transisi halaman (data-vt) tidak pernah disembunyikan. */
+    html.kb-js img.kb-img{ transition:opacity var(--dur-3) var(--ease); }
+    html.kb-js img.kb-img:not(.kb-ok){ opacity:0; }
 
     html.kb-js [data-muncul]:not(.tampil){ opacity:0; transform:translateY(14px); }
     [data-muncul].tampil{ opacity:1; transform:none; transition:opacity .45s var(--ease), transform .45s var(--ease); transition-delay:var(--tunda,0ms); }
 
     .kb-terbang{ position:fixed; z-index:9999; pointer-events:none; border-radius:12px; object-fit:cover; box-shadow:0 8px 24px rgba(15,42,55,.25); }
-    @keyframes kb-pantul{ 0%{ transform:scale(1); } 35%{ transform:scale(1.45); } 65%{ transform:scale(.9); } 100%{ transform:scale(1); } }
+    @keyframes kb-pantul{ 0%{ transform:scale(1); box-shadow:0 0 0 0 rgba(250,220,86,.75); } 35%{ transform:scale(1.45); } 65%{ transform:scale(.9); } 100%{ transform:scale(1); box-shadow:0 0 0 7px rgba(250,220,86,0); } }
     .pantul{ animation:kb-pantul .5s var(--ease-pantul); }
     @keyframes kb-goyang{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(-12deg); } 60%{ transform:rotate(9deg); } }
     .goyang{ animation:kb-goyang .45s ease; }
     @keyframes kb-gulir{ from{ opacity:0; transform:translateY(60%); } }
     .gulir{ display:inline-block; animation:kb-gulir .28s var(--ease); }
 
-    .kb-toast{ position:fixed; left:50%; bottom:96px; transform:translate(-50%,20px); opacity:0; background:var(--tinta); color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:999px; z-index:9998; pointer-events:none; transition:opacity .25s, transform .3s var(--ease-pantul); white-space:nowrap; }
-    .kb-toast.on{ opacity:1; transform:translate(-50%,0); }
+    .kb-toast{ position:fixed; left:50%; bottom:96px; transform:translate(-50%,16px) scale(.94); opacity:0; background:var(--tinta); color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:999px; z-index:9998; pointer-events:none; transition:opacity var(--dur-2) var(--ease), transform var(--dur-3) var(--ease-pantul); white-space:nowrap; display:flex; align-items:center; gap:7px; box-shadow:0 8px 24px rgba(15,42,55,.22); }
+    .kb-toast.on{ opacity:1; transform:translate(-50%,0) scale(1); }
+    .kb-toast:not(.on){ transition:opacity var(--dur-2) var(--ease-masuk), transform var(--dur-2) var(--ease-masuk); }
+    .kb-toast .ik{ width:16px; height:16px; color:var(--kuning); }
+
+    /* Panel yang muncul dari display:none (hasil pencarian, langkah COD, kartu status):
+       animasi CSS otomatis berjalan setiap kali elemennya ditampilkan lagi. */
+    @keyframes kb-naik{ from{ opacity:0; transform:translateY(10px); } }
+    @keyframes kb-turun{ from{ opacity:0; transform:translateY(-6px) scale(.98); } }
+    @keyframes kb-pop{ from{ opacity:0; transform:scale(.6); } }
 
     @media (prefers-reduced-motion: reduce){
       @view-transition{ navigation:none; }
@@ -210,8 +242,8 @@ const imageUrl = new URL(image, site).href;
       <nav class="nav">
         {!bare && <a class="txt" href="/">Beranda</a>}
         {!bare && <a class="txt" href="/#katalog">Katalog</a>}
-        <a class="ic-btn" href={waUrl} target="_blank" rel="noopener" aria-label="Chat WhatsApp admin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg></a>
-        {!bare && <a href="/keranjang" class="ic-btn cart-ic" aria-label="Keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.3 10.2a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.2"/><circle cx="9.5" cy="19.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17" cy="19.5" r="1.3" fill="currentColor" stroke="none"/></svg><span class="badge kosong" id="cartCount">0</span></a>}
+        <a class="ic-btn" href={waUrl} target="_blank" rel="noopener" aria-label="Chat WhatsApp admin"><Icon name="whatsapp" /></a>
+        {!bare && <a href="/keranjang" class="ic-btn cart-ic" aria-label="Keranjang"><Icon name="cart" /><span class="badge kosong" id="cartCount">0</span></a>}
       </nav>
     </div>
   </header>
@@ -222,10 +254,10 @@ const imageUrl = new URL(image, site).href;
     <div class="wrap">
       <div class="ft">Toko Kopi Bing</div>
       <div class="fs">Tanya dulu? Chat WhatsApp admin &middot; Toko di Cilegon</div>
-      <a class="wa tap" href={waUrl} target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg> Chat WhatsApp</a>
+      <a class="wa tap" href={waUrl} target="_blank" rel="noopener"><Icon name="whatsapp" /> Chat WhatsApp</a>
       <div class="social">
-        <a href="https://www.instagram.com/kopibing.id/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-        <a href="https://www.tiktok.com/@kopibing_" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.1 1.6 3.6 3.5 3.9v2.6c-1.3 0-2.5-.4-3.5-1v5.9c0 3.2-2.4 5.6-5.5 5.6A5.5 5.5 0 0 1 5.5 14c0-3 2.3-5.4 5.3-5.5v2.7a2.8 2.8 0 1 0 2 2.7V3h3.7Z"/></svg></a>
+        <a href="https://www.instagram.com/kopibing.id/" target="_blank" rel="noopener" aria-label="Instagram"><Icon name="instagram" /></a>
+        <a href="https://www.tiktok.com/@kopibing_" target="_blank" rel="noopener" aria-label="TikTok"><Icon name="tiktok" /></a>
       </div>
       <div class="trust">Digiling saat kamu pesan &middot; Pembayaran aman, didukung Scalev</div>
       <div class="trust"><a href="/privasi">Kebijakan Privasi</a></div>
@@ -233,6 +265,7 @@ const imageUrl = new URL(image, site).href;
   </footer>
   )}
   <script>
+    import { svgIkon } from '../data/ikon.js';
     function updateCartCount(){
       try{ const c=JSON.parse(localStorage.getItem('kb_cart')||'[]');
         const n=c.reduce((s,i)=>s+i.qty,0);
@@ -278,12 +311,14 @@ const imageUrl = new URL(image, site).href;
       };
     };
 
-    // Pesan singkat di bawah layar, mis. "Masuk keranjang".
+    // Pesan singkat di bawah layar, mis. "Masuk keranjang". ikon (opsional) = nama ikon, mis. 'check'.
     let toastT;
-    window.kbToast=function(teks){
+    window.kbToast=function(teks,ikon){
       let t=document.querySelector('.kb-toast');
       if(!t){ t=document.createElement('div'); t.className='kb-toast'; t.setAttribute('role','status'); document.body.appendChild(t); }
-      t.textContent=teks; requestAnimationFrame(function(){ t.classList.add('on'); });
+      t.textContent=teks;
+      if(ikon) t.insertAdjacentHTML('afterbegin',svgIkon(ikon));
+      requestAnimationFrame(function(){ t.classList.add('on'); });
       clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('on'); },1800);
     };
 
@@ -307,6 +342,21 @@ const imageUrl = new URL(image, site).href;
         io.observe(el);
       });
     } else muncul.forEach(function(el){ el.classList.add('tampil'); });
+    // Gambar lazy yang belum siap disembunyikan dulu lalu memudar masuk (kelas kb-img).
+    // Gambar yang dibuat skrip belakangan cukup diberi class="kb-img"; pendengar 'load'
+    // di bawah menangkap semuanya. Gagal muat juga ditampilkan, supaya tidak hilang.
+    (function(){
+      // Pendengar 'load'/'error' dipasang di <head> (skrip inline paling atas), supaya gambar
+      // yang dibuat skrip inline sebelum modul ini jalan tetap tertangkap.
+      if(diam) return;
+      let nav={}; try{ nav=performance.getEntriesByType('navigation')[0]||{}; }catch(e){}
+      if(nav.type==='back_forward') return; // dari cache: langsung tampil, jangan berkedip
+      document.querySelectorAll('img[loading="lazy"]').forEach(function(im){
+        if(im.complete || im.hasAttribute('data-vt')) return;
+        im.classList.add('kb-img');
+      });
+    })();
+
     // Mode corong: bawa ?lp= ke halaman keranjang supaya dia tahu asal pengunjung
     // dan bisa menawarkan jalan kembali ke halaman pilihan.
     try{

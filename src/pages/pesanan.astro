@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 ---
 <Base title="Pesanan — Toko Kopi Bing" description="Detail dan status pesananmu di Toko Kopi Bing." noindex={true}>
   <div class="wrap op">
@@ -8,7 +9,7 @@ import Base from '../layouts/Base.astro';
 
     <div id="content" style="display:none">
       <div class="steps" id="steps" aria-label="Tahap pesanan">
-        <div class="stp done" data-s="1"><i></i><span>&#10003; Dibuat</span></div>
+        <div class="stp done" data-s="1"><i></i><span><Icon name="check" stroke={2.25} /> Dibuat</span></div>
         <div class="stp now" data-s="2"><i></i><span>Bayar</span></div>
         <div class="stp" data-s="3"><i></i><span>Lunas</span></div>
       </div>
@@ -24,13 +25,13 @@ import Base from '../layouts/Base.astro';
         <div class="ct">Cara bayar &mdash; Transfer Bank</div>
         <div class="bankbox">
           <div class="brow"><span>Bank</span><b id="bankName">BCA</b></div>
-          <div class="brow"><span>No. Rekening</span><b><span id="accNo">6520645142</span> <button class="copy" id="copyAcc" type="button">salin</button></b></div>
+          <div class="brow"><span>No. Rekening</span><b><span id="accNo">6520645142</span> <button class="copy" id="copyAcc" type="button"><Icon name="copy" /><span>salin</span></button></b></div>
           <div class="brow"><span>Atas nama</span><b id="accHolder">Akmal Nubaha Rijal</b></div>
-          <div class="brow big"><span>Jumlah</span><b id="amt"></b> <button class="copy" id="copyAmt" type="button">salin</button></div>
+          <div class="brow big"><span>Jumlah</span><b id="amt"></b> <button class="copy" id="copyAmt" type="button"><Icon name="copy" /><span>salin</span></button></div>
         </div>
         <p class="warn">Transfer <b>PERSIS</b> sampai angka terakhir (ada kode uniknya) biar pembayaran otomatis terverifikasi.</p>
         <input type="file" id="proofFile" accept="image/jpeg,image/png,image/webp" hidden />
-        <button class="btn btn-kuning full" id="btnUpload" type="button">&#128206; Sudah transfer &mdash; kirim bukti</button>
+        <button class="btn btn-kuning full" id="btnUpload" type="button"><Icon name="paperclip" /> Sudah transfer &mdash; kirim bukti</button>
         <p class="note" id="uploadNote">Foto atau screenshot bukti transfernya ya. Format JPG, PNG, atau WEBP, maksimal 5 MB.</p>
         <button class="btn btn-garis full" id="btnPaid" type="button" style="margin-top:4px">Sudah transfer, buktinya nanti</button>
       </div>
@@ -56,7 +57,7 @@ import Base from '../layouts/Base.astro';
       <div class="card done" id="donecard" style="display:none">
         <div class="okic sm pending" id="doneic"></div>
         <div class="ct2" id="donebody"></div>
-        <a class="btn btn-garis full" id="btnBukti" target="_blank" rel="noopener" style="margin-top:14px">&#128206; Kirim bukti pembayaran</a>
+        <a class="btn btn-garis full" id="btnBukti" target="_blank" rel="noopener" style="margin-top:14px"><Icon name="paperclip" /> Kirim bukti pembayaran</a>
       </div>
 
       <div class="card" data-muncul>
@@ -69,7 +70,7 @@ import Base from '../layouts/Base.astro';
         <div class="row total"><span id="totalLabel">Total transfer</span><span id="total"></span></div>
       </div>
 
-      <a class="backhome" href="/">&#8592; Kembali ke toko</a>
+      <a class="backhome" href="/"><Icon name="arrow-left" /><span>Kembali ke toko</span></a>
     </div>
   </div>
 
@@ -84,19 +85,28 @@ import Base from '../layouts/Base.astro';
     .op .stp.now i{ background:var(--kuning); }
     .op .stp.done, .op .stp.now{ color:var(--birutua); }
     .op .stp.now{ font-weight:800; }
+    .op .stp span{ display:inline-flex; align-items:center; gap:3px; }
+    .op .stp .ik{ width:13px; height:13px; }
+    .op .stp i{ transform-origin:left; }
+    .op .stp.done i{ animation:kb-isi var(--dur-3) var(--ease) backwards; }
+    .op .stp.done + .stp.done i{ animation-delay:.12s; } .op .stp.done + .stp.done + .stp.done i{ animation-delay:.24s; }
+    @keyframes kb-isi{ from{ transform:scaleX(0); } }
     .op .okhead{ text-align:center; margin-bottom:18px; }
-    .op .okic{ width:60px; height:60px; border-radius:50%; background:var(--hijau); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; }
+    .op .okic{ width:60px; height:60px; border-radius:50%; background:var(--hijau); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; transition:background-color var(--dur-3) var(--ease), color var(--dur-3) var(--ease); }
+    .op .okic:not(:empty){ animation:kb-pop var(--dur-3) var(--ease-pantul) backwards; }
     .op .okic svg{ width:60%; height:60%; display:block; }
     .op .okic.pending{ background:var(--kuning); color:var(--tinta); }
     .op .okic.batal{ background:var(--kabut); color:var(--birutua); }
     .op .okic.sm{ width:48px; height:48px; margin-bottom:10px; }
-    .op .okic .tick{ stroke-dasharray:26; stroke-dashoffset:26; animation:kbgambar .6s var(--ease) .15s forwards; }
+    .op .okic .draw path{ stroke-dasharray:1; stroke-dashoffset:1; animation:kbgambar .6s var(--ease) .15s forwards; }
     @keyframes kbgambar{ to{ stroke-dashoffset:0; } }
     .op h1{ font-size:22px; font-weight:800; color:var(--tinta); letter-spacing:-.01em; }
     .op .oid{ color:var(--redup); font-size:13px; font-weight:500; margin-top:6px; }
     .op .ostat{ display:inline-block; margin-top:10px; background:var(--kuning); color:var(--birutua); font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px; }
     .op .ostat.ok{ background:#DDF1E4; color:#17663A; }
     .op .card{ background:#fff; border:1px solid var(--garis); border-radius:16px; padding:16px; margin-bottom:14px; }
+    /* Kartu yang baru ditampilkan skrip (status berubah) naik pelan, bukan muncul mendadak. */
+    #cancelcard, #codcard, #epaycard, #donecard, #content{ animation:kb-naik var(--dur-3) var(--ease) backwards; }
     .op .ct{ color:var(--tinta); font-size:15px; font-weight:800; margin-bottom:14px; }
     .op .ct2{ color:var(--isi); font-size:14px; text-align:center; line-height:1.65; font-weight:500; }
     .op .ct2 b{ font-size:15px; color:var(--tinta); font-weight:800; }
@@ -109,7 +119,10 @@ import Base from '../layouts/Base.astro';
     .op .brow b{ color:var(--tinta); font-weight:700; }
     .op .brow.big{ border-top:1px solid var(--garis); margin-top:6px; padding-top:12px; }
     .op .brow.big b{ font-size:22px; font-weight:800; color:var(--biru); }
-    .op .copy{ background:#fff; border:1px solid var(--garisk); color:var(--birutua); font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; cursor:pointer; font-family:inherit; margin-left:6px; }
+    .op .copy{ display:inline-flex; align-items:center; gap:4px; vertical-align:middle; background:#fff; border:1px solid var(--garisk); color:var(--birutua); font-size:11px; font-weight:700; padding:4px 9px; border-radius:8px; cursor:pointer; font-family:inherit; margin-left:6px; }
+    .op .copy .ik{ width:12px; height:12px; }
+    .op .copy.ok{ border-color:var(--hijau); color:var(--hijau); }
+    .op .copy.ok .ik{ animation:kb-pop var(--dur-2) var(--ease-pantul) backwards; }
     .op .warn{ background:#FDECEA; color:#A3502F; font-size:12.5px; font-weight:500; line-height:1.5; padding:10px 13px; border-radius:10px; margin-bottom:14px; }
     .op .hint{ background:var(--kabut); color:var(--birutua); font-size:12.5px; font-weight:500; line-height:1.6; padding:11px 13px; border-radius:10px; }
     .op .brow b.vanum{ font-size:19px; font-weight:800; color:var(--biru); letter-spacing:0.5px; }
@@ -122,7 +135,7 @@ import Base from '../layouts/Base.astro';
     .op .note.err{ color:#A3502F; }
     .op .proof{ display:block; max-width:220px; border-radius:10px; border:1px solid var(--garis); margin:12px auto 0; }
     .op .done{ text-align:center; }
-    .op .backhome{ display:block; text-align:center; color:var(--biru); font-size:13px; font-weight:700; margin-top:16px; }
+    .op .backhome{ display:flex; align-items:center; justify-content:center; gap:5px; text-align:center; color:var(--biru); font-size:13px; font-weight:700; margin-top:16px; }
     @media (min-width:900px){ .op{ padding-top:32px; } }
   </style>
 
@@ -130,6 +143,7 @@ import Base from '../layouts/Base.astro';
     import { getOrder, patchOrder, transferProofUpload, putFile,
              trackPixelOnly, analyticsItems, readOrderMeta, clearOrderMeta, sweepOrderMeta,
              purchaseFired, markPurchaseFired } from '../data/scalev.js';
+    import { svgIkon } from '../data/ikon.js';
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const $=(id)=>document.getElementById(id);
     const SCALEV_ORDER_HOST='https://kopi-bing.myscalev.com/o/';
@@ -144,9 +158,10 @@ import Base from '../layouts/Base.astro';
     const WA_CS='0851-6194-1214';
     const MAX_PROOF=5*1024*1024;
     const PROOF_TYPES=['image/jpeg','image/png','image/webp'];
-    const SVG_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="tick" d="M6 12.5l4 4 8-9"/></svg>';
-    const SVG_WAIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
-    const SVG_X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+    // Ikon status memakai set ikon situs (src/data/ikon.js); centang digambar lewat pathLength=1.
+    const SVG_OK=svgIkon('check',{ cls:'draw', draw:true, stroke:2.25, size:'100%' });
+    const SVG_WAIT=svgIkon('clock',{ stroke:2, size:'100%' });
+    const SVG_X=svgIkon('x',{ stroke:2.25, size:'100%' });
     // kind: 'ok' (centang digambar), 'wait', 'x'
     function setIc(el, kind){
       el.classList.remove('pending','batal');
@@ -164,7 +179,7 @@ import Base from '../layouts/Base.astro';
         el.classList.remove('done','now');
         const t=el.querySelector('span');
         const lab=['','Dibuat','Bayar','Lunas'][n];
-        if(mode==='lunas' || n===1){ el.classList.add('done'); t.textContent='✓ '+lab; }
+        if(mode==='lunas' || n===1){ el.classList.add('done'); t.innerHTML=svgIkon('check',{ stroke:2.25 })+' '+lab; }
         else if(n===2){ el.classList.add('now'); t.textContent=lab; }
         else { t.textContent=lab; }
       });
@@ -357,7 +372,7 @@ import Base from '../layouts/Base.astro';
 
     // Upload bukti: minta URL -> kirim file -> tempelkan ke order berikut rekening tujuannya.
     async function uploadProof(file){
-      const btn=$('btnUpload'), label=btn.textContent;
+      const btn=$('btnUpload'), label=btn.innerHTML;
       if(PROOF_TYPES.indexOf(file.type)<0){ setUploadNote('Formatnya harus JPG, PNG, atau WEBP ya.', true); return; }
       if(file.size>MAX_PROOF){ setUploadNote('Ukuran filenya maksimal 5 MB. Coba screenshot ulang atau perkecil dulu.', true); return; }
       btn.disabled=true; btn.textContent='Mengirim bukti...';
@@ -378,7 +393,7 @@ import Base from '../layouts/Base.astro';
         showProcessing();
         window.scrollTo({top:0,behavior:'smooth'});
       }catch(err){
-        btn.disabled=false; btn.textContent=label;
+        btn.disabled=false; btn.innerHTML=label;
         setUploadNote('Bukti belum terkirim. Coba lagi ya, atau kirim lewat WhatsApp '+WA_CS+'.', true);
       }
     }
@@ -393,7 +408,7 @@ import Base from '../layouts/Base.astro';
 
     document.addEventListener('click', async function(e){
       const cp=e.target.closest('.copy');
-      if(cp){ try{ navigator.clipboard.writeText(cp.dataset.c); const t=cp.textContent; cp.textContent='tersalin'; setTimeout(function(){cp.textContent=t;},1200); toast('Disalin'); }catch(err){} return; }
+      if(cp){ try{ navigator.clipboard.writeText(cp.dataset.c); const t=cp.innerHTML; clearTimeout(cp._kbT); cp.classList.add('ok'); cp.innerHTML=svgIkon('check')+'<span>tersalin</span>'; cp._kbT=setTimeout(function(){ cp.classList.remove('ok'); cp.innerHTML=cp._kbAsli||t; },1200); cp._kbAsli=cp._kbAsli||t; if(window.kbToast) window.kbToast('Disalin','check'); else toast('Disalin'); }catch(err){} return; }
       if(e.target.closest('#btnUpload')){ $('proofFile').click(); return; }
       const paid=e.target.closest('#btnPaid');
       if(paid){

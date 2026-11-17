@@ -22,12 +22,15 @@ const foto = real ? `/img/real/${p.slug}.webp` : `/img/${p.slug}.webp`;
   </div>
 </a>
 <style>
-  .card{ display:block; height:100%; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; transition:transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s; }
-  .card:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); border-color:var(--garisk); }
-  .card:active{ transform:scale(.97); box-shadow:none; }
+  .card{ display:block; height:100%; background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; transition:transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease), border-color var(--dur-2); }
+  /* Angkat + zoom foto hanya di perangkat dengan mouse: di HP, :hover menempel sesudah diketuk. */
+  @media(hover:hover) and (pointer:fine){
+    .card:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); border-color:var(--garisk); }
+    .card:hover .thumb img{ transform:scale(1.05); }
+  }
+  .card:active{ transform:scale(.97); box-shadow:none; transition-duration:.08s; }
   .thumb{ aspect-ratio:1/1; background:var(--kabut); margin:7px 7px 0; border-radius:10px; overflow:hidden; }
-  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .4s var(--ease); }
-  .card:hover .thumb img{ transform:scale(1.04); }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform var(--dur-3) var(--ease); }
   .body{ padding:10px 10px 12px; }
   .tags{ display:flex; gap:5px; flex-wrap:wrap; margin-bottom:7px; }
   .tag{ font-size:10px; font-weight:700; letter-spacing:.04em; padding:3px 8px; border-radius:6px; line-height:1.3; }

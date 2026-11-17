@@ -2,6 +2,9 @@
 import Base from '../../layouts/Base.astro';
 import { products } from '../../data/products.js';
 import { VARIANT_G } from '../../data/scalev.js';
+import Icon from '../../components/Icon.astro';
+import { svgIkon } from '../../data/ikon.js';
+const IK = { cek: svgIkon('check'), tambah: svgIkon('plus') };
 import fs from 'node:fs';
 import path from 'node:path';
 export function getStaticPaths(){
@@ -52,7 +55,7 @@ const jsonLd = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <div class="dp">
-    <div class="backbar"><a class="back" id="backLink" href="/#katalog">&#8592; Semua kopi</a></div>
+    <div class="backbar"><a class="back" id="backLink" href="/#katalog"><Icon name="arrow-left" /><span>Semua kopi</span></a></div>
     <div class="gal" id="gal">
       <div class="gscroll" id="gscroll">
         <div class="gslide"><img id="mainImg" src={hasReal ? `/img/real/${p.slug}.webp` : `/img/${p.slug}.webp`} alt={p.name + (hasReal ? " (foto asli)" : "")} data-vt={p.slug} fetchpriority="high" /></div>
@@ -119,7 +122,7 @@ const jsonLd = {
         <div class="bsel" id="selInfo">250gr &middot; {defGrind}</div>
         <div class="bprice" id="selPrice">{fmt(p.prices[250])}</div>
       </div>
-      <button class="btn btn-garis" id="addBtn">+ Keranjang</button>
+      <button class="btn btn-garis" id="addBtn"><Icon name="plus" /><span>Keranjang</span></button>
       <button class="btn btn-kuning" id="buyBtn">Beli langsung</button>
     </div>
   </div>
@@ -133,7 +136,8 @@ const jsonLd = {
     .gslide img{ height:100%; width:auto; max-width:100%; object-fit:contain; display:block; }
     .backbar{ max-width:1080px; margin:0 auto; padding:10px 16px 8px; }
     .back{ display:inline-flex; align-items:center; gap:4px; color:var(--birutua); font-size:13px; font-weight:700; padding:6px 12px 6px 8px; border-radius:999px; background:var(--kabut); }
-    .thumb{ position:absolute; right:12px; bottom:12px; width:60px; height:60px; padding:0; border:2px solid #fff; border-radius:10px; overflow:hidden; background:var(--kabut); cursor:pointer; }
+    .thumb{ position:absolute; right:12px; bottom:12px; width:60px; height:60px; padding:0; border:2px solid #fff; border-radius:10px; overflow:hidden; background:var(--kabut); cursor:pointer; box-shadow:0 4px 12px rgba(15,42,55,.18); }
+    @media(hover:hover) and (pointer:fine){ .thumb:hover{ transform:scale(1.06); } }
     .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
     .dotsg{ position:absolute; left:0; right:0; bottom:12px; display:flex; gap:6px; justify-content:center; pointer-events:none; }
     .dotsg i{ width:6px; height:6px; border-radius:3px; background:var(--garisk); transition:width .25s var(--ease), background .25s var(--ease); }
@@ -180,14 +184,14 @@ const jsonLd = {
     @media(max-width:370px){ .buybar .btn{ padding-left:10px; padding-right:10px; font-size:13px; } .chip b{ font-size:13px; } }
   </style>
 
-  <script define:vars={{ product:{ slug:p.slug, name:p.name, prices:p.prices, vg: vg } }}>
+  <script define:vars={{ product:{ slug:p.slug, name:p.name, prices:p.prices, vg: vg }, IK }}>
     let g=250, grind = document.querySelector('#grinds .chip.on').dataset.grind;
     const fmt=(n)=>"Rp "+n.toLocaleString('id-ID');
     // Skrip ini inline (define:vars) jadi tidak bisa impor safeLp dari scalev.js.
     // Aturannya harus sama: tanpa saringan, lp="/situs-lain.com" jadi "//situs-lain.com" (open redirect).
     const LP = (function(v){ v=String(v||''); return /^[a-z0-9-]{1,64}$/i.test(v) ? v : ''; })(new URLSearchParams(location.search).get('lp'));
     if(LP){
-      const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; }
+      const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; const t=bl.querySelector('span'); if(t) t.textContent='Kembali ke pilihan'; else bl.textContent='Kembali ke pilihan'; }
       // Tombol "+ Keranjang" sengaja TIDAK disembunyikan lagi (17 Agu 2026): halaman /pahit
       // menawarkan tiga kopi berdampingan, tapi mode corong memaksa beli satu-satu.
     }
@@ -229,9 +233,13 @@ const jsonLd = {
     }
     document.getElementById('addBtn').addEventListener('click',function(){
       addToCart();
-      const btn=this; btn.textContent='✓ Ditambahkan'; setTimeout(function(){btn.textContent='+ Keranjang';},1200);
+      // Umpan balik: tombol berubah jadi centang "Ditambahkan" sebentar, lalu kembali.
+      const btn=this;
+      clearTimeout(btn._kbT);
+      btn.classList.add('sukses'); btn.innerHTML=IK.cek+'<span>Ditambahkan</span>';
+      btn._kbT=setTimeout(function(){ btn.classList.remove('sukses'); btn.innerHTML=IK.tambah+'<span>Keranjang</span>'; },1400);
       if(window.kbTerbang) window.kbTerbang(document.getElementById('mainImg'));
-      if(window.kbToast) window.kbToast('Masuk keranjang');
+      if(window.kbToast) window.kbToast('Masuk keranjang','check');
     });
     document.getElementById('buyBtn').addEventListener('click',function(){
       const item={key:product.slug+'-'+g+'-'+grind,slug:product.slug,name:product.name,g:g,grind:grind,price:product.prices[g],qty:1,vid:vidFor(g)};

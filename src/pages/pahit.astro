@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import { products } from '../data/products.js';
 
 // Tema "kopi pahit" — 3 pilihan robusta, diurut dari paling pahit.
@@ -20,7 +21,7 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
          Tapi pembeli yang sudah menaruh kopi di keranjang tetap butuh jalan ke sana,
          jadi tombolnya muncul di kanan atas begitu keranjang ada isinya. -->
     <a class="cartfab" id="cartFab" href="/keranjang?lp=pahit" style="display:none" aria-label="Keranjang">
-      &#128722;<span class="fabn" id="cartFabN">0</span>
+      <Icon name="cart" /><span class="fabn" id="cartFabN">0</span>
     </a>
 
     <div class="logo-top"><img src="/img/logo.png" alt="Kopi Bing" /></div>
@@ -58,7 +59,7 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
             </div>
             <div class="cups">250gr bisa diseduh untuk ±25 gelas (tubruk)</div>
 
-            <span class="buy">Pesan {p.name} →</span>
+            <span class="buy">Pesan {p.name} <Icon name="arrow-right" /></span>
           </div>
         </a>
       ))}
@@ -85,8 +86,9 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
     .logo-top img{ width:56px; height:56px; border-radius:50%; }
     .cartfab{ position:fixed; top:14px; right:14px; z-index:20; display:flex; align-items:center; gap:7px;
       background:var(--birutua); color:#fff; font-size:17px; line-height:1; padding:10px 13px;
-      border-radius:999px; box-shadow:0 4px 14px rgba(15,42,55,.25); text-decoration:none; transition:transform .15s var(--ease); }
-    .cartfab:active{ transform:scale(.94); }
+      border-radius:999px; box-shadow:0 4px 14px rgba(15,42,55,.25); text-decoration:none; transition:transform var(--dur-1) var(--ease); animation:kb-pop var(--dur-3) var(--ease-pantul) backwards; }
+    .cartfab :global(.ik){ width:19px; height:19px; }
+    .cartfab:active{ transform:scale(.92); }
     .cartfab .fabn{ background:var(--kuning); color:var(--birutua); font-size:12px; font-weight:800; min-width:19px;
       height:19px; border-radius:10px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
 
@@ -98,8 +100,13 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
     .cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
     .card{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; display:flex; flex-direction:column;
       transition:transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease); }
-    .card:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(31,115,150,.14); border-color:var(--garisk); }
-    .card:active{ transform:scale(.985); }
+    @media(hover:hover) and (pointer:fine){
+      .card:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(31,115,150,.14); border-color:var(--garisk); }
+      .card:hover .imgs img{ transform:scale(1.04); }
+    }
+    .card:active{ transform:scale(.985); transition-duration:.08s; }
+    .imgs{ overflow:hidden; }
+    .imgs img{ transition:transform var(--dur-3) var(--ease); }
     .body{ padding:14px 15px 16px; display:flex; flex-direction:column; flex:1; }
     .body h3{ font-size:18px; font-weight:800; color:var(--tinta); }
     .origin{ color:var(--redup); font-size:11px; font-weight:600; letter-spacing:.04em; margin-top:2px; }
@@ -112,8 +119,9 @@ const testis = Array.from({length:15}, (_,i)=> '/img/testi/'+(i+1)+'.webp');
     .price .now{ color:var(--biru); font-size:23px; font-weight:800; }
     .price .per{ color:var(--redup); font-size:12px; font-weight:600; }
     .cups{ color:var(--redup); font-size:12px; font-weight:500; margin-bottom:12px; }
-    .buy{ margin-top:auto; display:flex; align-items:center; justify-content:center; height:46px; padding:0 12px; text-align:center; border-radius:var(--r-tombol);
-      font-size:14px; font-weight:700; background:#fff; color:var(--birutua); border:1.5px solid var(--birutua); transition:transform .15s var(--ease); }
+    .buy{ margin-top:auto; display:flex; align-items:center; justify-content:center; gap:6px; height:46px; padding:0 12px; text-align:center; border-radius:var(--r-tombol);
+      font-size:14px; font-weight:700; background:#fff; color:var(--birutua); border:1.5px solid var(--birutua); transition:transform var(--dur-1) var(--ease); }
+    .buy :global(.ik){ width:17px; height:17px; }
     .card.utama .buy{ background:var(--kuning); border-color:var(--kuning); }
     .card:active .buy{ transform:scale(.97); }
 

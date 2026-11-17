@@ -1,6 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import { products } from '../data/products.js';
+import { svgIkon } from '../data/ikon.js';
+// Ikon untuk HTML yang dibangun skrip kuis (skrip inline, jadi dikirim lewat define:vars).
+const IK = { kiri: svgIkon('arrow-left'), kanan: svgIkon('chevron-right'), cek: svgIkon('check', { stroke: 2.25 }), ulang: svgIkon('rotate-ccw') };
 const SD = {
 "robusta-sidikalang":"sanger, tubruk, Vietnam drip",
 "robusta-java-perfecto":"Vietnam drip, sanger",
@@ -34,7 +37,7 @@ const MAP = {
 ---
 <Base title="Temuin kopimu — Toko Kopi Bing" description="Jawab 2 pertanyaan singkat, kami bantu pilihkan kopi yang paling cocok sama seleramu." naked={true}>
   <div id="kbapp" class="kbk"></div>
-  <script define:vars={{ P, MAP }}>
+  <script define:vars={{ P, MAP, IK }}>
     var TASTE={robusta:"pahit",arabika:"asem",blend:"seimbang"};
     var ILU='/img/ds2/ilustrasi-kuis.svg';
     var app=document.getElementById('kbapp');var q={};var depth=0;var busy=false;
@@ -51,7 +54,7 @@ const MAP = {
     function cap(t){return t.charAt(0).toUpperCase()+t.slice(1);}
     function tile(pr,d){
       return '<a class="kbtile kbin" style="--d:'+d+'ms" href="/produk/'+pr.s+'">'
-      +'<div class="kbfoto"><img src="/img/'+pr.s+'.webp" alt="'+pr.n+'" loading="lazy" /></div>'
+      +'<div class="kbfoto"><img class="kb-img" src="/img/'+pr.s+'.webp" alt="'+pr.n+'" loading="lazy" /></div>'
       +'<div class="kbtk"><div class="kbtn">'+pr.n+'</div>'
       +'<div class="kbts">'+cap(pr.c)+(pr.sd?' &middot; '+pr.sd:'')+'</div>'
       +'<div class="kbtp">'+rp(pr.p)+' <small>/100 gr</small></div></div></a>';}
@@ -64,14 +67,14 @@ const MAP = {
       +'<p class="kbp">Jawab 2 pertanyaan singkat, nanti kami pilihkan kopi yang paling cocok.</p>'
       +'<button type="button" id="g1" class="btn btn-kuning kbfull">Bantu pilihkan (30 detik)</button>'
       +'<a id="g2" href="/" class="btn btn-garis kbfull" style="margin-top:10px">Lihat semua katalog</a>'
-      +'<div class="kbjam"><div><i>&#10003;</i> Bisa request gilingan</div><div><i>&#10003;</i> Aman, live setiap hari di TikTok</div><div><i>&#10003;</i> Pembayaran diproses aman</div></div>'
+      +'<div class="kbjam"><div><i>'+IK.cek+'</i> Bisa request gilingan</div><div><i>'+IK.cek+'</i> Aman, live setiap hari di TikTok</div><div><i>'+IK.cek+'</i> Pembayaran diproses aman</div></div>'
       +'<div class="kbtesti"><div class="kbjd">Kata pelanggan Kopi Bing</div>'
-      +'<div class="kbtrack">'+TESTI.map(function(src){return '<div class="kbtc"><img src="'+src+'" loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>';}).join('')+'</div></div>'
+      +'<div class="kbtrack">'+TESTI.map(function(src){return '<div class="kbtc"><img class="kb-img" src="'+src+'" loading="lazy" alt="Testimoni pelanggan Kopi Bing" /></div>';}).join('')+'</div></div>'
       +'</div></div>';
       document.getElementById('g1').onclick=function(){q={};kbTrack('KuisMulai',{asal:'gate'});go('q1');};}
     var optN=0;
-    function opt(txt,sub,val){return '<button type="button" class="kbopt kbin" style="--d:'+(optN++*60)+'ms" data-v="'+val+'"><span class="kbot"><b>'+txt+'</b><span>'+sub+'</span></span><i>&#8250;</i></button>';}
-    function atas(step){return '<div class="kbatas"><button type="button" class="kbback" id="kbback">&larr; Kembali</button>'
+    function opt(txt,sub,val){return '<button type="button" class="kbopt kbin" style="--d:'+(optN++*60)+'ms" data-v="'+val+'"><span class="kbot"><b>'+txt+'</b><span>'+sub+'</span></span><i>'+IK.kanan+'</i></button>';}
+    function atas(step){return '<div class="kbatas"><button type="button" class="kbback" id="kbback">'+IK.kiri+' Kembali</button>'
       +'<div class="kbprog">'+[1,2].map(function(i){return '<span class="'+(i<=step?'on':'')+'"></span>';}).join('')+'</div>'
       +'<div class="kbkecil" style="margin:0">Pertanyaan '+step+' dari 2</div></div>';}
     function frame(step,qt,body){
@@ -110,8 +113,8 @@ const MAP = {
       +'<div class="kbhb"><span class="kbhg">'+rp(main.p)+' <small>/100 gr</small></span><span class="btn btn-kuning kbpesan">Pesan sekarang</span></div></div></a>'
       +'<div class="kbmirip kbin" style="--d:180ms">Atau yang mirip:</div>'
       +'<div class="kbalt">'+alt.map(function(p,i){return tile(p,260+i*90);}).join('')+'</div>'
-      +'<button type="button" id="kbretry" class="kbulang kbin" style="--d:420ms">&#8634; Ulangi kuis</button>'
-      +'<div class="kbtombol kbin" style="--d:480ms"><a href="/" class="btn btn-gelap">Lihat semua kopi</a><a href="/" class="btn btn-garis">&larr; Ke beranda</a></div>'
+      +'<button type="button" id="kbretry" class="kbulang kbin" style="--d:420ms">'+IK.ulang+' Ulangi kuis</button>'
+      +'<div class="kbtombol kbin" style="--d:480ms"><a href="/" class="btn btn-gelap">Lihat semua kopi</a><a href="/" class="btn btn-garis">'+IK.kiri+' Ke beranda</a></div>'
       +'<div class="kbjamin kbin" style="--d:540ms">Digiling saat kamu pesan &middot; Live tiap hari di TikTok &middot; Pembayaran aman</div>'
       +'</div></div>';
       document.getElementById('kbretry').onclick=function(){q={};kbTrack('KuisMulai',{asal:'ulangi'});go('q1');};
@@ -150,7 +153,9 @@ const MAP = {
     .kbp{ font-size:14px; line-height:1.55; color:var(--isi); margin:0 auto 22px; max-width:360px; }
     .kbfull{ display:flex; width:100%; max-width:340px; margin-left:auto; margin-right:auto; }
     .kbjam{ max-width:340px; margin:24px auto 0; text-align:left; display:flex; flex-direction:column; gap:10px; font-size:13px; font-weight:500; color:var(--isi); }
-    .kbjam i{ font-style:normal; color:var(--hijau); font-weight:800; margin-right:4px; }
+    .kbjam div{ display:flex; align-items:center; gap:7px; }
+    .kbjam i{ display:inline-flex; color:var(--hijau); }
+    .kbjam i .ik{ width:16px; height:16px; }
     .kbtesti{ margin-top:30px; text-align:left; }
     .kbjd{ font-size:14px; font-weight:800; color:var(--tinta); margin-bottom:10px; }
     .kbtrack{ display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory; }
@@ -158,18 +163,21 @@ const MAP = {
     .kbtc img{ width:100%; display:block; }
 
     .kbatas{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:16px 16px 0; }
-    .kbback{ background:none; border:0; padding:0; font:inherit; font-size:13px; font-weight:700; color:var(--biru); cursor:pointer; }
+    .kbback{ display:inline-flex; align-items:center; gap:5px; background:none; border:0; padding:0; font:inherit; font-size:13px; font-weight:700; color:var(--biru); cursor:pointer; }
+    .kbback .ik{ width:16px; height:16px; transition:transform var(--dur-2) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .kbback:hover .ik{ transform:translateX(-3px); } }
     .kbprog{ display:flex; gap:6px; width:100%; }
     .kbprog span{ flex:1; height:5px; border-radius:3px; background:var(--kabut); transition:background .3s var(--ease); }
     .kbprog span.on{ background:var(--biru); }
     .kbopt{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left; font:inherit;
       background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:14px; margin-bottom:10px; cursor:pointer;
       transition:border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease); }
-    .kbopt:hover{ border-color:var(--biru); background:var(--kabut); }
+    @media(hover:hover) and (pointer:fine){ .kbopt:hover{ border-color:var(--biru); background:var(--kabut); } .kbopt:hover i{ color:var(--biru); transform:translateX(3px); } }
     .kbot b{ display:block; font-size:15px; font-weight:800; color:var(--tinta); }
     .kbot span{ display:block; font-size:12px; font-weight:500; color:var(--isi); line-height:1.4; margin-top:3px; }
-    .kbopt i{ font-style:normal; font-size:22px; font-weight:700; color:var(--garisk); line-height:1; }
-    .kbopt:hover i{ color:var(--biru); }
+    .kbopt i{ display:inline-flex; color:var(--garisk); transition:transform var(--dur-2) var(--ease), color var(--dur-2); }
+    .kbopt i .ik{ width:22px; height:22px; }
+    .kbopt.kbpop i{ color:var(--biru); }
     .kbopt.kbpop{ border:2px solid var(--biru); background:var(--kabut); padding:13px; animation:kbpop .3s var(--ease-pantul); }
     @keyframes kbpop{ 0%{transform:scale(1)} 40%{transform:scale(.95)} 75%{transform:scale(1.03)} 100%{transform:scale(1)} }
     .kbcat{ text-align:right; margin-top:6px; }
@@ -178,7 +186,7 @@ const MAP = {
     .kbjudul{ text-align:center; margin-bottom:14px; }
     .kbjudul .kbkecil{ margin-bottom:4px; }
     .kbjalur{ font-size:12px; font-weight:700; color:var(--biru); }
-    .kbutama{ display:block; background:#fff; border:2px solid var(--biru); border-radius:16px; overflow:hidden; color:inherit; text-decoration:none; }
+    .kbutama{ display:block; transition:transform var(--dur-2) var(--ease); background:#fff; border:2px solid var(--biru); border-radius:16px; overflow:hidden; color:inherit; text-decoration:none; }
     .kbfoto{ background:var(--kabut); overflow:hidden; }
     .kbfoto{ background:#F4F7F4; }
     .kbfoto img{ width:100%; height:100%; object-fit:contain; display:block; }
@@ -196,13 +204,16 @@ const MAP = {
     .kbpesan{ padding:0 16px; flex-shrink:0; }
     .kbmirip{ font-size:13px; font-weight:700; color:var(--isi); margin:16px 0 9px; }
     .kbalt{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .kbtile{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; color:inherit; text-decoration:none; display:flex; flex-direction:column; }
+    .kbtile{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); overflow:hidden; color:inherit; text-decoration:none; display:flex; flex-direction:column; transition:transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease); }
+    .kbtile:active, .kbutama:active{ transform:scale(.98); transition-duration:.08s; }
+    .kbfoto img{ transition:transform var(--dur-3) var(--ease); }
+    @media(hover:hover) and (pointer:fine){ .kbtile:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(19,63,82,.12); } .kbtile:hover .kbfoto img, .kbutama:hover .kbfoto img{ transform:scale(1.04); } }
     .kbtile .kbfoto{ aspect-ratio:3/2; }
     .kbtk{ padding:10px 12px 12px; }
     .kbtn{ font-size:14px; font-weight:800; color:var(--tinta); line-height:1.25; }
     .kbts{ font-size:11px; font-weight:500; color:var(--redup); margin:3px 0 6px; line-height:1.35; }
     .kbtp{ font-size:13px; font-weight:800; color:var(--biru); }
-    .kbulang{ display:block; margin:16px auto 0; background:none; border:0; font:inherit; font-size:13px; font-weight:700; color:var(--biru); cursor:pointer; padding:6px 10px; }
+    .kbulang{ display:flex; align-items:center; gap:6px; margin:16px auto 0; background:none; border:0; font:inherit; font-size:13px; font-weight:700; color:var(--biru); cursor:pointer; padding:6px 10px; }
     .kbtombol{ display:flex; gap:10px; margin-top:10px; }
     .kbtombol .btn{ flex:1; min-width:0; }
     .kbjamin{ margin-top:14px; background:var(--kabut); border-radius:12px; padding:12px 14px; font-size:12px; font-weight:600; line-height:1.5; color:var(--birutua); text-align:center; }
@@ -215,7 +226,7 @@ const MAP = {
     @keyframes kbmasukk{ from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:none} }
     @keyframes kbkeluar{ from{opacity:1;transform:none} to{opacity:0;transform:translateX(-28px)} }
     /* kartu muncul bergantian */
-    .kbin{ animation:kbin .45s var(--ease) both; animation-delay:var(--d,0ms); }
+    .kbin{ animation:kbin .45s var(--ease) backwards; animation-delay:var(--d,0ms); }
     @keyframes kbin{ from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
     @media(prefers-reduced-motion:reduce){ .kbmasuk,.kbmasuk-k,.kbkeluar,.kbin,.kbopt.kbpop{ animation:none; } }
     @media(min-width:640px){ .kbk{ padding-top:10px; } .kbilu{ border-radius:0 0 var(--r-kartu) var(--r-kartu); } }
