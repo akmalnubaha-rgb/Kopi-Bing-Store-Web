@@ -1,0 +1,7 @@
+---
+// Ikon situs. Contoh: <Icon name="arrow-left" />, <Icon name="check" size={18} />.
+// Daftar nama ada di src/data/ikon.js.
+import { svgIkon } from '../data/ikon.js';
+const { name, size, class: cls, stroke, draw, label } = Astro.props;
+---
+<Fragment set:html={svgIkon(name, { size, cls, stroke, draw, label })} />

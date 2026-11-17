@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 import { products } from '../data/products.js';
+import Icon from '../components/Icon.astro';
 
 const CATALOG = Object.fromEntries(products.map(p => [p.slug, { n: p.name, p: p.prices }]));
 
@@ -19,7 +20,7 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
 <script is:inline define:vars={{ CATALOG, PAYLOGO, KURIRLOGO }}>window.KB_CATALOG = CATALOG; window.KB_PAYLOGO = PAYLOGO; window.KB_KURIRLOGO = KURIRLOGO;</script>
 <Base title="Checkout — Toko Kopi Bing" description="Selesaikan pesanan kopimu di Toko Kopi Bing." noindex={true}>
   <div class="wrap cop" id="formView">
-    <a class="back" id="backLink" href="/keranjang">&#8592; Kembali ke keranjang</a>
+    <a class="back" id="backLink" href="/keranjang"><Icon name="arrow-left" /><span>Kembali ke keranjang</span></a>
     <h1>Checkout</h1>
 
     <section class="kar" data-muncul>
@@ -29,7 +30,7 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
         <input class="fld" id="locSearch" placeholder="Ketik kecamatan / kota (min 3 huruf)" autocomplete="off" />
         <div id="locResults" class="locres" style="display:none"></div>
       </div>
-      <div id="locPicked" class="picked" style="display:none"></div>
+      <div id="locPicked" class="picked" style="display:none"><Icon name="map-pin" /><span id="locPickedTxt"></span></div>
       <select class="fld" id="postal" style="display:none"></select>
     </section>
 
@@ -71,7 +72,7 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
        Alasannya: follow-up masih memakai nomor Scalev, jadi membatalkan pesanan COD
        yang sudah telanjur jalan itu mahal - lebih baik disaring sebelum dibuat. -->
   <div class="wrap cop codv" id="codView" style="display:none">
-    <a class="back" id="codBack" href="#">&#8592; Ubah pesanan</a>
+    <a class="back" id="codBack" href="#"><Icon name="arrow-left" /><span>Ubah pesanan</span></a>
     <h1>Cek dulu sebelum lanjut</h1>
     <p class="lead">Kamu memilih <b>bayar di tempat (COD)</b>. Uangnya dibayarkan tunai ke kurir waktu paket sampai, bukan sekarang.</p>
 
@@ -101,14 +102,16 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
     <button class="btn btn-garis full" id="codEdit">Ubah dulu pesanan saya</button>
 
     <a class="wabtn" id="codWa" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2 0-.2 0-.3-.1-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3 1 2.6 1.1 2.8.2.2 2 3 4.7 4.2 1.7.7 2.3.8 3.1.7.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1 0-.1-.2-.2-.4-.3Z"/></svg>
+      <Icon name="whatsapp" />
       <span>Chat admin jika ada kendala</span>
     </a>
   </div>
 
   <style is:global>
     .cop{ max-width:600px; margin:0 auto; padding:16px 16px 10px; }
-    .cop .back{ display:inline-block; color:var(--biru); font-size:13px; font-weight:600; margin-bottom:12px; }
+    .cop .back{ display:inline-flex; align-items:center; gap:5px; color:var(--biru); font-size:13px; font-weight:600; margin-bottom:12px; }
+    /* Langkah COD tampil dari display:none: animasinya otomatis jalan tiap kali dibuka. */
+    #codView{ animation:kb-naik var(--dur-3) var(--ease) backwards; }
     .cop h1{ font-size:24px; font-weight:800; color:var(--tinta); margin-bottom:16px; }
     .cop .kar{ background:#fff; border:1px solid var(--garis); border-radius:var(--r-kartu); padding:18px; margin-bottom:14px; }
     .cop .kh{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
@@ -121,10 +124,11 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
     .cop .fld.salah{ border-color:var(--merah); animation:kbGetar .35s var(--ease); }
     @keyframes kbGetar{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
     .cop .loc{ position:relative; }
-    .cop .locres{ position:absolute; top:52px; left:0; right:0; background:#fff; border:1px solid var(--garisk); border-radius:12px; z-index:5; overflow:hidden; max-height:230px; overflow-y:auto; box-shadow:0 8px 24px rgba(15,42,55,.12); }
-    .cop .locres div{ padding:12px 14px; font-size:14px; color:var(--tinta); cursor:pointer; border-bottom:1px solid var(--kabut); }
-    .cop .locres div:hover{ background:var(--kabut); }
-    .cop .picked{ background:var(--kabut); border-radius:10px; padding:10px 13px; font-size:13px; font-weight:500; color:var(--birutua); margin-bottom:12px; }
+    .cop .locres{ position:absolute; top:52px; left:0; right:0; background:#fff; border:1px solid var(--garisk); border-radius:12px; z-index:5; overflow:hidden; max-height:230px; overflow-y:auto; box-shadow:0 8px 24px rgba(15,42,55,.12); transform-origin:top center; animation:kb-turun var(--dur-2) var(--ease) backwards; }
+    .cop .locres div{ padding:12px 14px; font-size:14px; color:var(--tinta); cursor:pointer; border-bottom:1px solid var(--kabut); transition:background var(--dur-1); }
+    .cop .locres div:hover, .cop .locres div:active{ background:var(--kabut); }
+    .cop .picked{ display:flex; align-items:flex-start; gap:7px; background:var(--kabut); border-radius:10px; padding:10px 13px; font-size:13px; font-weight:500; color:var(--birutua); margin-bottom:12px; animation:kb-naik var(--dur-2) var(--ease) backwards; }
+    .cop .picked .ik{ width:16px; height:16px; margin-top:1px; color:var(--biru); }
     .cop .courier .crow.kur{ display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto; align-items:center; gap:4px 8px; text-align:left; }
     .cop .klogo{ grid-column:1 / -1; height:22px; display:flex; align-items:center; font-size:13px; font-weight:800; letter-spacing:.2px; }
     .cop .klogo img{ height:100%; width:auto; max-width:90px; object-fit:contain; }
@@ -135,7 +139,9 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
     @keyframes kb-kilap{ to{ background-position:-200% 0; } }
     .cop .courier{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
     .cop .crow{ position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:2px; background:#fff; border:1.5px solid var(--garisk); border-radius:12px; padding:12px 13px; cursor:pointer; font-family:inherit; text-align:left; color:var(--tinta); transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease); }
-    .cop .crow:hover{ border-color:var(--biru); }
+    @media(hover:hover) and (pointer:fine){ .cop .crow:hover{ border-color:var(--biru); } }
+    .cop .courier .crow.kur{ animation:kb-naik var(--dur-2) var(--ease) backwards; }
+    .cop .courier .crow.kur:nth-child(2){ animation-delay:40ms; } .cop .courier .crow.kur:nth-child(3){ animation-delay:80ms; } .cop .courier .crow.kur:nth-child(n+4){ animation-delay:120ms; }
     .cop .crow.on{ background:var(--biru); border-color:var(--biru); color:#fff; box-shadow:0 4px 12px rgba(31,115,150,.28); }
     .cop .cl{ display:flex; flex-direction:column; align-items:flex-start; font-size:14px; font-weight:700; }
     .cop .cl small{ color:var(--redup); font-size:11px; margin-top:3px; font-weight:400; transition:color .2s var(--ease); }
@@ -218,14 +224,14 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
     }
 
     const LP = safeLp(new URLSearchParams(location.search).get('lp'));
-    if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.textContent='← Kembali ke pilihan'; } }
+    if(LP){ const bl=document.getElementById('backLink'); if(bl){ bl.href='/'+LP; bl.querySelector('span').textContent='Kembali ke pilihan'; } }
     sweepOrderMeta();
 
     const fmt=(n)=>"Rp "+Number(n).toLocaleString('id-ID');
     const params=new URLSearchParams(location.search);
     const isBuynow = params.get('buynow')==='1';
     const cart = pruneCart(isBuynow ? JSON.parse(sessionStorage.getItem('kb_buynow')||'[]') : JSON.parse(localStorage.getItem('kb_cart')||'[]'), window.KB_CATALOG);
-    if(isBuynow){ const bl=document.getElementById('backLink'); if(bl){ bl.textContent='← Lanjut belanja'; bl.href='/#katalog'; } }
+    if(isBuynow){ const bl=document.getElementById('backLink'); if(bl){ bl.querySelector('span').textContent='Lanjut belanja'; bl.href='/#katalog'; } }
 
     const $=(id)=>document.getElementById(id);
     let loc=null, chosenPostal=null, courier=null, ship=0, payMethod=null;
@@ -336,7 +342,7 @@ const KURIRLOGO = fs.existsSync(kurirDir) ? Object.fromEntries(fs.readdirSync(ku
       const d=e.target.closest('[data-i]'); if(!d) return;
       loc=this._data[+d.dataset.i]; this.style.display='none'; $('locSearch').value='';
       langkah('CO_Wilayah', {provinsi:loc.province_name||''});
-      $('locPicked').textContent='📍 '+loc.display; $('locPicked').style.display='block';
+      $('locPickedTxt').textContent=loc.display; $('locPicked').style.display='flex';
       resetCourier(); chosenPostal=null; const sel=$('postal');
       try{
         const codes=await atauContoh(postalCodes(loc.id), 'kodepos');
